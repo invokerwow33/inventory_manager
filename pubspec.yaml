@@ -1,0 +1,50 @@
+name: inventory_manager
+description: A new Flutter project.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  sqflite: ^2.3.0
+  sqflite_common_ffi: ^2.3.0
+  path: ^1.8.3
+  intl: ^0.18.1
+  
+  # Для синхронизации
+  dio: ^5.4.0
+  shared_preferences: ^2.2.2
+  connectivity_plus: ^5.0.2
+  
+  # Для QR кодов
+  qr_flutter: ^4.0.0
+  
+  # Для печати отчетов
+  printing: ^5.11.1
+  
+  # Для уведомлений Windows
+  flutter_local_notifications: ^16.1.0
+  
+  # Для работы с файлами
+  file_picker: ^5.3.3
+  path_provider: ^2.1.0
+  
+  # Для графиков (опционально)
+  fl_chart: ^0.66.0
+  
+  # Для управления состоянием
+  provider: ^6.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  #assets:
+  #  - assets/
