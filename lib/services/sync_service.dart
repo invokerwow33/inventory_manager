@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import '../database/database_helper.dart';
+import '../database/simple_database_helper.dart';
 import '../models/equipment.dart';
 
 class SyncService {

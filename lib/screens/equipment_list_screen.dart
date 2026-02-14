@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_manager/models/equipment.dart';
 import 'package:inventory_manager/screens/add_equipment_screen.dart'; // ← оставляем старый
+import 'package:inventory_manager/widgets/export_menu_button.dart';
 import 'package:inventory_manager/database/database_helper.dart';
 
 class EquipmentListScreen extends StatefulWidget {
