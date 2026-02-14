@@ -32,6 +32,8 @@ dependencies:
   # Для работы с файлами
   file_picker: ^5.3.3
   path_provider: ^2.1.0
+  excel: ^4.0.2
+  csv: ^6.0.0
   
   # Для графиков (опционально)
   fl_chart: ^0.66.0
@@ -46,5 +48,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  #assets:
-  #  - assets/

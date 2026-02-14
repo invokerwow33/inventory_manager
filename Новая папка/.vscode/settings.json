@@ -1,7 +1,0 @@
-{
-    "CodeGPT.apiKey": "HuggingFace",
-    "chatgpt.gpt3.provider": "Ollama",
-    "chatgpt.gpt3.reasoning.provider": "Ollama",
-    "kudos-gpt.CopilotServices": "Ollama",
-    "git.ignoreLimitWarning": true
-}

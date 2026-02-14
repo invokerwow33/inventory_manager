@@ -1,11 +1,8 @@
-// lib/screens/settings_screen.dart
 import 'package:flutter/material.dart';
-import 'package:inventory_manager/database/simple_database_helper.dart';
 import 'package:inventory_manager/screens/backup_screen.dart';
-
+import 'package:inventory_manager/screens/import_screen.dart';
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
-
+  const SettingsScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,34 +48,16 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           
-          // ИСПРАВЛЕНИЕ БАЗЫ ДАННЫХ - ДОБАВЬТЕ ЭТОТ БЛОК
+          // Импорт данных
           ListTile(
-            leading: const Icon(Icons.build, color: Colors.orange),
-            title: const Text('Исправить базу данных'),
-            subtitle: const Text('Исправить проблемы с типами данных'),
-            onTap: () async {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Исправление базы данных'),
-                  content: const Text('Вы уверены, что хотите исправить типы данных в базе?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Отмена'),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        final dbHelper = SimpleDatabaseHelper();
-                        await dbHelper.fixDatabase();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('База данных исправлена')),
-                        );
-                      },
-                      child: const Text('Исправить'),
-                    ),
-                  ],
+            leading: const Icon(Icons.upload_file, color: Colors.green),
+            title: const Text('Импорт из CSV/Excel'),
+            subtitle: const Text('Загрузить оборудование из файла'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ImportScreen(),
                 ),
               );
             },
