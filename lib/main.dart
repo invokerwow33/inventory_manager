@@ -1,11 +1,19 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:inventory_manager/screens/dashboard_screen.dart';
 import 'package:inventory_manager/screens/equipment_list_screen.dart';
 import 'package:inventory_manager/screens/reports_screen.dart';
 import 'package:inventory_manager/screens/movement_history_screen.dart';
 import 'package:inventory_manager/screens/settings_screen.dart';
+import 'package:inventory_manager/database/database_init.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    initDatabase();
+  }
+  
   runApp(const MyApp());
 }
 
