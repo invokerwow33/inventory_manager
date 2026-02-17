@@ -4,12 +4,11 @@ import 'dart:io';
 import 'package:sqflite/sqflite.dart'; // Добавьте этот импорт
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
-import '../screens/database_helper.dart';
+import '../database/database_helper.dart';
 import '../models/equipment.dart';
 
 class BackupService {
-  // Используйте экземпляр DatabaseHelper напрямую
-  final DatabaseHelper dbHelper = DatabaseHelper();
+  final DatabaseHelper dbHelper = DatabaseHelper.instance;
 
   Future<void> createBackup() async {
     try {

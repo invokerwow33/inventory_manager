@@ -16,6 +16,10 @@ class DatabaseHelper {
     return _database!;
   }
 
+  Future<void> initDatabase() async {
+    await database;
+  }
+
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'inventory.db');
     return await openDatabase(
