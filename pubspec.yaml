@@ -41,6 +41,9 @@ dependencies:
   # Для управления состоянием
   provider: ^6.1.1
 
+  # Исправление для совместимости с Windows
+  win32: ^5.4.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
