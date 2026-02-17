@@ -1,36 +1,22 @@
-import 'dart:convert';
 import 'dart:io';
-
+import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart';
-import 'package:file_picker/file_picker.dart';
-
+import 'dart:convert';
 import '../database/database_helper.dart';
 import '../models/equipment.dart';
-
 class ExportService {
   static Future<void> exportToCsv({List<Equipment>? equipmentList}) async {
     final equipment = equipmentList ?? await DatabaseHelper.instance.getAllEquipment();
-
+    
     if (equipment.isEmpty) {
       throw Exception('Нет данных для экспорта');
     }
-
+    
     final rows = [
-      [
-        'Название',
-        'Тип',
-        'Статус',
-        'Серийный номер',
-        'Инв. номер',
-        'Производитель',
-        'Модель',
-        'Отдел',
-        'Ответственный',
-        'Местоположение'
-      ]
+      ['Название', 'Тип', 'Статус', 'Серийный номер', 'Инв. номер', 'Производитель', 'Модель', 'Отдел', 'Ответственный', 'Местоположение']
     ];
-
+    
     for (final eq in equipment) {
       rows.add([
         eq.name,
@@ -45,33 +31,33 @@ class ExportService {
         eq.location ?? '',
       ]);
     }
-
+    
     final csv = const ListToCsvConverter().convert(rows);
     final bytes = utf8.encode(csv);
-
+    
+    // Используем file_picker для сохранения
     final result = await FilePicker.platform.saveFile(
       dialogTitle: 'Сохранить CSV файл',
       fileName: 'equipment_export_${_timestamp()}.csv',
       type: FileType.custom,
       allowedExtensions: ['csv'],
     );
-
+    
     if (result != null) {
       final file = File(result);
       await file.writeAsBytes(bytes);
     }
   }
-
   static Future<void> exportToExcel({List<Equipment>? equipmentList}) async {
     final equipment = equipmentList ?? await DatabaseHelper.instance.getAllEquipment();
-
+    
     if (equipment.isEmpty) {
       throw Exception('Нет данных для экспорта');
     }
-
+    
     final excel = Excel.createExcel();
     final sheet = excel['Оборудование'];
-
+    
     sheet.appendRow([
       TextCellValue('Название'),
       TextCellValue('Тип'),
@@ -84,7 +70,7 @@ class ExportService {
       TextCellValue('Ответственный'),
       TextCellValue('Местоположение'),
     ]);
-
+    
     for (final eq in equipment) {
       sheet.appendRow([
         TextCellValue(eq.name),
@@ -99,7 +85,7 @@ class ExportService {
         TextCellValue(eq.location ?? ''),
       ]);
     }
-
+    
     final bytes = excel.encode();
     if (bytes != null) {
       final result = await FilePicker.platform.saveFile(
@@ -108,14 +94,13 @@ class ExportService {
         type: FileType.custom,
         allowedExtensions: ['xlsx'],
       );
-
+      
       if (result != null) {
         final file = File(result);
         await file.writeAsBytes(bytes);
       }
     }
   }
-
   static String _timestamp() {
     final now = DateTime.now();
     return '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
