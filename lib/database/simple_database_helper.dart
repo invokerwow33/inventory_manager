@@ -127,6 +127,10 @@ class SimpleDatabaseHelper {
     return value.toString();
   }
 
+  bool _idsMatch(dynamic first, dynamic second) {
+    return first?.toString() == second?.toString();
+  }
+
   // Поиск оборудования по инвентарному номеру
   Future<List<Map<String, dynamic>>> searchEquipmentByInventoryNumber(String inventoryNumber) async {
     if (!_isInitialized) await initDatabase();
@@ -242,7 +246,7 @@ class SimpleDatabaseHelper {
   Future<int> safeUpdateEquipment(Map<String, dynamic> equipment) async {
     if (!_isInitialized) await initDatabase();
     
-    final index = _equipment.indexWhere((item) => item['id'] == equipment['id']);
+    final index = _equipment.indexWhere((item) => _idsMatch(item['id'], equipment['id']));
     if (index != -1) {
       final existing = _equipment[index];
       
@@ -334,7 +338,7 @@ class SimpleDatabaseHelper {
   Future<Map<String, dynamic>?> getEquipmentById(dynamic id) async {
     if (!_isInitialized) await initDatabase();
     return _equipment.firstWhere(
-      (item) => item['id'] == id,
+      (item) => _idsMatch(item['id'], id),
       orElse: () => {},
     );
   }
@@ -343,7 +347,7 @@ class SimpleDatabaseHelper {
     if (!_isInitialized) await initDatabase();
     
     final initialLength = _equipment.length;
-    _equipment.removeWhere((item) => item['id'] == id);
+    _equipment.removeWhere((item) => _idsMatch(item['id'], id));
     if (_equipment.length != initialLength) {
       await _saveToFile();
       print('Оборудование удалено. ID: $id');
@@ -412,7 +416,7 @@ class SimpleDatabaseHelper {
   Future<List<Map<String, dynamic>>> getEquipmentMovements(dynamic equipmentId) async {
     if (!_isInitialized) await initDatabase();
     final filtered = _movements
-        .where((movement) => movement['equipment_id'] == equipmentId)
+        .where((movement) => _idsMatch(movement['equipment_id'], equipmentId))
         .toList();
     
     // Сортируем по дате (новые сверху)
