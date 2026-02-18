@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -14,6 +15,11 @@ class DocumentGeneratorService {
   factory DocumentGeneratorService() => _instance;
   DocumentGeneratorService._internal();
 
+  Future<pw.Font> _loadCyrillicFont(String path) async {
+    final fontData = await rootBundle.load(path);
+    return pw.Font.ttf(fontData.buffer.asUint8List());
+  }
+
   Future<Uint8List> generatePdf(
     DocumentData data,
     DocumentHeaderSettings header,
@@ -24,9 +30,12 @@ class DocumentGeneratorService {
         ? (data.price! * data.quantity).toStringAsFixed(2)
         : '0.00';
 
-    // Load fonts with Cyrillic support using PdfGoogleFont
-    final fontRegular = await PdfGoogleFont.roboto();
-    final fontBold = await PdfGoogleFont.robotoBold();
+    final fontRegular = await _loadCyrillicFont(
+      'assets/fonts/Roboto-Regular.ttf',
+    );
+    final fontBold = await _loadCyrillicFont(
+      'assets/fonts/Roboto-Bold.ttf',
+    );
 
     pdf.addPage(
       pw.Page(
