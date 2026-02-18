@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_manager/database/simple_database_helper.dart';
-import 'package:inventory_manager/models/employee.dart';
+import 'package:provider/provider.dart';
+import '../database/database_helper.dart';
+import '../models/employee.dart';
+import '../providers/employee_provider.dart';
+import '../utils/validators.dart';
+import '../widgets/common/common_widgets.dart';
 
 class AddEmployeeScreen extends StatefulWidget {
   final Employee? employee;
@@ -13,15 +17,16 @@ class AddEmployeeScreen extends StatefulWidget {
 
 class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   final _formKey = GlobalKey<FormState>();
-  final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   
-  late TextEditingController _fullNameController;
-  late TextEditingController _departmentController;
-  late TextEditingController _positionController;
-  late TextEditingController _emailController;
-  late TextEditingController _phoneController;
-  late TextEditingController _employeeNumberController;
-  late TextEditingController _notesController;
+  // Controllers
+  late final TextEditingController _fullNameController;
+  late final TextEditingController _departmentController;
+  late final TextEditingController _positionController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _employeeNumberController;
+  late final TextEditingController _notesController;
   
   bool get _isEditMode => widget.employee != null;
   String? _editingId;
@@ -30,25 +35,39 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   void initState() {
     super.initState();
     
+    // Initialize controllers
+    _fullNameController = TextEditingController();
+    _departmentController = TextEditingController();
+    _positionController = TextEditingController();
+    _emailController = TextEditingController();
+    _phoneController = TextEditingController();
+    _employeeNumberController = TextEditingController();
+    _notesController = TextEditingController();
+    
     if (_isEditMode && widget.employee != null) {
       _editingId = widget.employee!.id;
-      _fullNameController = TextEditingController(text: widget.employee!.fullName);
-      _departmentController = TextEditingController(text: widget.employee!.department ?? '');
-      _positionController = TextEditingController(text: widget.employee!.position ?? '');
-      _emailController = TextEditingController(text: widget.employee!.email ?? '');
-      _phoneController = TextEditingController(text: widget.employee!.phone ?? '');
-      _employeeNumberController = TextEditingController(text: widget.employee!.employeeNumber ?? '');
-      _notesController = TextEditingController(text: widget.employee!.notes ?? '');
+      _fullNameController.text = widget.employee!.fullName;
+      _departmentController.text = widget.employee!.department ?? '';
+      _positionController.text = widget.employee!.position ?? '';
+      _emailController.text = widget.employee!.email ?? '';
+      _phoneController.text = widget.employee!.phone ?? '';
+      _employeeNumberController.text = widget.employee!.employeeNumber ?? '';
+      _notesController.text = widget.employee!.notes ?? '';
     } else {
       _editingId = 'emp_${DateTime.now().millisecondsSinceEpoch}';
-      _fullNameController = TextEditingController();
-      _departmentController = TextEditingController();
-      _positionController = TextEditingController();
-      _emailController = TextEditingController();
-      _phoneController = TextEditingController();
-      _employeeNumberController = TextEditingController();
-      _notesController = TextEditingController();
     }
+  }
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _departmentController.dispose();
+    _positionController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _employeeNumberController.dispose();
+    _notesController.dispose();
+    super.dispose();
   }
 
   Future<void> _saveEmployee() async {
@@ -59,21 +78,36 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     final employee = Employee(
       id: _editingId!,
       fullName: _fullNameController.text.trim(),
-      department: _departmentController.text.trim().isEmpty ? null : _departmentController.text.trim(),
-      position: _positionController.text.trim().isEmpty ? null : _positionController.text.trim(),
-      email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-      phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-      employeeNumber: _employeeNumberController.text.trim().isEmpty ? null : _employeeNumberController.text.trim(),
-      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      department: _departmentController.text.trim().isEmpty 
+          ? null 
+          : _departmentController.text.trim(),
+      position: _positionController.text.trim().isEmpty 
+          ? null 
+          : _positionController.text.trim(),
+      email: _emailController.text.trim().isEmpty 
+          ? null 
+          : _emailController.text.trim(),
+      phone: _phoneController.text.trim().isEmpty 
+          ? null 
+          : _phoneController.text.trim(),
+      employeeNumber: _employeeNumberController.text.trim().isEmpty 
+          ? null 
+          : _employeeNumberController.text.trim(),
+      notes: _notesController.text.trim().isEmpty 
+          ? null 
+          : _notesController.text.trim(),
+      isActive: _isEditMode ? widget.employee!.isActive : true,
       createdAt: _isEditMode ? widget.employee!.createdAt : now,
       updatedAt: now,
     );
     
     try {
+      final provider = context.read<EmployeeProvider>();
+      
       if (_isEditMode) {
-        await _dbHelper.updateEmployee(employee.toMap());
+        await provider.updateEmployee(employee);
       } else {
-        await _dbHelper.insertEmployee(employee.toMap());
+        await provider.addEmployee(employee);
       }
       
       if (mounted) {
@@ -113,194 +147,90 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Основная информация',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _fullNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'ФИО *',
-                          border: OutlineInputBorder(),
-                          hintText: 'Иванов Иван Иванович',
-                          prefixIcon: Icon(Icons.person),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Введите ФИО';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _employeeNumberController,
-                        decoration: const InputDecoration(
-                          labelText: 'Табельный номер',
-                          border: OutlineInputBorder(),
-                          hintText: '00123',
-                          prefixIcon: Icon(Icons.badge),
-                        ),
-                      ),
-                    ],
+              // Основная информация
+              FormSectionCard(
+                title: 'Основная информация',
+                icon: Icons.person_outline,
+                children: [
+                  ValidationTextField.required(
+                    label: 'ФИО',
+                    controller: _fullNameController,
+                    minLength: 3,
+                    maxLength: 200,
+                    prefixIcon: const Icon(Icons.badge_outlined),
+                    validator: Validators.fullName,
+                    hint: 'Иванов Иван Иванович',
                   ),
-                ),
+                  
+                  ValidationTextField(
+                    label: 'Табельный номер',
+                    controller: _employeeNumberController,
+                    prefixIcon: const Icon(Icons.numbers_outlined),
+                    validator: Validators.employeeNumber,
+                  ),
+                  
+                  ValidationTextField(
+                    label: 'Должность',
+                    controller: _positionController,
+                    prefixIcon: const Icon(Icons.work_outline),
+                    maxLength: 100,
+                  ),
+                  
+                  ValidationTextField(
+                    label: 'Отдел',
+                    controller: _departmentController,
+                    prefixIcon: const Icon(Icons.account_balance_outlined),
+                    maxLength: 100,
+                  ),
+                ],
               ),
               
-              const SizedBox(height: 16),
-              
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Рабочая информация',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _departmentController,
-                        decoration: const InputDecoration(
-                          labelText: 'Отдел / Подразделение',
-                          border: OutlineInputBorder(),
-                          hintText: 'IT-отдел',
-                          prefixIcon: Icon(Icons.business),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _positionController,
-                        decoration: const InputDecoration(
-                          labelText: 'Должность',
-                          border: OutlineInputBorder(),
-                          hintText: 'Системный администратор',
-                          prefixIcon: Icon(Icons.work),
-                        ),
-                      ),
-                    ],
+              // Контактная информация
+              FormSectionCard(
+                title: 'Контактная информация',
+                icon: Icons.contacts_outlined,
+                children: [
+                  ValidationTextField.email(
+                    label: 'Email',
+                    controller: _emailController,
+                    onSaved: (_) {},
                   ),
-                ),
+                  
+                  ValidationTextField.phone(
+                    label: 'Телефон',
+                    controller: _phoneController,
+                    onSaved: (_) {},
+                  ),
+                ],
               ),
               
-              const SizedBox(height: 16),
-              
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Контактная информация',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          border: OutlineInputBorder(),
-                          hintText: 'ivanov@company.ru',
-                          prefixIcon: Icon(Icons.email),
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _phoneController,
-                        decoration: const InputDecoration(
-                          labelText: 'Телефон',
-                          border: OutlineInputBorder(),
-                          hintText: '+7 (999) 123-45-67',
-                          prefixIcon: Icon(Icons.phone),
-                        ),
-                        keyboardType: TextInputType.phone,
-                      ),
-                    ],
+              // Дополнительная информация
+              FormSectionCard(
+                title: 'Дополнительная информация',
+                icon: Icons.notes_outlined,
+                children: [
+                  ValidationTextField(
+                    label: 'Примечания',
+                    controller: _notesController,
+                    maxLines: 4,
+                    prefixIcon: const Icon(Icons.edit_note),
+                    validator: Validators.notes,
                   ),
-                ),
+                ],
               ),
               
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Дополнительная информация',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _notesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Примечания',
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 3,
-                      ),
-                    ],
-                  ),
-                ),
+              // Кнопки действий
+              FormActions(
+                onSave: _saveEmployee,
+                saveLabel: _isEditMode ? 'Сохранить изменения' : 'Добавить сотрудника',
+                showCancel: _isEditMode,
               ),
-              
-              const SizedBox(height: 24),
-              
-              ElevatedButton.icon(
-                onPressed: _saveEmployee,
-                icon: const Icon(Icons.save),
-                label: Text(_isEditMode ? 'Сохранить изменения' : 'Добавить сотрудника'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-              
-              if (_isEditMode) ...[
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                  label: const Text('Отмена'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _fullNameController.dispose();
-    _departmentController.dispose();
-    _positionController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _employeeNumberController.dispose();
-    _notesController.dispose();
-    super.dispose();
   }
 }

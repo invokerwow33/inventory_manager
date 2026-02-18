@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import '../database/database_helper.dart';
 import '../models/equipment.dart';
+import '../providers/equipment_provider.dart';
+import '../utils/validators.dart';
+import '../widgets/common/common_widgets.dart';
 
 class AddEquipmentScreen extends StatefulWidget {
   final Map<String, dynamic>? equipment;
@@ -16,82 +20,111 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
   final _formKey = GlobalKey<FormState>();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   
-  // Поля формы
-  String _name = '';
-  EquipmentType _type = EquipmentType.computer;
-  String? _serialNumber;
-  String? _inventoryNumber;
-  String? _manufacturer;
-  String? _model;
-  DateTime? _purchaseDate;
-  double? _purchasePrice;
-  String? _department;
-  String? _responsiblePerson;
-  String? _location;
-  EquipmentStatus _status = EquipmentStatus.inUse;
-  String? _notes;
+  // Controllers
+  late final TextEditingController _nameController;
+  late final TextEditingController _serialNumberController;
+  late final TextEditingController _inventoryNumberController;
+  late final TextEditingController _manufacturerController;
+  late final TextEditingController _modelController;
+  late final TextEditingController _purchasePriceController;
+  late final TextEditingController _departmentController;
+  late final TextEditingController _responsiblePersonController;
+  late final TextEditingController _locationController;
+  late final TextEditingController _notesController;
   
+  // Form values
+  EquipmentType _type = EquipmentType.computer;
+  EquipmentStatus _status = EquipmentStatus.inUse;
+  DateTime? _purchaseDate;
   bool _isEditMode = false;
   String? _editingId;
-  
+
   @override
   void initState() {
     super.initState();
     _isEditMode = widget.equipment != null;
     
+    // Initialize controllers
+    _nameController = TextEditingController();
+    _serialNumberController = TextEditingController();
+    _inventoryNumberController = TextEditingController();
+    _manufacturerController = TextEditingController();
+    _modelController = TextEditingController();
+    _purchasePriceController = TextEditingController();
+    _departmentController = TextEditingController();
+    _responsiblePersonController = TextEditingController();
+    _locationController = TextEditingController();
+    _notesController = TextEditingController();
+    
     if (_isEditMode && widget.equipment != null) {
-      // Загружаем данные из Map
-      _editingId = widget.equipment!['id'];
-      _name = widget.equipment!['name'] ?? '';
-      
-      // Преобразуем строку типа в EquipmentType
-      final typeString = widget.equipment!['type'] ?? 'computer';
-      _type = EquipmentType.values.firstWhere(
-        (e) => e.toString().split('.').last == typeString,
-        orElse: () => EquipmentType.computer,
-      );
-      
-      // Преобразуем строку статуса в EquipmentStatus
-      final statusString = widget.equipment!['status'] ?? 'inUse';
-      _status = EquipmentStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == statusString,
-        orElse: () => EquipmentStatus.inUse,
-      );
-      
-      _serialNumber = widget.equipment!['serialNumber'];
-      _inventoryNumber = widget.equipment!['inventoryNumber'];
-      _manufacturer = widget.equipment!['manufacturer'];
-      _model = widget.equipment!['model'];
-      
-      if (widget.equipment!['purchaseDate'] != null) {
-        _purchaseDate = DateTime.tryParse(widget.equipment!['purchaseDate']);
-      }
-      
-      _purchasePrice = widget.equipment!['purchasePrice']?.toDouble();
-      _department = widget.equipment!['department'];
-      _responsiblePerson = widget.equipment!['responsiblePerson'];
-      _location = widget.equipment!['location'];
-      _notes = widget.equipment!['notes'];
+      _loadEquipmentData();
     } else {
-      // Генерируем ID для нового оборудования
+      // Generate ID and inventory number for new equipment
       _editingId = 'eq_${DateTime.now().millisecondsSinceEpoch}';
-      // Генерируем инвентарный номер
       _generateInventoryNumber();
     }
+  }
+
+  void _loadEquipmentData() {
+    _editingId = widget.equipment!['id']?.toString();
+    _nameController.text = widget.equipment!['name'] ?? '';
+    
+    // Parse type
+    final typeString = widget.equipment!['type'] ?? 'computer';
+    _type = EquipmentType.values.firstWhere(
+      (e) => e.toString().split('.').last == typeString,
+      orElse: () => EquipmentType.computer,
+    );
+    
+    // Parse status
+    final statusString = widget.equipment!['status'] ?? 'inUse';
+    _status = EquipmentStatus.values.firstWhere(
+      (e) => e.toString().split('.').last == statusString,
+      orElse: () => EquipmentStatus.inUse,
+    );
+    
+    _serialNumberController.text = widget.equipment!['serialNumber'] ?? '';
+    _inventoryNumberController.text = widget.equipment!['inventoryNumber'] ?? '';
+    _manufacturerController.text = widget.equipment!['manufacturer'] ?? '';
+    _modelController.text = widget.equipment!['model'] ?? '';
+    
+    if (widget.equipment!['purchaseDate'] != null) {
+      _purchaseDate = DateTime.tryParse(widget.equipment!['purchaseDate']);
+    }
+    
+    _purchasePriceController.text = widget.equipment!['purchasePrice']?.toString() ?? '';
+    _departmentController.text = widget.equipment!['department'] ?? '';
+    _responsiblePersonController.text = widget.equipment!['responsiblePerson'] ?? '';
+    _locationController.text = widget.equipment!['location'] ?? '';
+    _notesController.text = widget.equipment!['notes'] ?? '';
   }
   
   Future<void> _generateInventoryNumber() async {
     try {
       final count = await _dbHelper.getEquipmentCount();
       setState(() {
-        _inventoryNumber = 'INV-${DateTime.now().year}-${(count + 1).toString().padLeft(5, '0')}';
+        _inventoryNumberController.text = 'INV-${DateTime.now().year}-${(count + 1).toString().padLeft(5, '0')}';
       });
     } catch (e) {
-      // Если не удалось получить количество, используем простой номер
       setState(() {
-        _inventoryNumber = 'INV-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
+        _inventoryNumberController.text = 'INV-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _serialNumberController.dispose();
+    _inventoryNumberController.dispose();
+    _manufacturerController.dispose();
+    _modelController.dispose();
+    _purchasePriceController.dispose();
+    _departmentController.dispose();
+    _responsiblePersonController.dispose();
+    _locationController.dispose();
+    _notesController.dispose();
+    super.dispose();
   }
   
   Future<void> _saveEquipment() async {
@@ -102,19 +135,37 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
       
       final equipment = Equipment(
         id: _editingId!,
-        name: _name,
+        name: _nameController.text.trim(),
         type: _type,
-        serialNumber: _serialNumber,
-        inventoryNumber: _inventoryNumber,
-        manufacturer: _manufacturer,
-        model: _model,
+        serialNumber: _serialNumberController.text.trim().isEmpty 
+            ? null 
+            : _serialNumberController.text.trim(),
+        inventoryNumber: _inventoryNumberController.text.trim().isEmpty 
+            ? null 
+            : _inventoryNumberController.text.trim(),
+        manufacturer: _manufacturerController.text.trim().isEmpty 
+            ? null 
+            : _manufacturerController.text.trim(),
+        model: _modelController.text.trim().isEmpty 
+            ? null 
+            : _modelController.text.trim(),
         purchaseDate: _purchaseDate,
-        purchasePrice: _purchasePrice,
-        department: _department,
-        responsiblePerson: _responsiblePerson,
-        location: _location,
+        purchasePrice: _purchasePriceController.text.isEmpty 
+            ? null 
+            : double.tryParse(_purchasePriceController.text.replaceAll(',', '.')),
+        department: _departmentController.text.trim().isEmpty 
+            ? null 
+            : _departmentController.text.trim(),
+        responsiblePerson: _responsiblePersonController.text.trim().isEmpty 
+            ? null 
+            : _responsiblePersonController.text.trim(),
+        location: _locationController.text.trim().isEmpty 
+            ? null 
+            : _locationController.text.trim(),
         status: _status,
-        notes: _notes,
+        notes: _notesController.text.trim().isEmpty 
+            ? null 
+            : _notesController.text.trim(),
         createdAt: _isEditMode 
             ? DateTime.parse(widget.equipment!['createdAt'] ?? now.toIso8601String())
             : now,
@@ -122,25 +173,33 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
       );
       
       try {
+        final provider = context.read<EquipmentProvider>();
+        
         if (_isEditMode) {
-          // Обновляем существующее оборудование
-          await _dbHelper.updateEquipment(equipment);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Оборудование обновлено')),
-          );
+          await provider.updateEquipment(equipment);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Оборудование обновлено')),
+            );
+          }
         } else {
-          // Добавляем новое оборудование
-          await _dbHelper.insertEquipment(equipment);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Оборудование добавлено')),
-          );
+          await provider.addEquipment(equipment);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Оборудование добавлено')),
+            );
+          }
         }
         
-        Navigator.pop(context, true); // Возвращаем успешный результат
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка сохранения: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка сохранения: $e')),
+          );
+        }
       }
     }
   }
@@ -166,405 +225,158 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Основная информация
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Основная информация',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        label: 'Название оборудования *',
-                        initialValue: _name,
-                        onSaved: (value) => _name = value!,
-                        validator: (value) => value!.isEmpty ? 'Введите название' : null,
-                      ),
-                      
-                      _buildDropdown<EquipmentType>(
-                        label: 'Тип оборудования',
-                        value: _type,
-                        items: EquipmentType.values,
-                        itemBuilder: (type) => DropdownMenuItem<EquipmentType>(
-                          value: type,
-                          child: Row(
-                            children: [
-                              Icon(type.icon, size: 20),
-                              const SizedBox(width: 8),
-                              Text(type.label),
-                            ],
-                          ),
-                        ),
-                        onChanged: (value) => setState(() => _type = value!),
-                      ),
-                      
-                      _buildDropdown<EquipmentStatus>(
-                        label: 'Статус',
-                        value: _status,
-                        items: EquipmentStatus.values,
-                        itemBuilder: (status) => DropdownMenuItem<EquipmentStatus>(
-                          value: status,
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: status.color,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(status.label),
-                            ],
-                          ),
-                        ),
-                        onChanged: (value) => setState(() => _status = value!),
-                      ),
-                      
-                      _buildTextField(
-                        label: 'Инвентарный номер',
-                        initialValue: _inventoryNumber,
-                        onSaved: (value) => _inventoryNumber = value,
-                      ),
-                      
-                      _buildTextField(
-                        label: 'Серийный номер',
-                        initialValue: _serialNumber,
-                        onSaved: (value) => _serialNumber = value,
-                      ),
-                    ],
+              FormSectionCard(
+                title: 'Основная информация',
+                icon: Icons.info_outline,
+                children: [
+                  ValidationTextField.required(
+                    label: 'Название оборудования',
+                    controller: _nameController,
+                    minLength: 2,
+                    maxLength: 200,
+                    prefixIcon: const Icon(Icons.devices_outlined),
                   ),
-                ),
+                  
+                  FormDropdown<EquipmentType>(
+                    label: 'Тип оборудования',
+                    value: _type,
+                    items: EquipmentType.values,
+                    displayMapper: (type) => type.label,
+                    iconMapper: (type) => Icon(type.icon, size: 20),
+                    onChanged: (value) => setState(() => _type = value!),
+                  ),
+                  
+                  FormDropdown<EquipmentStatus>(
+                    label: 'Статус',
+                    value: _status,
+                    items: EquipmentStatus.values,
+                    displayMapper: (status) => status.label,
+                    iconMapper: (status) => Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: status.color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    onChanged: (value) => setState(() => _status = value!),
+                  ),
+                  
+                  ValidationTextField(
+                    label: 'Инвентарный номер',
+                    controller: _inventoryNumberController,
+                    prefixIcon: const Icon(Icons.qr_code_outlined),
+                    validator: Validators.inventoryNumberField,
+                  ),
+                  
+                  ValidationTextField(
+                    label: 'Серийный номер',
+                    controller: _serialNumberController,
+                    prefixIcon: const Icon(Icons.tag_outlined),
+                    validator: Validators.serialNumberField,
+                  ),
+                ],
               ),
-              
-              const SizedBox(height: 16),
               
               // Производитель и модель
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Производитель и модель',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        label: 'Производитель',
-                        initialValue: _manufacturer,
-                        onSaved: (value) => _manufacturer = value,
-                      ),
-                      
-                      _buildTextField(
-                        label: 'Модель',
-                        initialValue: _model,
-                        onSaved: (value) => _model = value,
-                      ),
-                    ],
+              FormSectionCard(
+                title: 'Производитель и модель',
+                icon: Icons.build_outlined,
+                children: [
+                  ValidationTextField(
+                    label: 'Производитель',
+                    controller: _manufacturerController,
+                    prefixIcon: const Icon(Icons.business_outlined),
+                    maxLength: 100,
                   ),
-                ),
+                  
+                  ValidationTextField(
+                    label: 'Модель',
+                    controller: _modelController,
+                    prefixIcon: const Icon(Icons.category_outlined),
+                    maxLength: 100,
+                  ),
+                ],
               ),
-              
-              const SizedBox(height: 16),
               
               // Приобретение и стоимость
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Приобретение и стоимость',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildDatePicker(
-                        label: 'Дата приобретения',
-                        date: _purchaseDate,
-                        onDateSelected: (date) => setState(() => _purchaseDate = date),
-                      ),
-                      
-                      _buildTextField(
-                        label: 'Стоимость (₽)',
-                        initialValue: _purchasePrice?.toString(),
-                        keyboardType: TextInputType.number,
-                        onSaved: (value) {
-                          if (value != null && value.isNotEmpty) {
-                            _purchasePrice = double.tryParse(value.replaceAll(',', '.'));
-                          } else {
-                            _purchasePrice = null;
-                          }
-                        },
-                      ),
-                    ],
+              FormSectionCard(
+                title: 'Приобретение и стоимость',
+                icon: Icons.shopping_cart_outlined,
+                children: [
+                  DatePickerField(
+                    label: 'Дата приобретения',
+                    date: _purchaseDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime.now(),
+                    onDateSelected: (date) => setState(() => _purchaseDate = date),
                   ),
-                ),
+                  
+                  ValidationTextField.number(
+                    label: 'Стоимость (₽)',
+                    controller: _purchasePriceController,
+                    positiveOnly: true,
+                    fieldName: 'Стоимость',
+                    prefixIcon: const Icon(Icons.currency_ruble),
+                  ),
+                ],
               ),
-              
-              const SizedBox(height: 16),
               
               // Расположение и ответственные
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Расположение и ответственные',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        label: 'Отдел/Подразделение',
-                        initialValue: _department,
-                        onSaved: (value) => _department = value,
-                      ),
-                      
-                      _buildTextField(
-                        label: 'Ответственное лицо',
-                        initialValue: _responsiblePerson,
-                        onSaved: (value) => _responsiblePerson = value,
-                      ),
-                      
-                      _buildTextField(
-                        label: 'Местоположение',
-                        initialValue: _location,
-                        onSaved: (value) => _location = value,
-                      ),
-                    ],
+              FormSectionCard(
+                title: 'Расположение и ответственные',
+                icon: Icons.location_on_outlined,
+                children: [
+                  ValidationTextField(
+                    label: 'Отдел/Подразделение',
+                    controller: _departmentController,
+                    prefixIcon: const Icon(Icons.account_balance_outlined),
+                    maxLength: 100,
                   ),
-                ),
+                  
+                  ValidationTextField(
+                    label: 'Ответственное лицо',
+                    controller: _responsiblePersonController,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    maxLength: 100,
+                  ),
+                  
+                  ValidationTextField(
+                    label: 'Местоположение',
+                    controller: _locationController,
+                    prefixIcon: const Icon(Icons.place_outlined),
+                    maxLength: 200,
+                  ),
+                ],
               ),
-              
-              const SizedBox(height: 16),
               
               // Дополнительная информация
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Дополнительная информация',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        label: 'Примечания',
-                        initialValue: _notes,
-                        maxLines: 4,
-                        onSaved: (value) => _notes = value,
-                      ),
-                    ],
+              FormSectionCard(
+                title: 'Дополнительная информация',
+                icon: Icons.notes_outlined,
+                children: [
+                  ValidationTextField(
+                    label: 'Примечания',
+                    controller: _notesController,
+                    maxLines: 4,
+                    prefixIcon: const Icon(Icons.edit_note),
+                    validator: Validators.notes,
                   ),
-                ),
+                ],
               ),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
               
-              // Кнопка сохранения
-              ElevatedButton.icon(
-                onPressed: _saveEquipment,
-                icon: const Icon(Icons.save),
-                label: const Text('Сохранить оборудование'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
+              // Кнопки действий
+              FormActions(
+                onSave: _saveEquipment,
+                saveLabel: _isEditMode ? 'Сохранить изменения' : 'Добавить оборудование',
+                showCancel: _isEditMode,
               ),
-              
-              const SizedBox(height: 16),
-              
-              if (_isEditMode)
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                  label: const Text('Отмена'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
             ],
           ),
         ),
       ),
     );
   }
-  
-  Widget _buildTextField({
-    required String label,
-    String? initialValue,
-    int maxLines = 1,
-    TextInputType keyboardType = TextInputType.text,
-    required void Function(String?) onSaved,
-    String? Function(String?)? validator,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextFormField(
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-        ),
-        initialValue: initialValue,
-        maxLines: maxLines,
-        keyboardType: keyboardType,
-        onSaved: onSaved,
-        validator: validator,
-      ),
-    );
-  }
-  
-  Widget _buildDropdown<T>({
-    required String label,
-    required T value,
-    required List<T> items,
-    required DropdownMenuItem<T> Function(T) itemBuilder,
-    required void Function(T?) onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: DropdownButtonFormField<T>(
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-        ),
-        value: value,
-        items: items.map(itemBuilder).toList(),
-        onChanged: onChanged,
-        isExpanded: true,
-      ),
-    );
-  }
-  
-Widget _buildDatePicker({
-    required String label,
-    DateTime? date,
-    required void Function(DateTime?) onDateSelected,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black54,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 6),
-          InkWell(
-            onTap: () => _showDatePicker(context, date, onDateSelected),
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.calendar_today, color: Colors.blue.shade700),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      date != null 
-                          ? '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}'
-                          : 'Выберите дату',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: date != null ? Colors.black : Colors.grey.shade500,
-                      ),
-                    ),
-                  ),
-                  Icon(Icons.arrow_drop_down, color: Colors.grey.shade500),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  Future<void> _showDatePicker(
-    BuildContext context, 
-    DateTime? currentDate,
-    void Function(DateTime?) onDateSelected,
-  ) async {
-    DateTime? selectedDate = currentDate ?? DateTime.now();
-  
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.4,
-        child: Column(
-          children: [
-            // Заголовок
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Отмена', style: TextStyle(color: Colors.white)),
-                  ),
-                  const Text(
-                    'Выберите дату',
-                    style: TextStyle(
-                      color: Colors.white, 
-                      fontSize: 18, 
-                      fontWeight: FontWeight.bold
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      onDateSelected(selectedDate);
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Готово', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
-            ),
-          
-            // Датапикер
-            Expanded(
-              child: CupertinoDatePicker(
-                mode: CupertinoDatePickerMode.date,
-                initialDateTime: currentDate ?? DateTime.now(),
-                minimumDate: DateTime(2000),
-                maximumDate: DateTime.now(),
-                onDateTimeChanged: (DateTime newDate) {
-                  selectedDate = newDate;
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
 }

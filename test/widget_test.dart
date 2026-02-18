@@ -1,22 +1,36 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:inventory_manager/main.dart';
+import 'package:provider/provider.dart';
+import 'package:inventory_manager/providers/providers.dart';
 
 void main() {
-  testWidgets('App starts smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('App should build and show navigation', (WidgetTester tester) async {
+    // Build our app and trigger a frame
     await tester.pumpWidget(const MyApp());
-
-    // Verify that the app starts successfully
+    
+    // Wait for providers to initialize
+    await tester.pump();
+    
+    // Verify that the app title is present
+    expect(find.text('Инвентарь'), findsOneWidget);
+    
+    // Verify that navigation items are present
     expect(find.text('Главная'), findsOneWidget);
     expect(find.text('Оборудование'), findsOneWidget);
+    expect(find.text('Расходники'), findsOneWidget);
+  });
+
+  testWidgets('MultiProvider should provide all providers', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.pump();
+    
+    final BuildContext context = tester.element(find.byType(MainNavigationScreen));
+    
+    // Verify all providers are available
+    expect(Provider.of<EquipmentProvider>(context, listen: false), isNotNull);
+    expect(Provider.of<EmployeeProvider>(context, listen: false), isNotNull);
+    expect(Provider.of<ConsumableProvider>(context, listen: false), isNotNull);
+    expect(Provider.of<MovementProvider>(context, listen: false), isNotNull);
   });
 }

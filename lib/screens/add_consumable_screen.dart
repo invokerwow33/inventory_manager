@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_manager/database/simple_database_helper.dart';
-import 'package:inventory_manager/models/consumable.dart';
+import 'package:provider/provider.dart';
+import '../database/database_helper.dart';
+import '../models/consumable.dart';
+import '../providers/consumable_provider.dart';
+import '../utils/validators.dart';
+import '../widgets/common/common_widgets.dart';
 
 class AddConsumableScreen extends StatefulWidget {
   final Consumable? consumable;
@@ -13,17 +17,18 @@ class AddConsumableScreen extends StatefulWidget {
 
 class _AddConsumableScreenState extends State<AddConsumableScreen> {
   final _formKey = GlobalKey<FormState>();
-  final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   
-  late TextEditingController _nameController;
-  late TextEditingController _quantityController;
-  late TextEditingController _minQuantityController;
-  late TextEditingController _supplierController;
-  late TextEditingController _notesController;
+  // Controllers
+  late final TextEditingController _nameController;
+  late final TextEditingController _quantityController;
+  late final TextEditingController _minQuantityController;
+  late final TextEditingController _supplierController;
+  late final TextEditingController _notesController;
   
+  // Form values
   ConsumableCategory _category = ConsumableCategory.other;
   ConsumableUnit _unit = ConsumableUnit.pieces;
-  
   bool get _isEditMode => widget.consumable != null;
   String? _editingId;
 
@@ -31,23 +36,35 @@ class _AddConsumableScreenState extends State<AddConsumableScreen> {
   void initState() {
     super.initState();
     
+    // Initialize controllers
+    _nameController = TextEditingController();
+    _quantityController = TextEditingController(text: '0');
+    _minQuantityController = TextEditingController(text: '0');
+    _supplierController = TextEditingController();
+    _notesController = TextEditingController();
+    
     if (_isEditMode && widget.consumable != null) {
       _editingId = widget.consumable!.id;
-      _nameController = TextEditingController(text: widget.consumable!.name);
-      _quantityController = TextEditingController(text: widget.consumable!.quantity.toString());
-      _minQuantityController = TextEditingController(text: widget.consumable!.minQuantity.toString());
-      _supplierController = TextEditingController(text: widget.consumable!.supplier ?? '');
-      _notesController = TextEditingController(text: widget.consumable!.notes ?? '');
+      _nameController.text = widget.consumable!.name;
       _category = widget.consumable!.category;
       _unit = widget.consumable!.unit;
+      _quantityController.text = widget.consumable!.quantity.toString();
+      _minQuantityController.text = widget.consumable!.minQuantity.toString();
+      _supplierController.text = widget.consumable!.supplier ?? '';
+      _notesController.text = widget.consumable!.notes ?? '';
     } else {
       _editingId = 'cons_${DateTime.now().millisecondsSinceEpoch}';
-      _nameController = TextEditingController();
-      _quantityController = TextEditingController(text: '0');
-      _minQuantityController = TextEditingController(text: '0');
-      _supplierController = TextEditingController();
-      _notesController = TextEditingController();
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _quantityController.dispose();
+    _minQuantityController.dispose();
+    _supplierController.dispose();
+    _notesController.dispose();
+    super.dispose();
   }
 
   Future<void> _saveConsumable() async {
@@ -55,24 +72,33 @@ class _AddConsumableScreenState extends State<AddConsumableScreen> {
     
     final now = DateTime.now();
     
+    final quantity = double.tryParse(_quantityController.text.replaceAll(',', '.')) ?? 0;
+    final minQuantity = double.tryParse(_minQuantityController.text.replaceAll(',', '.')) ?? 0;
+    
     final consumable = Consumable(
       id: _editingId!,
       name: _nameController.text.trim(),
       category: _category,
       unit: _unit,
-      quantity: double.tryParse(_quantityController.text.replaceAll(',', '.')) ?? 0,
-      minQuantity: double.tryParse(_minQuantityController.text.replaceAll(',', '.')) ?? 0,
-      supplier: _supplierController.text.trim().isEmpty ? null : _supplierController.text.trim(),
-      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      quantity: quantity,
+      minQuantity: minQuantity,
+      supplier: _supplierController.text.trim().isEmpty 
+          ? null 
+          : _supplierController.text.trim(),
+      notes: _notesController.text.trim().isEmpty 
+          ? null 
+          : _notesController.text.trim(),
       createdAt: _isEditMode ? widget.consumable!.createdAt : now,
       updatedAt: now,
     );
     
     try {
+      final provider = context.read<ConsumableProvider>();
+      
       if (_isEditMode) {
-        await _dbHelper.updateConsumable(consumable.toMap());
+        await provider.updateConsumable(consumable);
       } else {
-        await _dbHelper.insertConsumable(consumable.toMap());
+        await provider.addConsumable(consumable);
       }
       
       if (mounted) {
@@ -112,223 +138,121 @@ class _AddConsumableScreenState extends State<AddConsumableScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Основная информация',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Название *',
-                          border: OutlineInputBorder(),
-                          hintText: 'Например: Картридж HP 305A Black',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Введите название';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      DropdownButtonFormField<ConsumableCategory>(
-                        decoration: const InputDecoration(
-                          labelText: 'Категория',
-                          border: OutlineInputBorder(),
-                        ),
-                        value: _category,
-                        items: ConsumableCategory.values.map((category) {
-                          return DropdownMenuItem(
-                            value: category,
-                            child: Row(
-                              children: [
-                                Icon(category.icon, size: 20, color: category.color),
-                                const SizedBox(width: 8),
-                                Text(category.label),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _category = value);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      DropdownButtonFormField<ConsumableUnit>(
-                        decoration: const InputDecoration(
-                          labelText: 'Единица измерения',
-                          border: OutlineInputBorder(),
-                        ),
-                        value: _unit,
-                        items: ConsumableUnit.values.map((unit) {
-                          return DropdownMenuItem(
-                            value: unit,
-                            child: Text('${unit.shortLabel} (${unit.fullLabel})'),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _unit = value);
-                          }
-                        },
-                      ),
-                    ],
+              // Основная информация
+              FormSectionCard(
+                title: 'Основная информация',
+                icon: Icons.inventory_2_outlined,
+                children: [
+                  ValidationTextField.required(
+                    label: 'Название',
+                    controller: _nameController,
+                    minLength: 2,
+                    maxLength: 200,
+                    prefixIcon: const Icon(Icons.label_outline),
+                    validator: Validators.consumableName,
                   ),
-                ),
+                  
+                  FormDropdown<ConsumableCategory>(
+                    label: 'Категория',
+                    value: _category,
+                    items: ConsumableCategory.values,
+                    displayMapper: (category) => category.label,
+                    iconMapper: (category) => Icon(category.icon, 
+                      color: category.color, 
+                      size: 20,
+                    ),
+                    onChanged: (value) => setState(() => _category = value!),
+                  ),
+                  
+                  FormDropdown<ConsumableUnit>(
+                    label: 'Единица измерения',
+                    value: _unit,
+                    items: ConsumableUnit.values,
+                    displayMapper: (unit) => '${unit.shortLabel} (${unit.fullLabel})',
+                    onChanged: (value) => setState(() => _unit = value!),
+                  ),
+                ],
               ),
               
-              const SizedBox(height: 16),
-              
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Количество',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _quantityController,
-                              decoration: InputDecoration(
-                                labelText: 'Текущий остаток *',
-                                border: const OutlineInputBorder(),
-                                suffixText: _unit.shortLabel,
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Введите количество';
-                                }
-                                final number = double.tryParse(value.replaceAll(',', '.'));
-                                if (number == null || number < 0) {
-                                  return 'Введите корректное число';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _minQuantityController,
-                              decoration: InputDecoration(
-                                labelText: 'Мин. остаток',
-                                border: const OutlineInputBorder(),
-                                suffixText: _unit.shortLabel,
-                                helperText: 'Для уведомлений',
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value != null && value.isNotEmpty) {
-                                  final number = double.tryParse(value.replaceAll(',', '.'));
-                                  if (number == null || number < 0) {
-                                    return 'Введите корректное число';
-                                  }
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+              // Количество
+              FormSectionCard(
+                title: 'Количество',
+                icon: Icons.balance_outlined,
+                children: [
+                  ValidationTextField.number(
+                    label: 'Текущее количество',
+                    controller: _quantityController,
+                    positiveOnly: true,
+                    fieldName: 'Количество',
+                    prefixIcon: const Icon(Icons.format_list_numbered),
                   ),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Дополнительная информация',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _supplierController,
-                        decoration: const InputDecoration(
-                          labelText: 'Поставщик',
-                          border: OutlineInputBorder(),
-                          hintText: 'Название компании-поставщика',
+                  
+                  ValidationTextField.number(
+                    label: 'Минимальное количество',
+                    controller: _minQuantityController,
+                    positiveOnly: true,
+                    fieldName: 'Минимальное количество',
+                    prefixIcon: const Icon(Icons.warning_amber),
+                  ),
+                  
+                  if (_isEditMode && widget.consumable != null)
+                    ListTile(
+                      leading: const Icon(Icons.info_outline),
+                      title: Text(
+                        widget.consumable!.isLowStock 
+                            ? 'Текущее количество ниже минимального'
+                            : 'Текущее количество в норме',
+                        style: TextStyle(
+                          color: widget.consumable!.isLowStock 
+                              ? Theme.of(context).colorScheme.error
+                              : Theme.of(context).colorScheme.primary,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _notesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Примечания',
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 3,
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                ],
               ),
               
-              const SizedBox(height: 24),
-              
-              ElevatedButton.icon(
-                onPressed: _saveConsumable,
-                icon: const Icon(Icons.save),
-                label: Text(_isEditMode ? 'Сохранить изменения' : 'Добавить расходник'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
+              // Поставщик
+              FormSectionCard(
+                title: 'Поставщик',
+                icon: Icons.local_shipping_outlined,
+                children: [
+                  ValidationTextField(
+                    label: 'Название поставщика',
+                    controller: _supplierController,
+                    prefixIcon: const Icon(Icons.business_outlined),
+                    maxLength: 200,
+                  ),
+                ],
               ),
               
-              if (_isEditMode) ...[
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                  label: const Text('Отмена'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+              // Дополнительная информация
+              FormSectionCard(
+                title: 'Дополнительная информация',
+                icon: Icons.notes_outlined,
+                children: [
+                  ValidationTextField(
+                    label: 'Примечания',
+                    controller: _notesController,
+                    maxLines: 4,
+                    prefixIcon: const Icon(Icons.edit_note),
+                    validator: Validators.notes,
                   ),
-                ),
-              ],
+                ],
+              ),
+              
+              const SizedBox(height: 8),
+              
+              // Кнопки действий
+              FormActions(
+                onSave: _saveConsumable,
+                saveLabel: _isEditMode ? 'Сохранить изменения' : 'Добавить расходник',
+                showCancel: _isEditMode,
+              ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _quantityController.dispose();
-    _minQuantityController.dispose();
-    _supplierController.dispose();
-    _notesController.dispose();
-    super.dispose();
   }
 }
