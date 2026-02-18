@@ -17,7 +17,7 @@ class DocumentGeneratorService {
 
   Future<pw.Font> _loadCyrillicFont(String path) async {
     final fontData = await rootBundle.load(path);
-    return pw.Font.ttf(fontData.buffer.asUint8List());
+    return pw.Font.ttf(fontData);
   }
 
   Future<Uint8List> generatePdf(
