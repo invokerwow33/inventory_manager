@@ -1,0 +1,304 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:intl/intl.dart';
+import '../models/document_data.dart';
+
+class DocumentGeneratorService {
+  static final DocumentGeneratorService _instance =
+      DocumentGeneratorService._internal();
+  factory DocumentGeneratorService() => _instance;
+  DocumentGeneratorService._internal();
+
+  Future<Uint8List> generatePdf(
+    DocumentData data,
+    DocumentHeaderSettings header,
+  ) async {
+    final pdf = pw.Document();
+    final formattedDate = DateFormat('dd.MM.yyyy').format(data.date);
+    final totalPrice = data.price != null
+        ? (data.price! * data.quantity).toStringAsFixed(2)
+        : '0.00';
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(40),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Шапка документа
+              _buildHeader(header),
+              pw.SizedBox(height: 30),
+              // Заголовок документа
+              pw.Center(
+                child: pw.Text(
+                  'АКТ ПРИЕМА-ПЕРЕДАЧИ ОБОРУДОВАНИЯ',
+                  style: pw.TextStyle(
+                    fontSize: 16,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              // Дата документа
+              pw.Text(
+                'Дата составления: $formattedDate',
+                style: const pw.TextStyle(fontSize: 12),
+              ),
+              pw.SizedBox(height: 20),
+              // Информация о передаче
+              pw.Text(
+                'Настоящий акт составлен в том, что между сторонами произведена передача '
+                'оборудования со следующими характеристиками:',
+                style: const pw.TextStyle(fontSize: 11),
+              ),
+              pw.SizedBox(height: 20),
+              // Таблица с оборудованием
+              _buildEquipmentTable(data, totalPrice),
+              pw.SizedBox(height: 30),
+              // Информация о сторонах
+              pw.Text(
+                'Получатель: ${data.fio}',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              // Подписи
+              _buildSignatures(),
+              pw.SizedBox(height: 30),
+              // Примечание
+              pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey),
+                ),
+                child: pw.Text(
+                  'Примечание: Оборудование передано в исправном состоянии, '
+                  'комплектация полная. Претензий к качеству и комплектности не имею.',
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  pw.Widget _buildHeader(DocumentHeaderSettings header) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        if (header.organizationName.isNotEmpty)
+          pw.Text(
+            header.organizationName,
+            style: pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        if (header.department.isNotEmpty)
+          pw.Text(
+            'Отдел: ${header.department}',
+            style: const pw.TextStyle(fontSize: 11),
+          ),
+        if (header.address.isNotEmpty)
+          pw.Text(
+            'Адрес: ${header.address}',
+            style: const pw.TextStyle(fontSize: 11),
+          ),
+        if (header.phone.isNotEmpty)
+          pw.Text(
+            'Телефон: ${header.phone}',
+            style: const pw.TextStyle(fontSize: 11),
+          ),
+      ],
+    );
+  }
+
+  pw.Widget _buildEquipmentTable(DocumentData data, String totalPrice) {
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColors.black),
+      columnWidths: {
+        0: const pw.FlexColumnWidth(2),
+        1: const pw.FlexColumnWidth(1),
+        2: const pw.FlexColumnWidth(1.5),
+        3: const pw.FlexColumnWidth(1.5),
+      },
+      children: [
+        // Заголовок таблицы
+        pw.TableRow(
+          children: [
+            _buildTableCell('Наименование оборудования', isHeader: true),
+            _buildTableCell('Кол-во', isHeader: true),
+            _buildTableCell('Цена за ед.', isHeader: true),
+            _buildTableCell('Сумма', isHeader: true),
+          ],
+        ),
+        // Данные
+        pw.TableRow(
+          children: [
+            _buildTableCell(data.equipmentName),
+            _buildTableCell(data.quantity.toString()),
+            _buildTableCell(data.formattedPrice),
+            _buildTableCell('$totalPrice ₽'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _buildTableCell(String text, {bool isHeader = false}) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(8),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(
+          fontSize: isHeader ? 11 : 10,
+          fontWeight: isHeader ? pw.FontWeight.bold : null,
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildSignatures() {
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      children: [
+        pw.Expanded(
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'Сдал:',
+                style: pw.TextStyle(
+                  fontSize: 11,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 5),
+              pw.Row(
+                children: [
+                  pw.Expanded(
+                    child: pw.Container(
+                      height: 30,
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom: pw.BorderSide(color: PdfColors.black),
+                        ),
+                      ),
+                    ),
+                  ),
+                  pw.SizedBox(width: 10),
+                  pw.Text('(подпись)', style: const pw.TextStyle(fontSize: 8)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        pw.SizedBox(width: 40),
+        pw.Expanded(
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'Принял:',
+                style: pw.TextStyle(
+                  fontSize: 11,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 5),
+              pw.Row(
+                children: [
+                  pw.Expanded(
+                    child: pw.Container(
+                      height: 30,
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom: pw.BorderSide(color: PdfColors.black),
+                        ),
+                      ),
+                    ),
+                  ),
+                  pw.SizedBox(width: 10),
+                  pw.Text('(подпись)', style: const pw.TextStyle(fontSize: 8)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> printDocument(
+    DocumentData data,
+    DocumentHeaderSettings header,
+  ) async {
+    try {
+      final pdfBytes = await generatePdf(data, header);
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdfBytes,
+      );
+    } catch (e) {
+      throw Exception('Ошибка печати документа: $e');
+    }
+  }
+
+  Future<String> saveDocument(
+    DocumentData data,
+    DocumentHeaderSettings header,
+  ) async {
+    try {
+      final pdfBytes = await generatePdf(data, header);
+      final directory = await getApplicationDocumentsDirectory();
+      final fileName =
+          'document_${data.inventoryNumber}_${DateFormat('yyyyMMdd').format(data.date)}.pdf';
+      final file = File('${directory.path}/$fileName');
+      await file.writeAsBytes(pdfBytes);
+      return file.path;
+    } catch (e) {
+      throw Exception('Ошибка сохранения документа: $e');
+    }
+  }
+
+  Future<void> previewDocument(
+    BuildContext context,
+    DocumentData data,
+    DocumentHeaderSettings header,
+  ) async {
+    try {
+      final pdfBytes = await generatePdf(data, header);
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Scaffold(
+            appBar: AppBar(
+              title: const Text('Предпросмотр документа'),
+            ),
+            body: PdfPreview(
+              build: (format) => pdfBytes,
+              canChangeOrientation: false,
+              canChangePageFormat: false,
+              allowPrinting: true,
+              allowSharing: true,
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      throw Exception('Ошибка предпросмотра документа: $e');
+    }
+  }
+}

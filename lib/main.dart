@@ -5,6 +5,7 @@ import 'package:inventory_manager/screens/equipment_list_screen.dart';
 import 'package:inventory_manager/screens/reports_screen.dart';
 import 'package:inventory_manager/screens/movement_history_screen.dart';
 import 'package:inventory_manager/screens/settings_screen.dart';
+import 'package:inventory_manager/screens/documents_screen.dart';
 import 'package:inventory_manager/database/database_init.dart';
 
 void main() {
@@ -49,6 +50,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const EquipmentListScreen(),
     const ReportsScreen(),
     const MovementHistoryScreen(),
+    const DocumentsScreen(),
     const SettingsScreen(),
   ];
 
@@ -82,6 +84,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               NavigationRailDestination(
                 icon: Icon(Icons.history),
                 label: Text('История'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.description),
+                label: Text('Документы'),
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.settings),
