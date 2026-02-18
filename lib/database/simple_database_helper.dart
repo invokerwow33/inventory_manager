@@ -103,7 +103,8 @@ class SimpleDatabaseHelper {
     for (int i = 0; i < _equipment.length; i++) {
       final item = _equipment[i];
       final fixedItem = <String, dynamic>{
-        'id': item['id'] is int ? item['id'] : int.tryParse(item['id'].toString()) ?? 0,
+        // ID может быть int или String (например, "eq_17") - сохраняем как есть
+        'id': item['id'],
         'name': _ensureString(item['name']),
         'category': _ensureString(item['category']),
         'serial_number': _ensureString(item['serial_number']),
@@ -219,11 +220,44 @@ class SimpleDatabaseHelper {
     return await safeUpdateEquipment(equipment);
   }
 
-  Future<int> insertEquipment(Map<String, dynamic> equipment) async {
+  // Генерирует новый ID для оборудования
+  // Поддерживает как числовые ID (для старых записей), так и строковые с префиксом "eq_" (для новых)
+  dynamic _generateEquipmentId() {
+    if (_equipment.isEmpty) {
+      return 1;
+    }
+    
+    final lastId = _equipment.last['id'];
+    
+    // Если последний ID - строка с префиксом "eq_", продолжаем эту нумерацию
+    if (lastId is String && lastId.startsWith('eq_')) {
+      final number = int.tryParse(lastId.substring(3)) ?? 0;
+      return 'eq_${number + 1}';
+    }
+    
+    // Если последний ID - число или строка-число, продолжаем числовую нумерацию
+    if (lastId is int) {
+      return lastId + 1;
+    }
+    
+    // Пытаемся парсить как число (для строковых чисел)
+    final parsed = int.tryParse(lastId.toString());
+    if (parsed != null) {
+      return parsed + 1;
+    }
+    
+    // По умолчанию начинаем с числового ID
+    return 1;
+  }
+
+  Future<dynamic> insertEquipment(Map<String, dynamic> equipment) async {
     if (!_isInitialized) await initDatabase();
     
+    // Используем предоставленный ID или генерируем новый
+    final dynamic newId = equipment['id'] ?? _generateEquipmentId();
+    
     final newEquipment = <String, dynamic>{
-      'id': _equipment.isEmpty ? 1 : (_equipment.last['id'] as int) + 1,
+      'id': newId,
       'name': _ensureString(equipment['name']),
       'category': _ensureString(equipment['category']),
       'serial_number': _ensureString(equipment['serial_number']),
@@ -242,7 +276,7 @@ class SimpleDatabaseHelper {
     return newEquipment['id'];
   }
 
-  Future<Map<String, dynamic>?> getEquipmentById(int id) async {
+  Future<Map<String, dynamic>?> getEquipmentById(dynamic id) async {
     if (!_isInitialized) await initDatabase();
     return _equipment.firstWhere(
       (item) => item['id'] == id,
@@ -250,7 +284,7 @@ class SimpleDatabaseHelper {
     );
   }
 
-  Future<int> deleteEquipment(int id) async {
+  Future<int> deleteEquipment(dynamic id) async {
     if (!_isInitialized) await initDatabase();
     
     final initialLength = _equipment.length;
@@ -293,9 +327,10 @@ class SimpleDatabaseHelper {
     newMovement['created_at'] = DateTime.now().toIso8601String();
     
     // Гарантируем правильные типы данных
+    // equipment_id может быть int (старые записи) или String (новые с префиксом "eq_")
     final safeMovement = <String, dynamic>{
       'id': newMovement['id'],
-      'equipment_id': newMovement['equipment_id'] is int ? newMovement['equipment_id'] : int.tryParse(newMovement['equipment_id'].toString()) ?? 0,
+      'equipment_id': newMovement['equipment_id'],
       'equipment_name': _ensureString(newMovement['equipment_name']),
       'from_location': _ensureString(newMovement['from_location']),
       'to_location': _ensureString(newMovement['to_location']),
@@ -319,7 +354,7 @@ class SimpleDatabaseHelper {
     return List.from(_movements);
   }
 
-  Future<List<Map<String, dynamic>>> getEquipmentMovements(int equipmentId) async {
+  Future<List<Map<String, dynamic>>> getEquipmentMovements(dynamic equipmentId) async {
     if (!_isInitialized) await initDatabase();
     final filtered = _movements
         .where((movement) => movement['equipment_id'] == equipmentId)
