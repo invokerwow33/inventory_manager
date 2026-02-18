@@ -146,7 +146,7 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => BulkOperationsScreen(
-                            equipmentIds: _selectedEquipmentIds.toList(),
+                            preselectedEquipmentIds: _selectedEquipmentIds.toList(),
                           ),
                         ),
                       );

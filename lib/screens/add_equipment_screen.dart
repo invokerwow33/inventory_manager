@@ -287,14 +287,20 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
                     label: 'Производитель',
                     controller: _manufacturerController,
                     prefixIcon: const Icon(Icons.business_outlined),
-                    maxLength: 100,
+                    validator: (value) {
+                      final result = Validators.maxLength(value, 100, fieldName: 'Производитель');
+                      return result.isValid ? null : result.errorMessage;
+                    },
                   ),
                   
                   ValidationTextField(
                     label: 'Модель',
                     controller: _modelController,
                     prefixIcon: const Icon(Icons.category_outlined),
-                    maxLength: 100,
+                    validator: (value) {
+                      final result = Validators.maxLength(value, 100, fieldName: 'Модель');
+                      return result.isValid ? null : result.errorMessage;
+                    },
                   ),
                 ],
               ),
@@ -331,21 +337,30 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
                     label: 'Отдел/Подразделение',
                     controller: _departmentController,
                     prefixIcon: const Icon(Icons.account_balance_outlined),
-                    maxLength: 100,
+                    validator: (value) {
+                      final result = Validators.maxLength(value, 100, fieldName: 'Отдел/Подразделение');
+                      return result.isValid ? null : result.errorMessage;
+                    },
                   ),
                   
                   ValidationTextField(
                     label: 'Ответственное лицо',
                     controller: _responsiblePersonController,
                     prefixIcon: const Icon(Icons.person_outline),
-                    maxLength: 100,
+                    validator: (value) {
+                      final result = Validators.maxLength(value, 100, fieldName: 'Ответственное лицо');
+                      return result.isValid ? null : result.errorMessage;
+                    },
                   ),
                   
                   ValidationTextField(
                     label: 'Местоположение',
                     controller: _locationController,
                     prefixIcon: const Icon(Icons.place_outlined),
-                    maxLength: 200,
+                    validator: (value) {
+                      final result = Validators.maxLength(value, 200, fieldName: 'Местоположение');
+                      return result.isValid ? null : result.errorMessage;
+                    },
                   ),
                 ],
               ),

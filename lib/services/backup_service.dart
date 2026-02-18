@@ -1,7 +1,6 @@
 // lib/services/backup_service.dart
 import 'dart:convert';
 import 'dart:io';
-import 'package:sqflite/sqflite.dart'; // Добавьте этот импорт
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../database/database_helper.dart';
@@ -77,8 +76,7 @@ class BackupService {
 
   Future<List<Equipment>> _getAllEquipment() async {
     try {
-      final db = await dbHelper.database;
-      final List<Map<String, dynamic>> maps = await db.query('equipment');
+      final List<Map<String, dynamic>> maps = await dbHelper.getEquipment();
       
       return maps.map((map) => Equipment.fromMap(map)).toList();
     } catch (e) {
@@ -89,22 +87,13 @@ class BackupService {
 
   Future<void> _restoreEquipment(List<Equipment> equipmentList) async {
     try {
-      final db = await dbHelper.database;
+      // Очищаем таблицу
+      await dbHelper.clearAllData();
       
-      // Начинаем транзакцию
-      await db.transaction((txn) async {
-        // Очищаем таблицу
-        await txn.delete('equipment');
-        
-        // Вставляем новые данные
-        for (final equipment in equipmentList) {
-          await txn.insert(
-            'equipment',
-            equipment.toMap(),
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
-        }
-      });
+      // Вставляем новые данные
+      for (final equipment in equipmentList) {
+        await dbHelper.insertEquipment(equipment.toMap());
+      }
       
       print('Восстановлено ${equipmentList.length} записей оборудования');
     } catch (e) {
