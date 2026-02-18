@@ -46,7 +46,7 @@ class DocumentGeneratorService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               // Шапка документа
-              _buildHeader(header, fontRegular, fontBold),
+              _buildHeader(header, fontRegular, fontBold, data.outgoingNumber),
               pw.SizedBox(height: 30),
               // Заголовок документа
               pw.Center(
@@ -114,34 +114,77 @@ class DocumentGeneratorService {
     DocumentHeaderSettings header,
     pw.Font fontRegular,
     pw.Font fontBold,
+    String outgoingNumber,
   ) {
     return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
+        // Название организации - по центру, жирный шрифт
         if (header.organizationName.isNotEmpty)
-          pw.Text(
-            header.organizationName,
-            style: pw.TextStyle(
-              fontSize: 14,
-              fontWeight: pw.FontWeight.bold,
-              font: fontBold,
+          pw.Center(
+            child: pw.Text(
+              header.organizationName,
+              style: pw.TextStyle(
+                fontSize: 14,
+                fontWeight: pw.FontWeight.bold,
+                font: fontBold,
+              ),
             ),
           ),
-        if (header.department.isNotEmpty)
-          pw.Text(
-            'Отдел: ${header.department}',
-            style: pw.TextStyle(fontSize: 11, font: fontRegular),
-          ),
+        if (header.organizationName.isNotEmpty) pw.SizedBox(height: 5),
+
+        // Адрес - по центру
         if (header.address.isNotEmpty)
-          pw.Text(
-            'Адрес: ${header.address}',
-            style: pw.TextStyle(fontSize: 11, font: fontRegular),
+          pw.Center(
+            child: pw.Text(
+              header.address,
+              style: pw.TextStyle(fontSize: 10, font: fontRegular),
+            ),
           ),
+        if (header.address.isNotEmpty) pw.SizedBox(height: 5),
+
+        // ИНН и КПП - по центру
+        if (header.inn.isNotEmpty || header.kpp.isNotEmpty)
+          pw.Center(
+            child: pw.Text(
+              'ИНН ${header.inn}${header.kpp.isNotEmpty ? '\nКПП ${header.kpp}' : ''}',
+              style: pw.TextStyle(fontSize: 10, font: fontRegular),
+            ),
+          ),
+        if (header.inn.isNotEmpty || header.kpp.isNotEmpty) pw.SizedBox(height: 10),
+
+        // Email - по центру
+        if (header.email.isNotEmpty)
+          pw.Center(
+            child: pw.Text(
+              'Email/ ${header.email}',
+              style: pw.TextStyle(fontSize: 10, font: fontRegular),
+            ),
+          ),
+        if (header.email.isNotEmpty) pw.SizedBox(height: 5),
+
+        // Телефон - по центру
         if (header.phone.isNotEmpty)
-          pw.Text(
-            'Телефон: ${header.phone}',
-            style: pw.TextStyle(fontSize: 11, font: fontRegular),
+          pw.Center(
+            child: pw.Text(
+              'телефон: ${header.phone}',
+              style: pw.TextStyle(fontSize: 10, font: fontRegular),
+            ),
           ),
+        if (header.phone.isNotEmpty) pw.SizedBox(height: 10),
+
+        // Номер исходящего документа - по правому краю
+        if (outgoingNumber.isNotEmpty)
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.end,
+            children: [
+              pw.Text(
+                'Исх. $outgoingNumber№',
+                style: pw.TextStyle(fontSize: 12, font: fontRegular),
+              ),
+            ],
+          ),
+        pw.SizedBox(height: 20),
       ],
     );
   }
