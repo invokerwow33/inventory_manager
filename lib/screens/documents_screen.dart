@@ -25,18 +25,23 @@ class _DocumentsScreenState extends State<DocumentsScreen>
   final _equipmentNameController = TextEditingController();
   final _quantityController = TextEditingController(text: '1');
   final _priceController = TextEditingController();
+  final _outgoingNumberController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
 
   // Контроллеры для настроек шапки
   final _orgNameController = TextEditingController();
-  final _departmentController = TextEditingController();
   final _addressController = TextEditingController();
+  final _innController = TextEditingController();
+  final _kppController = TextEditingController();
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
 
   // Ключи для SharedPreferences
   static const String _orgNameKey = 'doc_org_name';
-  static const String _departmentKey = 'doc_dept';
   static const String _addressKey = 'doc_address';
+  static const String _innKey = 'doc_inn';
+  static const String _kppKey = 'doc_kpp';
+  static const String _emailKey = 'doc_email';
   static const String _phoneKey = 'doc_phone';
 
   @override
@@ -54,9 +59,12 @@ class _DocumentsScreenState extends State<DocumentsScreen>
     _equipmentNameController.dispose();
     _quantityController.dispose();
     _priceController.dispose();
+    _outgoingNumberController.dispose();
     _orgNameController.dispose();
-    _departmentController.dispose();
     _addressController.dispose();
+    _innController.dispose();
+    _kppController.dispose();
+    _emailController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
@@ -65,8 +73,10 @@ class _DocumentsScreenState extends State<DocumentsScreen>
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _orgNameController.text = prefs.getString(_orgNameKey) ?? '';
-      _departmentController.text = prefs.getString(_departmentKey) ?? '';
       _addressController.text = prefs.getString(_addressKey) ?? '';
+      _innController.text = prefs.getString(_innKey) ?? '';
+      _kppController.text = prefs.getString(_kppKey) ?? '';
+      _emailController.text = prefs.getString(_emailKey) ?? '';
       _phoneController.text = prefs.getString(_phoneKey) ?? '';
     });
   }
@@ -74,8 +84,10 @@ class _DocumentsScreenState extends State<DocumentsScreen>
   Future<void> _saveHeaderSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_orgNameKey, _orgNameController.text.trim());
-    await prefs.setString(_departmentKey, _departmentController.text.trim());
     await prefs.setString(_addressKey, _addressController.text.trim());
+    await prefs.setString(_innKey, _innController.text.trim());
+    await prefs.setString(_kppKey, _kppController.text.trim());
+    await prefs.setString(_emailKey, _emailController.text.trim());
     await prefs.setString(_phoneKey, _phoneController.text.trim());
   }
 
@@ -128,14 +140,17 @@ class _DocumentsScreenState extends State<DocumentsScreen>
       quantity: int.tryParse(_quantityController.text.trim()) ?? 1,
       price: double.tryParse(_priceController.text.trim().replaceAll(',', '.')),
       date: _selectedDate,
+      outgoingNumber: _outgoingNumberController.text.trim(),
     );
   }
 
   DocumentHeaderSettings _buildHeaderSettings() {
     return DocumentHeaderSettings(
       organizationName: _orgNameController.text.trim(),
-      department: _departmentController.text.trim(),
       address: _addressController.text.trim(),
+      inn: _innController.text.trim(),
+      kpp: _kppController.text.trim(),
+      email: _emailController.text.trim(),
       phone: _phoneController.text.trim(),
     );
   }
@@ -397,6 +412,17 @@ class _DocumentsScreenState extends State<DocumentsScreen>
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+            // Исходящий номер
+            TextFormField(
+              controller: _outgoingNumberController,
+              decoration: const InputDecoration(
+                labelText: 'Исх. №',
+                hintText: 'Введите номер исходящего документа',
+                prefixIcon: Icon(Icons.numbers),
+                border: OutlineInputBorder(),
+              ),
+            ),
             const SizedBox(height: 30),
             // Кнопки действий
             Row(
@@ -481,19 +507,8 @@ class _DocumentsScreenState extends State<DocumentsScreen>
               controller: _orgNameController,
               decoration: const InputDecoration(
                 labelText: 'Название организации',
-                hintText: 'ООО "Пример"',
+                hintText: 'Муниципальное бюджетное учреждение культуры «Большемуртинская ЦКС»',
                 prefixIcon: Icon(Icons.business),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Отдел
-            TextFormField(
-              controller: _departmentController,
-              decoration: const InputDecoration(
-                labelText: 'Отдел / Подразделение',
-                hintText: 'IT-отдел',
-                prefixIcon: Icon(Icons.account_tree),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -503,10 +518,44 @@ class _DocumentsScreenState extends State<DocumentsScreen>
               controller: _addressController,
               decoration: const InputDecoration(
                 labelText: 'Адрес',
-                hintText: 'г. Москва, ул. Примерная, д. 1',
+                hintText: '663060, Красноярский край, пгт. Большая Мурта, ул. Кооперативная, 15',
                 prefixIcon: Icon(Icons.location_on),
                 border: OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: 16),
+            // ИНН
+            TextFormField(
+              controller: _innController,
+              decoration: const InputDecoration(
+                labelText: 'ИНН',
+                hintText: '2408006059',
+                prefixIcon: Icon(Icons.pin),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // КПП
+            TextFormField(
+              controller: _kppController,
+              decoration: const InputDecoration(
+                labelText: 'КПП',
+                hintText: '240801001',
+                prefixIcon: Icon(Icons.pin),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Email
+            TextFormField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                hintText: 'dom.kulturi2011@yandex.ru',
+                prefixIcon: Icon(Icons.email),
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
             // Телефон
@@ -514,7 +563,7 @@ class _DocumentsScreenState extends State<DocumentsScreen>
               controller: _phoneController,
               decoration: const InputDecoration(
                 labelText: 'Телефон',
-                hintText: '+7 (999) 123-45-67',
+                hintText: '8(39198)31-2-08',
                 prefixIcon: Icon(Icons.phone),
                 border: OutlineInputBorder(),
               ),

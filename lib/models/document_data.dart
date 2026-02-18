@@ -7,6 +7,7 @@ class DocumentData {
   int quantity;
   double? price;
   DateTime date;
+  String outgoingNumber;
 
   DocumentData({
     required this.fio,
@@ -15,6 +16,7 @@ class DocumentData {
     this.quantity = 1,
     this.price,
     required this.date,
+    this.outgoingNumber = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -25,6 +27,7 @@ class DocumentData {
       'quantity': quantity,
       'price': price,
       'date': date.toIso8601String(),
+      'outgoingNumber': outgoingNumber,
     };
   }
 
@@ -36,6 +39,7 @@ class DocumentData {
       quantity: map['quantity'] ?? 1,
       price: map['price']?.toDouble(),
       date: DateTime.parse(map['date']),
+      outgoingNumber: map['outgoingNumber'] ?? '',
     );
   }
 
@@ -52,22 +56,28 @@ class DocumentData {
 
 class DocumentHeaderSettings {
   String organizationName;
-  String department;
   String address;
+  String inn;
+  String kpp;
+  String email;
   String phone;
 
   DocumentHeaderSettings({
     this.organizationName = '',
-    this.department = '',
     this.address = '',
+    this.inn = '',
+    this.kpp = '',
+    this.email = '',
     this.phone = '',
   });
 
   Map<String, dynamic> toMap() {
     return {
       'organizationName': organizationName,
-      'department': department,
       'address': address,
+      'inn': inn,
+      'kpp': kpp,
+      'email': email,
       'phone': phone,
     };
   }
@@ -75,8 +85,10 @@ class DocumentHeaderSettings {
   factory DocumentHeaderSettings.fromMap(Map<String, dynamic> map) {
     return DocumentHeaderSettings(
       organizationName: map['organizationName'] ?? '',
-      department: map['department'] ?? '',
       address: map['address'] ?? '',
+      inn: map['inn'] ?? '',
+      kpp: map['kpp'] ?? '',
+      email: map['email'] ?? '',
       phone: map['phone'] ?? '',
     );
   }
