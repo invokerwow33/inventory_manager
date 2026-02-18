@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/document_data.dart';
 import '../services/document_generator_service.dart';
+import '../widgets/equipment_autocomplete_field.dart';
 
 class DocumentsScreen extends StatefulWidget {
   const DocumentsScreen({super.key});
@@ -321,37 +322,32 @@ class _DocumentsScreenState extends State<DocumentsScreen>
               },
             ),
             const SizedBox(height: 16),
-            // Инвентарный номер
-            TextFormField(
-              controller: _inventoryNumberController,
-              decoration: const InputDecoration(
-                labelText: 'Инвентарный номер *',
-                hintText: 'Введите инвентарный номер',
-                prefixIcon: Icon(Icons.numbers),
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
+            // Интерактивное поле выбора оборудования с автодополнением
+            EquipmentAutocompleteField(
+              nameController: _equipmentNameController,
+              inventoryNumberController: _inventoryNumberController,
+              nameLabel: 'Наименование оборудования *',
+              inventoryNumberLabel: 'Инвентарный номер *',
+              nameHint: 'Введите название или выберите из списка',
+              inventoryNumberHint: 'Введите инвентарный номер',
+              allowManualInput: true,
+              nameValidator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Пожалуйста, введите наименование';
+                }
+                return null;
+              },
+              inventoryNumberValidator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Пожалуйста, введите инвентарный номер';
                 }
                 return null;
               },
-            ),
-            const SizedBox(height: 16),
-            // Наименование оборудования
-            TextFormField(
-              controller: _equipmentNameController,
-              decoration: const InputDecoration(
-                labelText: 'Наименование оборудования *',
-                hintText: 'Введите наименование',
-                prefixIcon: Icon(Icons.devices),
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Пожалуйста, введите наименование';
+              onEquipmentSelected: (equipment) {
+                // Дополнительные действия при выборе оборудования
+                if (equipment != null) {
+                  debugPrint('Выбрано оборудование: ${equipment['name']}');
                 }
-                return null;
               },
             ),
             const SizedBox(height: 16),

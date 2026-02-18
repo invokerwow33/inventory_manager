@@ -29,6 +29,16 @@ class DatabaseHelper {
     final maps = await SimpleDatabaseHelper().searchEquipment(query);
     return maps.map((m) => _mapToEquipment(m)).toList();
   }
+
+  Future<List<Equipment>> searchEquipmentByName(String name) async {
+    final maps = await SimpleDatabaseHelper().searchEquipmentByName(name);
+    return maps.map((m) => _mapToEquipment(m)).toList();
+  }
+
+  Future<List<Equipment>> searchEquipmentByInventoryNumber(String inventoryNumber) async {
+    final maps = await SimpleDatabaseHelper().searchEquipmentByInventoryNumber(inventoryNumber);
+    return maps.map((m) => _mapToEquipment(m)).toList();
+  }
   Future<int> getEquipmentCount() async {
     return await SimpleDatabaseHelper().getEquipmentCount();
   }
