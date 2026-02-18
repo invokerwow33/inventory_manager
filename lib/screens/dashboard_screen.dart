@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_manager/database/database_helper.dart';
+import 'package:inventory_manager/database/simple_database_helper.dart';
 import 'package:inventory_manager/screens/add_equipment_screen.dart';
 import 'package:inventory_manager/screens/equipment_list_screen.dart';
 import 'package:inventory_manager/screens/backup_screen.dart';
@@ -8,6 +9,9 @@ import 'package:inventory_manager/screens/qr_scanner_screen.dart';
 import 'package:inventory_manager/screens/reports_screen.dart';
 import 'package:inventory_manager/screens/movement_history_screen.dart';
 import 'package:inventory_manager/screens/create_movement_screen.dart';
+import 'package:inventory_manager/screens/consumables_list_screen.dart';
+import 'package:inventory_manager/screens/employees_list_screen.dart';
+import 'package:inventory_manager/screens/bulk_operations_screen.dart';
 import 'package:inventory_manager/models/equipment.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -22,6 +26,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _inUseCount = 0;
   int _inStockCount = 0;
   int _inRepairCount = 0;
+  int _consumablesCount = 0;
+  int _lowStockCount = 0;
+  int _employeesCount = 0;
   bool _isLoading = true;
 
   @override
@@ -34,14 +41,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() => _isLoading = true);
     try {
       final dbHelper = DatabaseHelper.instance;
-      await dbHelper.initDatabase();
+      final simpleDb = SimpleDatabaseHelper();
+      
+      await Future.wait([
+        dbHelper.initDatabase(),
+        simpleDb.initDatabase(),
+      ]);
+      
       final allEquipment = await dbHelper.getAllEquipment();
+      final consumableStats = await simpleDb.getConsumableStats();
+      final employeeStats = await simpleDb.getEmployeeStats();
       
       setState(() {
         _totalEquipment = allEquipment.length;
         _inUseCount = allEquipment.where((e) => e.status == EquipmentStatus.inUse).length;
         _inStockCount = allEquipment.where((e) => e.status == EquipmentStatus.inStock).length;
         _inRepairCount = allEquipment.where((e) => e.status == EquipmentStatus.underRepair).length;
+        _consumablesCount = consumableStats['total'] ?? 0;
+        _lowStockCount = consumableStats['low_stock'] ?? 0;
+        _employeesCount = employeeStats['active'] ?? 0;
         _isLoading = false;
       });
     } catch (e) {
@@ -176,6 +194,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                     ),
                     _buildFunctionCard(
+                      icon: Icons.inventory_2,
+                      title: 'Расходники',
+                      subtitle: 'Учет материалов',
+                      color: Colors.purple,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ConsumablesListScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildFunctionCard(
+                      icon: Icons.people,
+                      title: 'Сотрудники',
+                      subtitle: 'Карточки и выдача',
+                      color: Colors.teal,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const EmployeesListScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildFunctionCard(
+                      icon: Icons.select_all,
+                      title: 'Массовые',
+                      subtitle: 'Операции',
+                      color: Colors.deepOrange,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const BulkOperationsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildFunctionCard(
                       icon: Icons.analytics,
                       title: 'Отчеты',
                       subtitle: 'Статистика',
@@ -293,12 +353,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              alignment: WrapAlignment.center,
               children: [
                 _buildStatItem(
                   value: _totalEquipment.toString(),
-                  label: 'Всего единиц',
+                  label: 'Оборудование',
                   icon: Icons.devices,
                   color: Colors.blue,
                 ),
@@ -315,11 +377,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: Colors.orange,
                 ),
                 _buildStatItem(
-                  value: _inRepairCount.toString(),
-                  label: 'В ремонте',
-                  icon: Icons.build,
-                  color: Colors.red,
+                  value: _consumablesCount.toString(),
+                  label: 'Расходники',
+                  icon: Icons.inventory_2,
+                  color: Colors.purple,
                 ),
+                _buildStatItem(
+                  value: _employeesCount.toString(),
+                  label: 'Сотрудники',
+                  icon: Icons.people,
+                  color: Colors.teal,
+                ),
+                if (_lowStockCount > 0)
+                  _buildStatItem(
+                    value: _lowStockCount.toString(),
+                    label: 'Крит. остаток',
+                    icon: Icons.warning,
+                    color: Colors.red,
+                  ),
               ],
             ),
             const SizedBox(height: 16),

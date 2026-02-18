@@ -7,6 +7,9 @@ import 'package:inventory_manager/screens/reports_screen.dart';
 import 'package:inventory_manager/screens/movement_history_screen.dart';
 import 'package:inventory_manager/screens/settings_screen.dart';
 import 'package:inventory_manager/screens/documents_screen.dart';
+import 'package:inventory_manager/screens/consumables_list_screen.dart';
+import 'package:inventory_manager/screens/employees_list_screen.dart';
+import 'package:inventory_manager/screens/bulk_operations_screen.dart';
 import 'package:inventory_manager/database/database_init.dart';
 
 void main() {
@@ -59,6 +62,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const EquipmentListScreen(),
+    const ConsumablesListScreen(),
+    const EmployeesListScreen(),
     const ReportsScreen(),
     const MovementHistoryScreen(),
     const DocumentsScreen(),
@@ -87,6 +92,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               NavigationRailDestination(
                 icon: Icon(Icons.devices),
                 label: Text('Оборудование'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.inventory_2),
+                label: Text('Расходники'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.people),
+                label: Text('Сотрудники'),
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.assessment),

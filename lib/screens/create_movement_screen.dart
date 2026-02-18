@@ -5,8 +5,9 @@ import 'package:intl/intl.dart';
 
 class CreateMovementScreen extends StatefulWidget {
   final Map<String, dynamic>? equipment;
+  final String? preselectedResponsible;
   
-  const CreateMovementScreen({Key? key, this.equipment}) : super(key: key);
+  const CreateMovementScreen({Key? key, this.equipment, this.preselectedResponsible}) : super(key: key);
 
   @override
   _CreateMovementScreenState createState() => _CreateMovementScreenState();
@@ -49,6 +50,11 @@ class _CreateMovementScreenState extends State<CreateMovementScreen> {
       _equipmentController.text = widget.equipment!['name']?.toString() ?? '';
       _fromLocationController.text = widget.equipment!['location']?.toString() ?? '';
       _fromResponsibleController.text = widget.equipment!['responsible_person']?.toString() ?? '';
+    }
+    
+    // Если передан ответственный (из карточки сотрудника)
+    if (widget.preselectedResponsible != null) {
+      _toResponsibleController.text = widget.preselectedResponsible!;
     }
   }
 
