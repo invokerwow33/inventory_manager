@@ -152,11 +152,9 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                 title: 'Основная информация',
                 icon: Icons.person_outline,
                 children: [
-                  ValidationTextField.required(
+                  ValidationTextField(
                     label: 'ФИО',
                     controller: _fullNameController,
-                    minLength: 3,
-                    maxLength: 200,
                     prefixIcon: const Icon(Icons.badge_outlined),
                     validator: Validators.fullName,
                     hint: 'Иванов Иван Иванович',
@@ -173,14 +171,20 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                     label: 'Должность',
                     controller: _positionController,
                     prefixIcon: const Icon(Icons.work_outline),
-                    maxLength: 100,
+                    validator: (value) {
+                      final result = Validators.maxLength(value, 100, fieldName: 'Должность');
+                      return result.isValid ? null : result.errorMessage;
+                    },
                   ),
                   
                   ValidationTextField(
                     label: 'Отдел',
                     controller: _departmentController,
                     prefixIcon: const Icon(Icons.account_balance_outlined),
-                    maxLength: 100,
+                    validator: (value) {
+                      final result = Validators.maxLength(value, 100, fieldName: 'Отдел');
+                      return result.isValid ? null : result.errorMessage;
+                    },
                   ),
                 ],
               ),

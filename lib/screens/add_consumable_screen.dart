@@ -143,11 +143,9 @@ class _AddConsumableScreenState extends State<AddConsumableScreen> {
                 title: 'Основная информация',
                 icon: Icons.inventory_2_outlined,
                 children: [
-                  ValidationTextField.required(
+                  ValidationTextField(
                     label: 'Название',
                     controller: _nameController,
-                    minLength: 2,
-                    maxLength: 200,
                     prefixIcon: const Icon(Icons.label_outline),
                     validator: Validators.consumableName,
                   ),
@@ -221,7 +219,10 @@ class _AddConsumableScreenState extends State<AddConsumableScreen> {
                     label: 'Название поставщика',
                     controller: _supplierController,
                     prefixIcon: const Icon(Icons.business_outlined),
-                    maxLength: 200,
+                    validator: (value) {
+                      final result = Validators.maxLength(value, 200, fieldName: 'Название поставщика');
+                      return result.isValid ? null : result.errorMessage;
+                    },
                   ),
                 ],
               ),

@@ -48,7 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         simpleDb.initDatabase(),
       ]);
       
-      final allEquipment = await dbHelper.getAllEquipment();
+      final allEquipment = await dbHelper.getEquipment();
       final consumableStats = await simpleDb.getConsumableStats();
       final employeeStats = await simpleDb.getEmployeeStats();
       
@@ -548,7 +548,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _exportData() async {
     try {
       final dbHelper = DatabaseHelper.instance;
-      final equipment = await dbHelper.getAllEquipment();
+      final equipment = await dbHelper.getEquipment();
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
