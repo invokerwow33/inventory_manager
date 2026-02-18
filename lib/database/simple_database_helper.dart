@@ -512,4 +512,99 @@ class SimpleDatabaseHelper {
       'recent_movements': await getRecentMovements(limit: 10),
     };
   }
+
+  // === МЕТОДЫ ДЛЯ ФИЛЬТРАЦИИ ОТЧЕТОВ ===
+
+  /// Получение уникальных категорий для фильтра
+  Future<List<String>> getCategories() async {
+    if (!_isInitialized) await initDatabase();
+    
+    final categories = _equipment
+        .map((item) => item['category']?.toString().trim() ?? 'Не указана')
+        .where((cat) => cat.isNotEmpty)
+        .toSet()
+        .toList();
+    
+    categories.sort();
+    return categories;
+  }
+
+  /// Комплексная фильтрация оборудования
+  Future<List<Map<String, dynamic>>> filterEquipment({
+    String? category,
+    List<String>? statuses,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    String? searchQuery,
+  }) async {
+    if (!_isInitialized) await initDatabase();
+    
+    return _equipment.where((item) {
+      // Фильтр по категории
+      if (category != null && category.isNotEmpty && category != 'Все категории') {
+        final itemCategory = item['category']?.toString().trim() ?? 'Не указана';
+        if (itemCategory != category) return false;
+      }
+      
+      // Фильтр по статусам
+      if (statuses != null && statuses.isNotEmpty) {
+        final itemStatus = item['status']?.toString() ?? '';
+        if (!statuses.contains(itemStatus)) return false;
+      }
+      
+      // Фильтр по дате создания (от)
+      if (dateFrom != null) {
+        final createdAt = DateTime.tryParse(item['created_at']?.toString() ?? '');
+        if (createdAt != null && createdAt.isBefore(dateFrom)) return false;
+      }
+      
+      // Фильтр по дате создания (до)
+      if (dateTo != null) {
+        final createdAt = DateTime.tryParse(item['created_at']?.toString() ?? '');
+        if (createdAt != null && createdAt.isAfter(dateTo.add(const Duration(days: 1)))) return false;
+      }
+      
+      // Фильтр по поисковому запросу
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        final query = searchQuery.toLowerCase();
+        final name = item['name']?.toString().toLowerCase() ?? '';
+        final inventoryNumber = item['inventory_number']?.toString().toLowerCase() ?? '';
+        final serialNumber = item['serial_number']?.toString().toLowerCase() ?? '';
+        
+        if (!name.contains(query) && 
+            !inventoryNumber.contains(query) && 
+            !serialNumber.contains(query)) {
+          return false;
+        }
+      }
+      
+      return true;
+    }).toList();
+  }
+
+  /// Экспорт списка оборудования в CSV
+  Future<String> exportEquipmentListToCSV(List<Map<String, dynamic>> equipmentList) async {
+    final csvData = StringBuffer();
+    
+    csvData.writeln('ID,Название,Категория,Серийный номер,Инвентарный номер,Статус,Ответственный,Местоположение,Дата покупки,Примечания');
+    
+    for (final item in equipmentList) {
+      final row = [
+        item['id']?.toString() ?? '',
+        '"${item['name']?.toString().replaceAll('"', '""') ?? ''}"',
+        '"${item['category']?.toString().replaceAll('"', '""') ?? ''}"',
+        '"${item['serial_number']?.toString().replaceAll('"', '""') ?? ''}"',
+        '"${item['inventory_number']?.toString().replaceAll('"', '""') ?? ''}"',
+        '"${item['status']?.toString().replaceAll('"', '""') ?? ''}"',
+        '"${item['responsible_person']?.toString().replaceAll('"', '""') ?? ''}"',
+        '"${item['location']?.toString().replaceAll('"', '""') ?? ''}"',
+        '"${item['purchase_date']?.toString().replaceAll('"', '""') ?? ''}"',
+        '"${item['notes']?.toString().replaceAll('"', '""') ?? ''}"',
+      ].join(',');
+      
+      csvData.writeln(row);
+    }
+    
+    return csvData.toString();
+  }
 }
