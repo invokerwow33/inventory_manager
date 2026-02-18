@@ -146,7 +146,7 @@ class DatabaseHelper {
     return Map<String, dynamic>.from(maps.first);
   }
 
-  Future<dynamic> insertEquipment(Map<String, dynamic> equipment) async {
+  Future<String> insertEquipment(Map<String, dynamic> equipment) async {
     final db = await database;
     // Ensure id is set
     if (!equipment.containsKey('id') || equipment['id'] == null) {
@@ -156,9 +156,9 @@ class DatabaseHelper {
     final now = DateTime.now().toIso8601String();
     equipment['created_at'] ??= now;
     equipment['updated_at'] ??= now;
-    
+
     await db.insert('equipment', equipment, conflictAlgorithm: ConflictAlgorithm.replace);
-    return equipment['id'];
+    return equipment['id'].toString();
   }
 
   Future<int> updateEquipment(Map<String, dynamic> equipment) async {

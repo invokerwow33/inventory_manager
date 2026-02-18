@@ -50,7 +50,7 @@ class DatabaseHelper {
     return await _backend.getEquipmentById(id);
   }
 
-  Future<dynamic> insertEquipment(Map<String, dynamic> equipment) async {
+  Future<String> insertEquipment(Map<String, dynamic> equipment) async {
     return await _backend.insertEquipment(equipment);
   }
 
