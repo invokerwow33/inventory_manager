@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:excel/excel.dart';
+import 'package:excel/excel.dart' hide Border;
 import 'package:inventory_manager/database/simple_database_helper.dart';
 import 'package:intl/intl.dart';
 import '../widgets/filter_panel.dart';
