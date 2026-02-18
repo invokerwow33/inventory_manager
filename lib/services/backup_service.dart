@@ -78,7 +78,7 @@ class BackupService {
     try {
       final List<Map<String, dynamic>> maps = await dbHelper.getEquipment();
       
-      return maps.map((map) => Equipment.fromMap(map)).toList();
+      return maps.map((map) => Equipment.fromMap(Map<String, dynamic>.from(map))).toList();
     } catch (e) {
       print('Ошибка при получении оборудования: $e');
       return [];

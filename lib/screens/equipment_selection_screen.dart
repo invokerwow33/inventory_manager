@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:inventory_manager/database/simple_database_helper.dart';
 
 class EquipmentSelectionScreen extends StatefulWidget {
-  final List<dynamic> selectedEquipmentIds; // Уже выбранное оборудование
+  final List<String> selectedEquipmentIds; // Уже выбранное оборудование
   final bool multipleSelection; // Разрешить множественный выбор
   
   const EquipmentSelectionScreen({
@@ -19,14 +19,14 @@ class _EquipmentSelectionScreenState extends State<EquipmentSelectionScreen> {
   final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
   List<Map<String, dynamic>> _equipment = [];
   List<Map<String, dynamic>> _filteredEquipment = [];
-  Set<dynamic> _selectedIds = {};
+  Set<String> _selectedIds = {};
   bool _isLoading = true;
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _selectedIds = Set.from(widget.selectedEquipmentIds);
+    _selectedIds = Set<String>.from(widget.selectedEquipmentIds);
     _loadEquipment();
   }
 
@@ -63,7 +63,8 @@ class _EquipmentSelectionScreenState extends State<EquipmentSelectionScreen> {
 
   void _toggleSelection(Map<String, dynamic> equipment) {
     setState(() {
-      final id = equipment['id'];
+      final id = equipment['id']?.toString();
+      if (id == null) return;
       if (_selectedIds.contains(id)) {
         _selectedIds.remove(id);
       } else {

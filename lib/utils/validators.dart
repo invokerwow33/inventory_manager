@@ -257,8 +257,6 @@ abstract class Validators {
 }
 
 // Extension for easy use with FormField validators
-typedef ValidatorFunction = String? Function(String?);
-
 class ValidatorBuilder {
   final List<ValidationResult Function(String?)> _validators = [];
 

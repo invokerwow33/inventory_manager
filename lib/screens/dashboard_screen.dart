@@ -48,7 +48,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         simpleDb.initDatabase(),
       ]);
       
-      final allEquipment = await dbHelper.getEquipment();
+      final allEquipmentData = await dbHelper.getEquipment();
+      final allEquipment = allEquipmentData.map((map) => Equipment.fromMap(map)).toList();
       final consumableStats = await simpleDb.getConsumableStats();
       final employeeStats = await simpleDb.getEmployeeStats();
       

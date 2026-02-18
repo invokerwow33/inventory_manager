@@ -6,6 +6,7 @@ class ValidationTextField extends StatelessWidget {
   final String? hint;
   final String? initialValue;
   final int maxLines;
+  final int? maxLength;
   final TextInputType keyboardType;
   final bool obscureText;
   final TextEditingController? controller;
@@ -26,6 +27,7 @@ class ValidationTextField extends StatelessWidget {
     this.hint,
     this.initialValue,
     this.maxLines = 1,
+    this.maxLength,
     this.keyboardType = TextInputType.text,
     this.obscureText = false,
     this.controller,
@@ -189,6 +191,7 @@ class ValidationTextField extends StatelessWidget {
       initialValue: initialValue,
       controller: controller,
       maxLines: maxLines,
+      maxLength: maxLength,
       keyboardType: keyboardType,
       prefixIcon: prefixIcon,
       validator: (value) {
@@ -234,8 +237,10 @@ class ValidationTextField extends StatelessWidget {
           suffixIcon: suffixIcon,
           filled: !enabled,
           fillColor: enabled ? null : theme.colorScheme.surfaceContainerHighest,
+          counterText: maxLength != null ? '' : null,
         ),
         maxLines: maxLines,
+        maxLength: maxLength,
         keyboardType: keyboardType,
         obscureText: obscureText,
         validator: validator,

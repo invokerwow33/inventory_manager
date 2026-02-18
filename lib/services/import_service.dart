@@ -142,7 +142,7 @@ class ImportService {
           location: row.length > 9 ? row[9]?.toString() : null,
           rowNum: i + 2,
         );
-        await DatabaseHelper.instance.insertEquipment(eq.toMap());
+        await DatabaseHelper.instance.insertEquipment(Map<String, dynamic>.from(eq.toMap()));
         imported.add(eq);
         success++;
       } catch (e) {
@@ -209,7 +209,7 @@ class ImportService {
           location: row.length > 9 ? row[9]?.value?.toString() : null,
           rowNum: i + 2,
         );
-        await DatabaseHelper.instance.insertEquipment(eq.toMap());
+        await DatabaseHelper.instance.insertEquipment(Map<String, dynamic>.from(eq.toMap()));
         imported.add(eq);
         success++;
       } catch (e) {
