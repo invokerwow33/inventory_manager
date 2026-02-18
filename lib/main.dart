@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +16,7 @@ import 'package:inventory_manager/screens/documents_screen.dart';
 import 'package:inventory_manager/screens/consumables_list_screen.dart';
 import 'package:inventory_manager/screens/employees_list_screen.dart';
 import 'package:inventory_manager/database/database_init.dart';
+import 'package:inventory_manager/services/logger_service.dart';
 
 // Providers
 import 'package:inventory_manager/providers/equipment_provider.dart';
@@ -22,12 +26,29 @@ import 'package:inventory_manager/providers/movement_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     initDatabase();
   }
-  
-  runApp(const MyApp());
+
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    unawaited(LoggerService().logError(details.exception, details.stack));
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    unawaited(LoggerService().logError(error, stack));
+    return true;
+  };
+
+  runZonedGuarded(
+    () {
+      runApp(const MyApp());
+    },
+    (error, stack) {
+      unawaited(LoggerService().logError(error, stack));
+    },
+  );
 }
 
 class MyApp extends StatelessWidget {

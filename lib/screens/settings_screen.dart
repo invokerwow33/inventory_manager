@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_manager/screens/backup_screen.dart';
 import 'package:inventory_manager/screens/import_screen.dart';
+import 'package:inventory_manager/screens/logs_screen.dart';
+
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
   @override
@@ -58,6 +60,21 @@ class SettingsScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ImportScreen(),
+                ),
+              );
+            },
+          ),
+
+          // Логи ошибок
+          ListTile(
+            leading: const Icon(Icons.bug_report_outlined),
+            title: const Text('Логи ошибок'),
+            subtitle: const Text('Просмотр зарегистрированных ошибок'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LogsScreen(),
                 ),
               );
             },
