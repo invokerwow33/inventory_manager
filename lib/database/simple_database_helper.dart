@@ -9,8 +9,15 @@ class SimpleDatabaseHelper {
 
   List<Map<String, dynamic>> _equipment = [];
   List<Map<String, dynamic>> _movements = [];
+  List<Map<String, dynamic>> _consumables = [];
+  List<Map<String, dynamic>> _consumableMovements = [];
+  List<Map<String, dynamic>> _employees = [];
+  
   late File _databaseFile;
   late File _movementsFile;
+  late File _consumablesFile;
+  late File _consumableMovementsFile;
+  late File _employeesFile;
   bool _isInitialized = false;
   
   // Кэш для производительности
@@ -25,6 +32,9 @@ class SimpleDatabaseHelper {
       final directory = await getApplicationDocumentsDirectory();
       _databaseFile = File('${directory.path}/inventory.json');
       _movementsFile = File('${directory.path}/movements.json');
+      _consumablesFile = File('${directory.path}/consumables.json');
+      _consumableMovementsFile = File('${directory.path}/consumable_movements.json');
+      _employeesFile = File('${directory.path}/employees.json');
       
       if (await _databaseFile.exists()) {
         final content = await _databaseFile.readAsString();
@@ -56,12 +66,57 @@ class SimpleDatabaseHelper {
         await _saveMovementsToFile();
       }
       
+      // Загрузка расходников
+      if (await _consumablesFile.exists()) {
+        final content = await _consumablesFile.readAsString();
+        if (content.isNotEmpty) {
+          final data = jsonDecode(content);
+          _consumables = List<Map<String, dynamic>>.from(data);
+        } else {
+          _consumables = [];
+        }
+      } else {
+        _consumables = [];
+        await _saveConsumablesToFile();
+      }
+      
+      // Загрузка движений расходников
+      if (await _consumableMovementsFile.exists()) {
+        final content = await _consumableMovementsFile.readAsString();
+        if (content.isNotEmpty) {
+          final data = jsonDecode(content);
+          _consumableMovements = List<Map<String, dynamic>>.from(data);
+        } else {
+          _consumableMovements = [];
+        }
+      } else {
+        _consumableMovements = [];
+        await _saveConsumableMovementsToFile();
+      }
+      
+      // Загрузка сотрудников
+      if (await _employeesFile.exists()) {
+        final content = await _employeesFile.readAsString();
+        if (content.isNotEmpty) {
+          final data = jsonDecode(content);
+          _employees = List<Map<String, dynamic>>.from(data);
+        } else {
+          _employees = [];
+        }
+      } else {
+        _employees = [];
+        await _saveEmployeesToFile();
+      }
+      
       _isInitialized = true;
-      print('База данных инициализирована. Оборудование: ${_equipment.length}, Перемещений: ${_movements.length}');
+      print('База данных инициализирована. Оборудование: ${_equipment.length}, Перемещений: ${_movements.length}, Расходников: ${_consumables.length}, Сотрудников: ${_employees.length}');
     } catch (e) {
       print('Ошибка инициализации базы данных: $e');
       _equipment = [];
       _movements = [];
+      _consumables = [];
+      _consumableMovements = [];
+      _employees = [];
       _isInitialized = true;
     }
   }
@@ -467,8 +522,43 @@ class SimpleDatabaseHelper {
     if (!_isInitialized) await initDatabase();
     _equipment.clear();
     _movements.clear();
+    _consumables.clear();
+    _consumableMovements.clear();
+    _employees.clear();
     await _saveToFile();
     await _saveMovementsToFile();
+    await _saveConsumablesToFile();
+    await _saveConsumableMovementsToFile();
+    await _saveEmployeesToFile();
+  }
+
+  // === МЕТОДЫ СОХРАНЕНИЯ ДЛЯ НОВЫХ СУЩНОСТЕЙ ===
+
+  Future<void> _saveConsumablesToFile() async {
+    try {
+      await _consumablesFile.writeAsString(jsonEncode(_consumables));
+      print('Расходники сохранены. Всего: ${_consumables.length}');
+    } catch (e) {
+      print('Ошибка сохранения расходников: $e');
+    }
+  }
+
+  Future<void> _saveConsumableMovementsToFile() async {
+    try {
+      await _consumableMovementsFile.writeAsString(jsonEncode(_consumableMovements));
+      print('Движения расходников сохранены. Всего: ${_consumableMovements.length}');
+    } catch (e) {
+      print('Ошибка сохранения движений расходников: $e');
+    }
+  }
+
+  Future<void> _saveEmployeesToFile() async {
+    try {
+      await _employeesFile.writeAsString(jsonEncode(_employees));
+      print('Сотрудники сохранены. Всего: ${_employees.length}');
+    } catch (e) {
+      print('Ошибка сохранения сотрудников: $e');
+    }
   }
 
   Future<void> saveToFile() async {
@@ -606,5 +696,403 @@ class SimpleDatabaseHelper {
     }
     
     return csvData.toString();
+  }
+
+  // === МЕТОДЫ ДЛЯ РАСХОДНИКОВ ===
+
+  Future<List<Map<String, dynamic>>> getConsumables() async {
+    if (!_isInitialized) await initDatabase();
+    return List.from(_consumables);
+  }
+
+  Future<Map<String, dynamic>?> getConsumableById(String id) async {
+    if (!_isInitialized) await initDatabase();
+    try {
+      return _consumables.firstWhere((item) => item['id']?.toString() == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<String> insertConsumable(Map<String, dynamic> consumable) async {
+    if (!_isInitialized) await initDatabase();
+    
+    final newId = consumable['id'] ?? 'cons_${DateTime.now().millisecondsSinceEpoch}';
+    final newConsumable = <String, dynamic>{
+      'id': newId,
+      'name': _ensureString(consumable['name']),
+      'category': _ensureString(consumable['category']),
+      'unit': _ensureString(consumable['unit']),
+      'quantity': (consumable['quantity'] ?? 0).toDouble(),
+      'min_quantity': (consumable['min_quantity'] ?? 0).toDouble(),
+      'supplier': _ensureString(consumable['supplier']),
+      'notes': _ensureString(consumable['notes']),
+      'created_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    
+    _consumables.add(newConsumable);
+    await _saveConsumablesToFile();
+    return newId.toString();
+  }
+
+  Future<int> updateConsumable(Map<String, dynamic> consumable) async {
+    if (!_isInitialized) await initDatabase();
+    
+    final index = _consumables.indexWhere((item) => item['id']?.toString() == consumable['id']?.toString());
+    if (index != -1) {
+      final existing = _consumables[index];
+      final updated = <String, dynamic>{
+        'id': existing['id'],
+        'name': _ensureString(consumable['name'] ?? existing['name']),
+        'category': _ensureString(consumable['category'] ?? existing['category']),
+        'unit': _ensureString(consumable['unit'] ?? existing['unit']),
+        'quantity': (consumable['quantity'] ?? existing['quantity'] ?? 0).toDouble(),
+        'min_quantity': (consumable['min_quantity'] ?? existing['min_quantity'] ?? 0).toDouble(),
+        'supplier': _ensureString(consumable['supplier'] ?? existing['supplier']),
+        'notes': _ensureString(consumable['notes'] ?? existing['notes']),
+        'created_at': existing['created_at'],
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      
+      _consumables[index] = updated;
+      await _saveConsumablesToFile();
+      return 1;
+    }
+    return 0;
+  }
+
+  Future<int> deleteConsumable(String id) async {
+    if (!_isInitialized) await initDatabase();
+    
+    final initialLength = _consumables.length;
+    _consumables.removeWhere((item) => item['id']?.toString() == id);
+    if (_consumables.length != initialLength) {
+      await _saveConsumablesToFile();
+      return 1;
+    }
+    return 0;
+  }
+
+  Future<List<Map<String, dynamic>>> searchConsumables(String query) async {
+    if (!_isInitialized) await initDatabase();
+    
+    if (query.isEmpty) return getConsumables();
+    
+    final lowerQuery = query.toLowerCase();
+    return _consumables.where((item) {
+      return (item['name']?.toString().toLowerCase().contains(lowerQuery) ?? false) ||
+             (item['category']?.toString().toLowerCase().contains(lowerQuery) ?? false) ||
+             (item['supplier']?.toString().toLowerCase().contains(lowerQuery) ?? false);
+    }).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getLowStockConsumables() async {
+    if (!_isInitialized) await initDatabase();
+    
+    return _consumables.where((item) {
+      final quantity = (item['quantity'] ?? 0).toDouble();
+      final minQuantity = (item['min_quantity'] ?? 0).toDouble();
+      return quantity <= minQuantity && minQuantity > 0;
+    }).toList();
+  }
+
+  // === МЕТОДЫ ДЛЯ ДВИЖЕНИЯ РАСХОДНИКОВ ===
+
+  Future<int> addConsumableMovement(Map<String, dynamic> movement) async {
+    if (!_isInitialized) await initDatabase();
+    
+    final newId = _consumableMovements.isEmpty ? 1 : (_consumableMovements.last['id'] as int) + 1;
+    final newMovement = <String, dynamic>{
+      'id': newId,
+      'consumable_id': _ensureString(movement['consumable_id']),
+      'consumable_name': _ensureString(movement['consumable_name']),
+      'quantity': (movement['quantity'] ?? 0).toDouble(),
+      'operation_type': _ensureString(movement['operation_type']),
+      'operation_date': movement['operation_date']?.toString() ?? DateTime.now().toIso8601String(),
+      'employee_id': movement['employee_id'] != null ? _ensureString(movement['employee_id']) : null,
+      'employee_name': movement['employee_name'] != null ? _ensureString(movement['employee_name']) : null,
+      'document_number': _ensureString(movement['document_number']),
+      'notes': _ensureString(movement['notes']),
+      'created_at': DateTime.now().toIso8601String(),
+    };
+    
+    _consumableMovements.add(newMovement);
+    await _saveConsumableMovementsToFile();
+    
+    // Обновляем количество расходника
+    final consumableId = movement['consumable_id']?.toString();
+    final operationType = movement['operation_type']?.toString();
+    final quantity = (movement['quantity'] ?? 0).toDouble();
+    
+    if (consumableId != null) {
+      final consumable = await getConsumableById(consumableId);
+      if (consumable != null) {
+        double newQuantity = (consumable['quantity'] ?? 0).toDouble();
+        if (operationType == 'приход') {
+          newQuantity += quantity;
+        } else if (operationType == 'расход') {
+          newQuantity -= quantity;
+        }
+        
+        final updatedConsumable = Map<String, dynamic>.from(consumable);
+        updatedConsumable['quantity'] = newQuantity;
+        updatedConsumable['updated_at'] = DateTime.now().toIso8601String();
+        await updateConsumable(updatedConsumable);
+      }
+    }
+    
+    return newId;
+  }
+
+  Future<List<Map<String, dynamic>>> getConsumableMovements(String? consumableId) async {
+    if (!_isInitialized) await initDatabase();
+    
+    var filtered = List<Map<String, dynamic>>.from(_consumableMovements);
+    
+    if (consumableId != null && consumableId.isNotEmpty) {
+      filtered = filtered.where((m) => m['consumable_id']?.toString() == consumableId).toList();
+    }
+    
+    // Сортируем по дате (новые сверху)
+    filtered.sort((a, b) {
+      final dateA = DateTime.tryParse(a['operation_date']?.toString() ?? '') ?? DateTime.now();
+      final dateB = DateTime.tryParse(b['operation_date']?.toString() ?? '') ?? DateTime.now();
+      return dateB.compareTo(dateA);
+    });
+    
+    return filtered;
+  }
+
+  // === МЕТОДЫ ДЛЯ СОТРУДНИКОВ ===
+
+  Future<List<Map<String, dynamic>>> getEmployees({bool includeInactive = false}) async {
+    if (!_isInitialized) await initDatabase();
+    
+    if (includeInactive) {
+      return List.from(_employees);
+    }
+    
+    return _employees.where((item) => item['is_active'] != false).toList();
+  }
+
+  Future<Map<String, dynamic>?> getEmployeeById(String id) async {
+    if (!_isInitialized) await initDatabase();
+    try {
+      return _employees.firstWhere((item) => item['id']?.toString() == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<String> insertEmployee(Map<String, dynamic> employee) async {
+    if (!_isInitialized) await initDatabase();
+    
+    final newId = employee['id'] ?? 'emp_${DateTime.now().millisecondsSinceEpoch}';
+    final newEmployee = <String, dynamic>{
+      'id': newId,
+      'full_name': _ensureString(employee['full_name'] ?? employee['name']),
+      'department': _ensureString(employee['department']),
+      'position': _ensureString(employee['position']),
+      'email': _ensureString(employee['email']),
+      'phone': _ensureString(employee['phone']),
+      'employee_number': _ensureString(employee['employee_number'] ?? employee['employeeNumber']),
+      'notes': _ensureString(employee['notes']),
+      'is_active': employee['is_active'] ?? employee['isActive'] ?? true,
+      'created_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    
+    _employees.add(newEmployee);
+    await _saveEmployeesToFile();
+    return newId.toString();
+  }
+
+  Future<int> updateEmployee(Map<String, dynamic> employee) async {
+    if (!_isInitialized) await initDatabase();
+    
+    final index = _employees.indexWhere((item) => item['id']?.toString() == employee['id']?.toString());
+    if (index != -1) {
+      final existing = _employees[index];
+      final updated = <String, dynamic>{
+        'id': existing['id'],
+        'full_name': _ensureString(employee['full_name'] ?? employee['name'] ?? existing['full_name']),
+        'department': _ensureString(employee['department'] ?? existing['department']),
+        'position': _ensureString(employee['position'] ?? existing['position']),
+        'email': _ensureString(employee['email'] ?? existing['email']),
+        'phone': _ensureString(employee['phone'] ?? existing['phone']),
+        'employee_number': _ensureString(employee['employee_number'] ?? employee['employeeNumber'] ?? existing['employee_number']),
+        'notes': _ensureString(employee['notes'] ?? existing['notes']),
+        'is_active': employee['is_active'] ?? employee['isActive'] ?? existing['is_active'] ?? true,
+        'created_at': existing['created_at'],
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      
+      _employees[index] = updated;
+      await _saveEmployeesToFile();
+      return 1;
+    }
+    return 0;
+  }
+
+  Future<int> deleteEmployee(String id) async {
+    if (!_isInitialized) await initDatabase();
+    
+    // Soft delete - помечаем как неактивного
+    final employee = await getEmployeeById(id);
+    if (employee != null) {
+      final updated = Map<String, dynamic>.from(employee);
+      updated['is_active'] = false;
+      updated['updated_at'] = DateTime.now().toIso8601String();
+      return await updateEmployee(updated);
+    }
+    return 0;
+  }
+
+  Future<List<Map<String, dynamic>>> searchEmployees(String query) async {
+    if (!_isInitialized) await initDatabase();
+    
+    if (query.isEmpty) return getEmployees();
+    
+    final lowerQuery = query.toLowerCase();
+    return _employees.where((item) {
+      final isActive = item['is_active'] ?? true;
+      if (!isActive) return false;
+      
+      return (item['full_name']?.toString().toLowerCase().contains(lowerQuery) ?? false) ||
+             (item['department']?.toString().toLowerCase().contains(lowerQuery) ?? false) ||
+             (item['position']?.toString().toLowerCase().contains(lowerQuery) ?? false) ||
+             (item['employee_number']?.toString().toLowerCase().contains(lowerQuery) ?? false);
+    }).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getEmployeeMovements(String employeeId) async {
+    if (!_isInitialized) await initDatabase();
+    
+    final filtered = _movements.where((movement) {
+      final toResponsible = movement['to_responsible']?.toString().toLowerCase() ?? '';
+      final fromResponsible = movement['from_responsible']?.toString().toLowerCase() ?? '';
+      
+      // Получаем имя сотрудника
+      final employee = _employees.firstWhere(
+        (e) => e['id']?.toString() == employeeId,
+        orElse: () => {},
+      );
+      
+      if (employee.isEmpty) return false;
+      
+      final employeeName = employee['full_name']?.toString().toLowerCase() ?? '';
+      return toResponsible.contains(employeeName) || fromResponsible.contains(employeeName);
+    }).toList();
+    
+    // Сортируем по дате (новые сверху)
+    filtered.sort((a, b) {
+      final dateA = DateTime.tryParse(a['movement_date']?.toString() ?? '') ?? DateTime.now();
+      final dateB = DateTime.tryParse(b['movement_date']?.toString() ?? '') ?? DateTime.now();
+      return dateB.compareTo(dateA);
+    });
+    
+    return filtered;
+  }
+
+  Future<List<String>> getDepartments() async {
+    if (!_isInitialized) await initDatabase();
+    
+    final departments = _employees
+        .map((item) => item['department']?.toString().trim() ?? '')
+        .where((dept) => dept.isNotEmpty)
+        .toSet()
+        .toList();
+    
+    departments.sort();
+    return departments;
+  }
+
+  // === МЕТОДЫ ДЛЯ МАССОВЫХ ОПЕРАЦИЙ ===
+
+  Future<List<int>> performBulkMovement({
+    required List<String> equipmentIds,
+    required String movementType,
+    required String toLocation,
+    String? toResponsible,
+    String? documentNumber,
+    String? notes,
+    DateTime? movementDate,
+  }) async {
+    if (!_isInitialized) await initDatabase();
+    
+    final results = <int>[];
+    final date = movementDate ?? DateTime.now();
+    
+    for (final equipmentId in equipmentIds) {
+      final equipment = await getEquipmentById(equipmentId);
+      if (equipment == null || equipment.isEmpty) continue;
+      
+      final movement = {
+        'equipment_id': equipmentId,
+        'equipment_name': equipment['name'] ?? '',
+        'from_location': equipment['location'] ?? '',
+        'to_location': toLocation,
+        'from_responsible': equipment['responsible_person'] ?? '',
+        'to_responsible': toResponsible ?? '',
+        'movement_date': date.toIso8601String(),
+        'movement_type': movementType,
+        'document_number': documentNumber ?? '',
+        'notes': notes ?? '',
+      };
+      
+      final movementId = await addMovement(movement);
+      results.add(movementId);
+      
+      // Обновляем оборудование
+      final updatedEquipment = Map<String, dynamic>.from(equipment);
+      updatedEquipment['location'] = toLocation;
+      if (toResponsible != null && toResponsible.isNotEmpty) {
+        updatedEquipment['responsible_person'] = toResponsible;
+      }
+      
+      // Обновляем статус в зависимости от типа операции
+      switch (movementType) {
+        case 'Выдача':
+          updatedEquipment['status'] = 'В использовании';
+          break;
+        case 'Возврат':
+          updatedEquipment['status'] = 'На складе';
+          break;
+        case 'Списание':
+          updatedEquipment['status'] = 'Списано';
+          break;
+      }
+      
+      await safeUpdateEquipment(updatedEquipment);
+    }
+    
+    return results;
+  }
+
+  // === СТАТИСТИКА ===
+
+  Future<Map<String, int>> getConsumableStats() async {
+    if (!_isInitialized) await initDatabase();
+    
+    final lowStock = await getLowStockConsumables();
+    
+    return {
+      'total': _consumables.length,
+      'low_stock': lowStock.length,
+    };
+  }
+
+  Future<Map<String, int>> getEmployeeStats() async {
+    if (!_isInitialized) await initDatabase();
+    
+    final active = _employees.where((e) => e['is_active'] != false).length;
+    final inactive = _employees.where((e) => e['is_active'] == false).length;
+    
+    return {
+      'total': _employees.length,
+      'active': active,
+      'inactive': inactive,
+    };
   }
 }

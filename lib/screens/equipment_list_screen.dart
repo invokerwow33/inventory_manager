@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_manager/models/equipment.dart';
-import 'package:inventory_manager/screens/add_equipment_screen.dart'; // ← оставляем старый
+import 'package:inventory_manager/screens/add_equipment_screen.dart';
+import 'package:inventory_manager/screens/bulk_operations_screen.dart';
 import 'package:inventory_manager/widgets/export_menu_button.dart';
 import 'package:inventory_manager/database/database_helper.dart';
 
@@ -18,6 +19,10 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
   final List<String> _statusFilters = ['Все', 'В использовании', 'На складе', 'В ремонте', 'Списано'];
   String _selectedFilter = 'Все';
   bool _isLoading = true;
+  
+  // Multi-selection mode
+  bool _isSelectionMode = false;
+  final Set<String> _selectedEquipmentIds = {};
 
   @override
   void initState() {
@@ -113,27 +118,111 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
     };
   }
 
+  void _toggleSelectionMode() {
+    setState(() {
+      _isSelectionMode = !_isSelectionMode;
+      if (!_isSelectionMode) {
+        _selectedEquipmentIds.clear();
+      }
+    });
+  }
+
+  void _toggleEquipmentSelection(String id) {
+    setState(() {
+      if (_selectedEquipmentIds.contains(id)) {
+        _selectedEquipmentIds.remove(id);
+      } else {
+        _selectedEquipmentIds.add(id);
+      }
+    });
+  }
+
+  void _selectAll() {
+    setState(() {
+      _selectedEquipmentIds.addAll(_filteredList.map((e) => e.id));
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selectedEquipmentIds.clear();
+    });
+  }
+
+  Future<void> _startBulkOperation() async {
+    if (_selectedEquipmentIds.isEmpty) return;
+    
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BulkOperationsScreen(
+          preselectedEquipmentIds: _selectedEquipmentIds.toList(),
+        ),
+      ),
+    );
+    
+    if (result == true) {
+      _refreshData();
+      setState(() {
+        _isSelectionMode = false;
+        _selectedEquipmentIds.clear();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Оборудование'),
+        title: _isSelectionMode 
+            ? Text('Выбрано: ${_selectedEquipmentIds.length}')
+            : const Text('Оборудование'),
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _toggleSelectionMode,
+                tooltip: 'Отменить выбор',
+              )
+            : null,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshData,
-            tooltip: 'Обновить данные',
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AddEquipmentScreen(equipment: null), // ← ИСПРАВЛЕНО
-              ),
+          if (_isSelectionMode) ...[
+            IconButton(
+              icon: const Icon(Icons.select_all),
+              onPressed: _selectAll,
+              tooltip: 'Выбрать все',
             ),
-            tooltip: 'Добавить оборудование (Ctrl+N)',
-          ),
+            IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: _clearSelection,
+              tooltip: 'Снять выбор',
+            ),
+            IconButton(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: _selectedEquipmentIds.isEmpty ? null : _startBulkOperation,
+              tooltip: 'Массовая операция',
+            ),
+          ] else ...[
+            IconButton(
+              icon: const Icon(Icons.select_all),
+              onPressed: _toggleSelectionMode,
+              tooltip: 'Режим выбора',
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _refreshData,
+              tooltip: 'Обновить данные',
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddEquipmentScreen(equipment: null),
+                ),
+              ),
+              tooltip: 'Добавить оборудование',
+            ),
+          ],
         ],
       ),
       body: Column(
@@ -217,6 +306,27 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: _isSelectionMode && _selectedEquipmentIds.isNotEmpty
+          ? BottomAppBar(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Text(
+                      'Выбрано: ${_selectedEquipmentIds.length}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const Spacer(),
+                    ElevatedButton.icon(
+                      onPressed: _startBulkOperation,
+                      icon: const Icon(Icons.arrow_forward),
+                      label: const Text('Массовая операция'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : null,
     );
   }
 
@@ -235,15 +345,23 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
             DataColumn(label: Text('Действия')),
           ],
           rows: _filteredList.map((equipment) {
+            final isSelected = _selectedEquipmentIds.contains(equipment.id);
+            
             return DataRow(
-              onSelectChanged: (_) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddEquipmentScreen(equipment: null),
-                  ),
-                );
-              },
+              selected: isSelected,
+              onSelectChanged: _isSelectionMode 
+                  ? (_) => _toggleEquipmentSelection(equipment.id)
+                  : (_) {
+                      // В обычном режиме - пока ничего не делаем при выборе строки
+                    },
+              color: MaterialStateProperty.resolveWith<Color?>(
+                (Set<MaterialState> states) {
+                  if (isSelected) {
+                    return Colors.blue.withOpacity(0.1);
+                  }
+                  return null;
+                },
+              ),
               cells: [
                 DataCell(
                   Row(
@@ -300,35 +418,40 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
                   Text(equipment.responsiblePerson ?? '-'),
                 ),
                 DataCell(
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, size: 18),
-                        onPressed: () {
-                          // Преобразуем Equipment в Map для старого экрана редактирования
-                          final equipmentMap = _equipmentToMap(equipment);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AddEquipmentScreen(equipment: equipmentMap),
+                  _isSelectionMode
+                      ? Checkbox(
+                          value: isSelected,
+                          onChanged: (_) => _toggleEquipmentSelection(equipment.id),
+                        )
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, size: 18),
+                              onPressed: () {
+                                final equipmentMap = _equipmentToMap(equipment);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddEquipmentScreen(equipment: equipmentMap),
+                                  ),
+                                ).then((result) {
+                                  if (result == true) {
+                                    _refreshData();
+                                  }
+                                });
+                              },
+                              tooltip: 'Редактировать',
                             ),
-                          ).then((result) {
-                            if (result == true) {
-                              _refreshData(); // Обновляем список после редактирования
-                            }
-                          });
-                        },
-                        tooltip: 'Редактировать',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.qr_code, size: 18),
-                        onPressed: () {
-                          // TODO: Показать QR
-                        },
-                        tooltip: 'Показать QR',
-                      ),
-                    ],
-                  ),
+                            IconButton(
+                              icon: const Icon(Icons.qr_code, size: 18),
+                              onPressed: () {
+                                // TODO: Показать QR
+                              },
+                              tooltip: 'Показать QR',
+                            ),
+                          ],
+                        ),
                 ),
               ],
             );
