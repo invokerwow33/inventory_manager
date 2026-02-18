@@ -24,6 +24,10 @@ class DocumentGeneratorService {
         ? (data.price! * data.quantity).toStringAsFixed(2)
         : '0.00';
 
+    // Load fonts with Cyrillic support using PdfGoogleFont
+    final fontRegular = await PdfGoogleFont.roboto();
+    final fontBold = await PdfGoogleFont.robotoBold();
+
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
@@ -33,7 +37,7 @@ class DocumentGeneratorService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               // Шапка документа
-              _buildHeader(header),
+              _buildHeader(header, fontRegular, fontBold),
               pw.SizedBox(height: 30),
               // Заголовок документа
               pw.Center(
@@ -42,6 +46,7 @@ class DocumentGeneratorService {
                   style: pw.TextStyle(
                     fontSize: 16,
                     fontWeight: pw.FontWeight.bold,
+                    font: fontBold,
                   ),
                 ),
               ),
@@ -49,18 +54,18 @@ class DocumentGeneratorService {
               // Дата документа
               pw.Text(
                 'Дата составления: $formattedDate',
-                style: const pw.TextStyle(fontSize: 12),
+                style: pw.TextStyle(fontSize: 12, font: fontRegular),
               ),
               pw.SizedBox(height: 20),
               // Информация о передаче
               pw.Text(
                 'Настоящий акт составлен в том, что между сторонами произведена передача '
                 'оборудования со следующими характеристиками:',
-                style: const pw.TextStyle(fontSize: 11),
+                style: pw.TextStyle(fontSize: 11, font: fontRegular),
               ),
               pw.SizedBox(height: 20),
               // Таблица с оборудованием
-              _buildEquipmentTable(data, totalPrice),
+              _buildEquipmentTable(data, totalPrice, fontRegular, fontBold),
               pw.SizedBox(height: 30),
               // Информация о сторонах
               pw.Text(
@@ -68,11 +73,12 @@ class DocumentGeneratorService {
                 style: pw.TextStyle(
                   fontSize: 12,
                   fontWeight: pw.FontWeight.bold,
+                  font: fontBold,
                 ),
               ),
               pw.SizedBox(height: 20),
               // Подписи
-              _buildSignatures(),
+              _buildSignatures(fontRegular, fontBold),
               pw.SizedBox(height: 30),
               // Примечание
               pw.Container(
@@ -83,7 +89,7 @@ class DocumentGeneratorService {
                 child: pw.Text(
                   'Примечание: Оборудование передано в исправном состоянии, '
                   'комплектация полная. Претензий к качеству и комплектности не имею.',
-                  style: const pw.TextStyle(fontSize: 10),
+                  style: pw.TextStyle(fontSize: 10, font: fontRegular),
                 ),
               ),
             ],
@@ -95,7 +101,11 @@ class DocumentGeneratorService {
     return pdf.save();
   }
 
-  pw.Widget _buildHeader(DocumentHeaderSettings header) {
+  pw.Widget _buildHeader(
+    DocumentHeaderSettings header,
+    pw.Font fontRegular,
+    pw.Font fontBold,
+  ) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -105,28 +115,34 @@ class DocumentGeneratorService {
             style: pw.TextStyle(
               fontSize: 14,
               fontWeight: pw.FontWeight.bold,
+              font: fontBold,
             ),
           ),
         if (header.department.isNotEmpty)
           pw.Text(
             'Отдел: ${header.department}',
-            style: const pw.TextStyle(fontSize: 11),
+            style: pw.TextStyle(fontSize: 11, font: fontRegular),
           ),
         if (header.address.isNotEmpty)
           pw.Text(
             'Адрес: ${header.address}',
-            style: const pw.TextStyle(fontSize: 11),
+            style: pw.TextStyle(fontSize: 11, font: fontRegular),
           ),
         if (header.phone.isNotEmpty)
           pw.Text(
             'Телефон: ${header.phone}',
-            style: const pw.TextStyle(fontSize: 11),
+            style: pw.TextStyle(fontSize: 11, font: fontRegular),
           ),
       ],
     );
   }
 
-  pw.Widget _buildEquipmentTable(DocumentData data, String totalPrice) {
+  pw.Widget _buildEquipmentTable(
+    DocumentData data,
+    String totalPrice,
+    pw.Font fontRegular,
+    pw.Font fontBold,
+  ) {
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.black),
       columnWidths: {
@@ -139,26 +155,39 @@ class DocumentGeneratorService {
         // Заголовок таблицы
         pw.TableRow(
           children: [
-            _buildTableCell('Наименование оборудования', isHeader: true),
-            _buildTableCell('Кол-во', isHeader: true),
-            _buildTableCell('Цена за ед.', isHeader: true),
-            _buildTableCell('Сумма', isHeader: true),
+            _buildTableCell('Наименование оборудования',
+                isHeader: true, fontRegular: fontRegular, fontBold: fontBold),
+            _buildTableCell('Кол-во',
+                isHeader: true, fontRegular: fontRegular, fontBold: fontBold),
+            _buildTableCell('Цена за ед.',
+                isHeader: true, fontRegular: fontRegular, fontBold: fontBold),
+            _buildTableCell('Сумма',
+                isHeader: true, fontRegular: fontRegular, fontBold: fontBold),
           ],
         ),
         // Данные
         pw.TableRow(
           children: [
-            _buildTableCell(data.equipmentName),
-            _buildTableCell(data.quantity.toString()),
-            _buildTableCell(data.formattedPrice),
-            _buildTableCell('$totalPrice ₽'),
+            _buildTableCell(data.equipmentName,
+                fontRegular: fontRegular, fontBold: fontBold),
+            _buildTableCell(data.quantity.toString(),
+                fontRegular: fontRegular, fontBold: fontBold),
+            _buildTableCell(data.formattedPrice,
+                fontRegular: fontRegular, fontBold: fontBold),
+            _buildTableCell('$totalPrice ₽',
+                fontRegular: fontRegular, fontBold: fontBold),
           ],
         ),
       ],
     );
   }
 
-  pw.Widget _buildTableCell(String text, {bool isHeader = false}) {
+  pw.Widget _buildTableCell(
+    String text, {
+    bool isHeader = false,
+    required pw.Font fontRegular,
+    required pw.Font fontBold,
+  }) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(8),
       child: pw.Text(
@@ -166,12 +195,16 @@ class DocumentGeneratorService {
         style: pw.TextStyle(
           fontSize: isHeader ? 11 : 10,
           fontWeight: isHeader ? pw.FontWeight.bold : null,
+          font: isHeader ? fontBold : fontRegular,
         ),
       ),
     );
   }
 
-  pw.Widget _buildSignatures() {
+  pw.Widget _buildSignatures(
+    pw.Font fontRegular,
+    pw.Font fontBold,
+  ) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
@@ -184,6 +217,7 @@ class DocumentGeneratorService {
                 style: pw.TextStyle(
                   fontSize: 11,
                   fontWeight: pw.FontWeight.bold,
+                  font: fontBold,
                 ),
               ),
               pw.SizedBox(height: 5),
@@ -200,7 +234,8 @@ class DocumentGeneratorService {
                     ),
                   ),
                   pw.SizedBox(width: 10),
-                  pw.Text('(подпись)', style: const pw.TextStyle(fontSize: 8)),
+                  pw.Text('(подпись)',
+                      style: pw.TextStyle(fontSize: 8, font: fontRegular)),
                 ],
               ),
             ],
@@ -216,6 +251,7 @@ class DocumentGeneratorService {
                 style: pw.TextStyle(
                   fontSize: 11,
                   fontWeight: pw.FontWeight.bold,
+                  font: fontBold,
                 ),
               ),
               pw.SizedBox(height: 5),
@@ -232,7 +268,8 @@ class DocumentGeneratorService {
                     ),
                   ),
                   pw.SizedBox(width: 10),
-                  pw.Text('(подпись)', style: const pw.TextStyle(fontSize: 8)),
+                  pw.Text('(подпись)',
+                      style: pw.TextStyle(fontSize: 8, font: fontRegular)),
                 ],
               ),
             ],
