@@ -66,18 +66,15 @@ class _BulkOperationsScreenState extends State<BulkOperationsScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => EquipmentSelectionScreen(
-          selectedEquipmentIds: _selectedEquipmentIds.map((id) {
-            // Try to parse as int, otherwise return 0 (will be filtered out)
-            return int.tryParse(id) ?? 0;
-          }).where((id) => id > 0).toList(),
+          selectedEquipmentIds: _selectedEquipmentIds,
           multipleSelection: true,
         ),
       ),
     );
     
-    if (result != null && result is List<int>) {
+    if (result != null && result is List<String>) {
       setState(() {
-        _selectedEquipmentIds = result.map((id) => id.toString()).toList();
+        _selectedEquipmentIds = result;
       });
       await _loadSelectedEquipment();
     }
