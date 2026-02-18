@@ -204,6 +204,7 @@ class _AddConsumableScreenState extends State<AddConsumableScreen> {
                       const SizedBox(height: 16),
                       
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: TextFormField(
