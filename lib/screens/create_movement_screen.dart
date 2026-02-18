@@ -62,21 +62,29 @@ class _CreateMovementScreenState extends State<CreateMovementScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EquipmentSelectionScreen(
-          selectedEquipmentIds: _selectedEquipment != null ? [_selectedEquipment!['id'] as int] : [],
-          multipleSelection: false, // Для перемещения выбираем только одно оборудование
-        ),
+        builder: (context) {
+          final selectedId = _selectedEquipment?['id']?.toString();
+          return EquipmentSelectionScreen(
+            selectedEquipmentIds: selectedId != null && selectedId.isNotEmpty
+                ? [selectedId]
+                : [],
+            multipleSelection: false, // Для перемещения выбираем только одно оборудование
+          );
+        },
       ),
     );
     
-    if (result != null && result is List<int> && result.isNotEmpty) {
+    if (result != null && result is List && result.isNotEmpty) {
       // Загружаем детали выбранного оборудования
-      final equipmentId = result.first;
-      await _loadSelectedEquipment(equipmentId);
+      final selectedId = result.first;
+      if (selectedId == null) {
+        return;
+      }
+      await _loadSelectedEquipment(selectedId.toString());
     }
   }
 
-  Future<void> _loadSelectedEquipment(int equipmentId) async {
+  Future<void> _loadSelectedEquipment(String equipmentId) async {
     try {
       final equipment = await _dbHelper.getEquipmentById(equipmentId);
       if (equipment != null) {

@@ -172,7 +172,8 @@ class _EquipmentSelectionScreenState extends State<EquipmentSelectionScreen> {
                         itemCount: _filteredEquipment.length,
                         itemBuilder: (context, index) {
                           final equipment = _filteredEquipment[index];
-                          final isSelected = _selectedIds.contains(equipment['id']);
+                          final equipmentId = equipment['id']?.toString();
+                          final isSelected = equipmentId != null && _selectedIds.contains(equipmentId);
                           return _buildEquipmentItem(equipment, isSelected);
                         },
                       ),
