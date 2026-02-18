@@ -158,12 +158,16 @@ class SimpleDatabaseHelper {
   // Исправляет все типы данных в базе
   Future<void> _fixAllDataTypes() async {
     bool changed = false;
-    
+
     for (int i = 0; i < _equipment.length; i++) {
       final item = _equipment[i];
+
+      // ID должен быть String - конвертируем int в String для совместимости
+      final dynamic rawId = item['id'];
+      final String fixedId = rawId?.toString() ?? '';
+
       final fixedItem = <String, dynamic>{
-        // ID может быть int или String (например, "eq_17") - сохраняем как есть
-        'id': item['id'],
+        'id': fixedId,
         'name': _ensureString(item['name']),
         'category': _ensureString(item['category']),
         'serial_number': _ensureString(item['serial_number']),
@@ -175,17 +179,17 @@ class SimpleDatabaseHelper {
         'responsible_person': _ensureString(item['responsible_person']),
         'created_at': _ensureString(item['created_at']),
       };
-      
+
       if (item.containsKey('updated_at') && item['updated_at'] != null) {
         fixedItem['updated_at'] = _ensureString(item['updated_at']);
       }
-      
+
       if (!_mapsEqual(item, fixedItem)) {
         _equipment[i] = fixedItem;
         changed = true;
       }
     }
-    
+
     if (changed) {
       await _saveToFile();
       print('Типы данных автоматически исправлены');
@@ -245,14 +249,15 @@ class SimpleDatabaseHelper {
   // НОВЫЙ МЕТОД: безопасное обновление с гарантией типов
   Future<int> safeUpdateEquipment(Map<String, dynamic> equipment) async {
     if (!_isInitialized) await initDatabase();
-    
+
     final index = _equipment.indexWhere((item) => _idsMatch(item['id'], equipment['id']));
     if (index != -1) {
       final existing = _equipment[index];
-      
+
       // Создаем полностью новую запись
+      // ID всегда сохраняем как String для консистентности
       final updated = <String, dynamic>{
-        'id': equipment['id'],
+        'id': _ensureString(equipment['id'] ?? existing['id']),
         'name': _ensureString(equipment['name'] ?? existing['name']),
         'category': _ensureString(equipment['category'] ?? existing['category']),
         'serial_number': _ensureString(equipment['serial_number'] ?? existing['serial_number']),
@@ -265,7 +270,7 @@ class SimpleDatabaseHelper {
         'created_at': _ensureString(existing['created_at']),
         'updated_at': DateTime.now().toIso8601String(),
       };
-      
+
       _equipment[index] = updated;
       await _saveToFile();
       print('Оборудование безопасно обновлено. ID: ${equipment['id']}');
@@ -280,41 +285,43 @@ class SimpleDatabaseHelper {
   }
 
   // Генерирует новый ID для оборудования
-  // Поддерживает как числовые ID (для старых записей), так и строковые с префиксом "eq_" (для новых)
-  dynamic _generateEquipmentId() {
+  // Всегда возвращает String для консистентности типов
+  String _generateEquipmentId() {
     if (_equipment.isEmpty) {
-      return 1;
+      return 'eq_1';
     }
-    
+
     final lastId = _equipment.last['id'];
-    
+
     // Если последний ID - строка с префиксом "eq_", продолжаем эту нумерацию
     if (lastId is String && lastId.startsWith('eq_')) {
       final number = int.tryParse(lastId.substring(3)) ?? 0;
       return 'eq_${number + 1}';
     }
-    
-    // Если последний ID - число или строка-число, продолжаем числовую нумерацию
+
+    // Если последний ID - число или строка-число, преобразуем в формат eq_
+    int? lastNumber;
     if (lastId is int) {
-      return lastId + 1;
+      lastNumber = lastId;
+    } else {
+      lastNumber = int.tryParse(lastId.toString());
     }
-    
-    // Пытаемся парсить как число (для строковых чисел)
-    final parsed = int.tryParse(lastId.toString());
-    if (parsed != null) {
-      return parsed + 1;
+
+    if (lastNumber != null) {
+      return 'eq_${lastNumber + 1}';
     }
-    
-    // По умолчанию начинаем с числового ID
-    return 1;
+
+    // По умолчанию начинаем с eq_1
+    return 'eq_1';
   }
 
-  Future<dynamic> insertEquipment(Map<String, dynamic> equipment) async {
+  Future<String> insertEquipment(Map<String, dynamic> equipment) async {
     if (!_isInitialized) await initDatabase();
-    
+
     // Используем предоставленный ID или генерируем новый
-    final dynamic newId = equipment['id'] ?? _generateEquipmentId();
-    
+    // Всегда сохраняем как String для консистентности
+    final String newId = equipment['id']?.toString() ?? _generateEquipmentId();
+
     final newEquipment = <String, dynamic>{
       'id': newId,
       'name': _ensureString(equipment['name']),
@@ -328,7 +335,7 @@ class SimpleDatabaseHelper {
       'responsible_person': _ensureString(equipment['responsible_person']),
       'created_at': DateTime.now().toIso8601String(),
     };
-    
+
     _equipment.add(newEquipment);
     await _saveToFile();
     print('Оборудование добавлено. ID: ${newEquipment['id']}');
