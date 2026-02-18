@@ -167,7 +167,7 @@ class SimpleDatabaseHelper {
       final String fixedId = rawId?.toString() ?? '';
 
       final fixedItem = <String, dynamic>{
-        'id': fixedId,
+        'id': item['id'].toString(),
         'name': _ensureString(item['name']),
         'category': _ensureString(item['category']),
         'serial_number': _ensureString(item['serial_number']),
