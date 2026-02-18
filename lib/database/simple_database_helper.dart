@@ -72,6 +72,30 @@ class SimpleDatabaseHelper {
     return value.toString();
   }
 
+  // Поиск оборудования по инвентарному номеру
+  Future<List<Map<String, dynamic>>> searchEquipmentByInventoryNumber(String inventoryNumber) async {
+    if (!_isInitialized) await initDatabase();
+    
+    if (inventoryNumber.isEmpty) return [];
+    
+    final query = inventoryNumber.toLowerCase();
+    return _equipment.where((item) {
+      return (item['inventory_number']?.toString().toLowerCase().contains(query) ?? false);
+    }).toList();
+  }
+
+  // Поиск оборудования по названию
+  Future<List<Map<String, dynamic>>> searchEquipmentByName(String name) async {
+    if (!_isInitialized) await initDatabase();
+    
+    if (name.isEmpty) return [];
+    
+    final query = name.toLowerCase();
+    return _equipment.where((item) {
+      return (item['name']?.toString().toLowerCase().contains(query) ?? false);
+    }).toList();
+  }
+
   // Исправляет все типы данных в базе
   Future<void> _fixAllDataTypes() async {
     bool changed = false;
@@ -83,6 +107,7 @@ class SimpleDatabaseHelper {
         'name': _ensureString(item['name']),
         'category': _ensureString(item['category']),
         'serial_number': _ensureString(item['serial_number']),
+        'inventory_number': _ensureString(item['inventory_number']),
         'status': _ensureString(item['status']),
         'location': _ensureString(item['location']),
         'notes': _ensureString(item['notes']),
@@ -171,6 +196,7 @@ class SimpleDatabaseHelper {
         'name': _ensureString(equipment['name'] ?? existing['name']),
         'category': _ensureString(equipment['category'] ?? existing['category']),
         'serial_number': _ensureString(equipment['serial_number'] ?? existing['serial_number']),
+        'inventory_number': _ensureString(equipment['inventory_number'] ?? existing['inventory_number']),
         'status': _ensureString(equipment['status'] ?? existing['status']),
         'location': _ensureString(equipment['location'] ?? existing['location']),
         'notes': _ensureString(equipment['notes'] ?? existing['notes']),
@@ -201,6 +227,7 @@ class SimpleDatabaseHelper {
       'name': _ensureString(equipment['name']),
       'category': _ensureString(equipment['category']),
       'serial_number': _ensureString(equipment['serial_number']),
+      'inventory_number': _ensureString(equipment['inventory_number']),
       'status': _ensureString(equipment['status'] ?? 'На складе'),
       'location': _ensureString(equipment['location']),
       'notes': _ensureString(equipment['notes']),
@@ -241,11 +268,13 @@ class SimpleDatabaseHelper {
     
     if (query.isEmpty) return getEquipment();
     
+    final lowerQuery = query.toLowerCase();
     return _equipment.where((item) {
-      return (item['name']?.toString().toLowerCase().contains(query.toLowerCase()) ?? false) ||
-             (item['serial_number']?.toString().toLowerCase().contains(query.toLowerCase()) ?? false) ||
-             (item['category']?.toString().toLowerCase().contains(query.toLowerCase()) ?? false) ||
-             (item['responsible_person']?.toString().toLowerCase().contains(query.toLowerCase()) ?? false);
+      return (item['name']?.toString().toLowerCase().contains(lowerQuery) ?? false) ||
+             (item['serial_number']?.toString().toLowerCase().contains(lowerQuery) ?? false) ||
+             (item['inventory_number']?.toString().toLowerCase().contains(lowerQuery) ?? false) ||
+             (item['category']?.toString().toLowerCase().contains(lowerQuery) ?? false) ||
+             (item['responsible_person']?.toString().toLowerCase().contains(lowerQuery) ?? false);
     }).toList();
   }
 
@@ -377,7 +406,7 @@ class SimpleDatabaseHelper {
     
     final csvData = StringBuffer();
     
-    csvData.writeln('ID,Название,Категория,Серийный номер,Статус,Ответственный,Местоположение,Дата покупки,Примечания');
+    csvData.writeln('ID,Название,Категория,Серийный номер,Инвентарный номер,Статус,Ответственный,Местоположение,Дата покупки,Примечания');
     
     for (final item in _equipment) {
       final row = [
@@ -385,6 +414,7 @@ class SimpleDatabaseHelper {
         '"${item['name']?.toString().replaceAll('"', '""') ?? ''}"',
         '"${item['category']?.toString().replaceAll('"', '""') ?? ''}"',
         '"${item['serial_number']?.toString().replaceAll('"', '""') ?? ''}"',
+        '"${item['inventory_number']?.toString().replaceAll('"', '""') ?? ''}"',
         '"${item['status']?.toString().replaceAll('"', '""') ?? ''}"',
         '"${item['responsible_person']?.toString().replaceAll('"', '""') ?? ''}"',
         '"${item['location']?.toString().replaceAll('"', '""') ?? ''}"',

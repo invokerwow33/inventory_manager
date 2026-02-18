@@ -102,6 +102,28 @@ class DatabaseHelper {
     return maps.map((map) => _mapToEquipment(map)).toList();
   }
 
+  Future<List<Equipment>> searchEquipmentByName(String name) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'equipment',
+      where: 'name LIKE ?',
+      whereArgs: ['%$name%'],
+      limit: 10,
+    );
+    return maps.map((map) => _mapToEquipment(map)).toList();
+  }
+
+  Future<List<Equipment>> searchEquipmentByInventoryNumber(String inventoryNumber) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'equipment',
+      where: 'inventory_number LIKE ?',
+      whereArgs: ['%$inventoryNumber%'],
+      limit: 10,
+    );
+    return maps.map((map) => _mapToEquipment(map)).toList();
+  }
+
   Future<int> getEquipmentCount() async {
     final db = await database;
     final result = await db.rawQuery('SELECT COUNT(*) as count FROM equipment');
