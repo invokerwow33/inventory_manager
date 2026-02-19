@@ -43,7 +43,7 @@ class DatabaseHelper {
   // ========== EQUIPMENT METHODS ==========
 
   Future<List<Map<String, dynamic>>> getEquipment({bool forceRefresh = false}) async {
-    return await _backend.getEquipment();
+    return await _backend.getEquipment(forceRefresh: forceRefresh);
   }
 
   Future<Map<String, dynamic>?> getEquipmentById(dynamic id) async {
