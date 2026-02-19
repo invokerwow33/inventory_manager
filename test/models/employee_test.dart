@@ -71,7 +71,7 @@ void main() {
       expect(map['department'], 'IT');
       expect(map['position'], 'Разработчик');
       expect(map['email'], 'ivan@example.com');
-      expect(map['is_active'], true);
+      expect(map['is_active'], 1);
 
       final restoredEmployee = Employee.fromMap(map);
       expect(restoredEmployee.id, employee.id);

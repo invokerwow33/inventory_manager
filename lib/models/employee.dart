@@ -38,7 +38,7 @@ class Employee {
       'phone': phone,
       'employee_number': employeeNumber,
       'notes': notes,
-      'is_active': isActive,
+      'is_active': isActive ? 1 : 0,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -54,7 +54,7 @@ class Employee {
       phone: map['phone'],
       employeeNumber: map['employee_number'] ?? map['employeeNumber'],
       notes: map['notes'],
-      isActive: map['is_active'] ?? map['isActive'] ?? true,
+      isActive: map['is_active'] == 1 || map['is_active'] == true,
       createdAt: DateTime.tryParse(map['created_at'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(map['updated_at'] ?? '') ?? DateTime.now(),
     );
