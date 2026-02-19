@@ -42,8 +42,32 @@ class LoggerService {
 
   static const String _logsKey = 'error_logs';
   static const int _maxLogs = 1000;
+  static const int _maxInfoLogs = 500;
+
+  bool _debugMode = false;
+
+  void setDebugMode(bool enabled) {
+    _debugMode = enabled;
+  }
+
+  void info(String message) {
+    if (_debugMode) {
+      print('[INFO] $message');
+    }
+  }
+
+  void debug(String message) {
+    if (_debugMode) {
+      print('[DEBUG] $message');
+    }
+  }
+
+  void warning(String message) {
+    print('[WARNING] $message');
+  }
 
   Future<void> logError(Object error, [StackTrace? stackTrace]) async {
+    print('[ERROR] ${error.toString()}');
     try {
       final prefs = await SharedPreferences.getInstance();
       final logs = await _loadLogs(prefs);

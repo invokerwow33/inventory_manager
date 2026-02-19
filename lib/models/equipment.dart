@@ -56,6 +56,14 @@ class Equipment {
       'notes': notes,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      // Also include snake_case keys for backward compatibility with SimpleDatabaseHelper
+      'serial_number': serialNumber,
+      'inventory_number': inventoryNumber,
+      'purchase_date': purchaseDate?.toIso8601String(),
+      'purchase_price': purchasePrice,
+      'responsible_person': responsiblePerson,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
     };
   }
 
@@ -67,24 +75,24 @@ class Equipment {
         (e) => e.toString().split('.').last == map['type'],
         orElse: () => EquipmentType.computer,
       ),
-      serialNumber: map['serialNumber'],
-      inventoryNumber: map['inventoryNumber'],
+      serialNumber: map['serialNumber'] ?? map['serial_number'],
+      inventoryNumber: map['inventoryNumber'] ?? map['inventory_number'],
       manufacturer: map['manufacturer'],
       model: map['model'],
-      purchaseDate: map['purchaseDate'] != null
-          ? DateTime.parse(map['purchaseDate'])
+      purchaseDate: map['purchaseDate'] != null || map['purchase_date'] != null
+          ? DateTime.tryParse(map['purchaseDate'] ?? map['purchase_date'] ?? '')
           : null,
-      purchasePrice: map['purchasePrice'],
+      purchasePrice: map['purchasePrice'] ?? map['purchase_price'],
       department: map['department'],
-      responsiblePerson: map['responsiblePerson'],
+      responsiblePerson: map['responsiblePerson'] ?? map['responsible_person'],
       location: map['location'],
       status: EquipmentStatus.values.firstWhere(
         (e) => e.toString().split('.').last == map['status'],
         orElse: () => EquipmentStatus.inUse,
       ),
       notes: map['notes'],
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      createdAt: DateTime.tryParse(map['createdAt'] ?? map['created_at'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(map['updatedAt'] ?? map['updated_at'] ?? '') ?? DateTime.now(),
     );
   }
 

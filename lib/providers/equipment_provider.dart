@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/equipment.dart';
+import '../utils/constants.dart';
 
 class EquipmentProvider extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
-  
+
   List<Equipment> _equipment = [];
   List<Equipment> _filteredEquipment = [];
   Equipment? _selectedEquipment;
   bool _isLoading = false;
   String? _error;
-  
+
   // Cache
   DateTime? _lastFetch;
-  static const Duration _cacheDuration = Duration(minutes: 5);
+  static const Duration _cacheDuration = AppConstants.equipmentCacheDuration;
 
   // Getters
   List<Equipment> get equipment => _filteredEquipment.isEmpty ? _equipment : _filteredEquipment;
@@ -121,14 +122,13 @@ class EquipmentProvider extends ChangeNotifier {
   Future<Equipment?> getEquipmentById(String id) async {
     try {
       // Check cache first
-      final cached = _equipment.firstWhere(
-        (e) => e.id == id,
-        orElse: () => null as Equipment,
-      );
-      if (cached != null) {
+      try {
+        final cached = _equipment.firstWhere((e) => e.id == id);
         _selectedEquipment = cached;
         notifyListeners();
         return cached;
+      } catch (_) {
+        // Equipment not found in cache, continue to database
       }
 
       final data = await _dbHelper.getEquipmentById(id);
@@ -208,6 +208,15 @@ class EquipmentProvider extends ChangeNotifier {
   }
 
   void clearError() {
+    _clearError();
+    notifyListeners();
+  }
+
+  void clearData() {
+    _equipment.clear();
+    _filteredEquipment.clear();
+    _selectedEquipment = null;
+    _lastFetch = null;
     _clearError();
     notifyListeners();
   }
