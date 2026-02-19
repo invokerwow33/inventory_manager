@@ -41,14 +41,7 @@ void main() {
     return true;
   };
 
-  runZonedGuarded(
-    () {
-      runApp(const MyApp());
-    },
-    (error, stack) {
-      unawaited(LoggerService().logError(error, stack));
-    },
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
