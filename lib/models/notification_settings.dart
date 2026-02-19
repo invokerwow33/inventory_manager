@@ -206,6 +206,38 @@ class NotificationSettings {
       return currentMinutes >= startMinutes || currentMinutes < endMinutes;
     }
   }
+
+  NotificationSettings copyWith({
+    bool? masterEnabled,
+    Map<NotificationChannel, bool>? channelSettings,
+    Map<NotificationChannel, List<NotificationMethod>>? channelMethods,
+    String? emailAddress,
+    String? telegramChatId,
+    String? slackWebhook,
+    TimeOfDay? quietHoursStart,
+    TimeOfDay? quietHoursEnd,
+    bool? quietHoursEnabled,
+    int? lowStockThreshold,
+    int? maintenanceReminderDays,
+    int? overdueReminderDays,
+    DateTime? updatedAt,
+  }) {
+    return NotificationSettings(
+      masterEnabled: masterEnabled ?? this.masterEnabled,
+      channelSettings: channelSettings ?? this.channelSettings,
+      channelMethods: channelMethods ?? this.channelMethods,
+      emailAddress: emailAddress ?? this.emailAddress,
+      telegramChatId: telegramChatId ?? this.telegramChatId,
+      slackWebhook: slackWebhook ?? this.slackWebhook,
+      quietHoursStart: quietHoursStart ?? this.quietHoursStart,
+      quietHoursEnd: quietHoursEnd ?? this.quietHoursEnd,
+      quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
+      lowStockThreshold: lowStockThreshold ?? this.lowStockThreshold,
+      maintenanceReminderDays: maintenanceReminderDays ?? this.maintenanceReminderDays,
+      overdueReminderDays: overdueReminderDays ?? this.overdueReminderDays,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 class ScheduledReport {
