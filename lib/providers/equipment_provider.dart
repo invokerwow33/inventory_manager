@@ -35,8 +35,8 @@ class EquipmentProvider extends ChangeNotifier {
   }
 
   Future<void> loadEquipment({bool forceRefresh = false}) async {
-    if (!forceRefresh && 
-        _lastFetch != null && 
+    if (!forceRefresh &&
+        _lastFetch != null &&
         DateTime.now().difference(_lastFetch!) < _cacheDuration &&
         _equipment.isNotEmpty) {
       return;
@@ -46,7 +46,7 @@ class EquipmentProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      final data = await _dbHelper.getEquipment();
+      final data = await _dbHelper.getEquipment(forceRefresh: forceRefresh);
       _equipment = data.map((map) => Equipment.fromMap(map)).toList();
       _filteredEquipment = [];
       _lastFetch = DateTime.now();
