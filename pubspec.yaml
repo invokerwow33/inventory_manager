@@ -17,18 +17,25 @@ dependencies:
   sqflite_common_ffi: ^2.3.0
   path: ^1.8.3
   
+  # Для PostgreSQL/MySQL
+  postgres: ^3.2.0
+  mysql1: ^0.20.0
+  
   # Для синхронизации
   dio: ^5.4.0
   shared_preferences: ^2.2.2
   connectivity_plus: ^5.0.2
   
-  # Для QR кодов
+  # Для QR кодов и штрихкодов
   qr_flutter: ^4.0.0
+  barcode_widget: ^2.0.4
+  mobile_scanner: ^3.5.0
   
   # Для печати отчетов
   printing: ^5.11.1
+  pdf: ^3.10.7
   
-  # Для уведомлений Windows
+  # Для уведомлений
   flutter_local_notifications: ^16.1.0
   
   # Для работы с файлами
@@ -37,12 +44,42 @@ dependencies:
   excel: ^4.0.2
   csv: ^6.0.0
   
-  # Для графиков (опционально)
+  # Для графиков и визуализации
   fl_chart: ^0.66.0
   
   # Для управления состоянием
   provider: ^6.1.1
-
+  
+  # Для безопасности и шифрования
+  bcrypt: ^1.1.3
+  crypto: ^3.0.3
+  encrypt: ^5.0.1
+  local_auth: ^2.1.8
+  
+  # Для геолокации
+  geolocator: ^10.1.0
+  
+  # Для работы с изображениями
+  image_picker: ^1.0.7
+  cached_network_image: ^3.3.1
+  
+  # Для электронной подписи
+  signature: ^5.4.1
+  
+  # Для облачного хранения
+  googleapis: ^12.0.0
+  google_sign_in: ^6.1.6
+  
+  # Для синхронизации сети
+  network_info_plus: ^4.1.0
+  
+  # Для работы с архивами
+  archive: ^3.4.10
+  
+  # Для HTTP сервера (P2P sync)
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+  
   # Fix for Windows compatibility
   win32: ^5.4.0
 
@@ -50,11 +87,15 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
+  mockito: ^5.4.4
+  build_runner: ^2.4.8
 
 flutter:
   uses-material-design: true
   assets:
     - assets/fonts/
+    - assets/images/
+    - assets/templates/
   fonts:
     - family: Roboto
       fonts:

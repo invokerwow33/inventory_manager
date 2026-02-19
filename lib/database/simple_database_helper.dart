@@ -1106,4 +1106,138 @@ class SimpleDatabaseHelper {
       'inactive': inactive,
     };
   }
+
+  // === USER METHODS (Stubs for SimpleDatabaseHelper) ===
+  
+  Future<List<Map<String, dynamic>>> getUsers({bool includeInactive = false}) async {
+    return [];
+  }
+
+  Future<Map<String, dynamic>?> getUserById(String id) async {
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> getUserByUsername(String username) async {
+    return null;
+  }
+
+  Future<String> insertUser(Map<String, dynamic> user) async {
+    return '';
+  }
+
+  Future<int> updateUser(Map<String, dynamic> user) async {
+    return 0;
+  }
+
+  Future<int> deleteUser(String id) async {
+    return 0;
+  }
+
+  Future<void> updateLastLogin(String userId) async {}
+
+  // === AUDIT LOG METHODS (Stubs) ===
+  
+  Future<int> addAuditLog(Map<String, dynamic> log) async {
+    return 0;
+  }
+
+  Future<List<Map<String, dynamic>>> getAuditLogs({
+    int limit = 100,
+    int offset = 0,
+    String? userId,
+    String? entityType,
+    String? actionType,
+    DateTime? fromDate,
+    DateTime? toDate,
+  }) async {
+    return [];
+  }
+
+  // === MAINTENANCE METHODS (Stubs) ===
+  
+  Future<List<Map<String, dynamic>>> getMaintenanceRecords({String? equipmentId}) async {
+    return [];
+  }
+
+  Future<String> insertMaintenanceRecord(Map<String, dynamic> record) async {
+    return '';
+  }
+
+  Future<int> updateMaintenanceRecord(Map<String, dynamic> record) async {
+    return 0;
+  }
+
+  Future<List<Map<String, dynamic>>> getOverdueMaintenance() async {
+    return [];
+  }
+
+  Future<List<Map<String, dynamic>>> getUpcomingMaintenance({int days = 7}) async {
+    return [];
+  }
+
+  // === ROOM METHODS (Stubs) ===
+  
+  Future<List<Map<String, dynamic>>> getRooms() async {
+    return [];
+  }
+
+  Future<Map<String, dynamic>?> getRoomById(String id) async {
+    return null;
+  }
+
+  Future<String> insertRoom(Map<String, dynamic> room) async {
+    return '';
+  }
+
+  Future<int> updateRoom(Map<String, dynamic> room) async {
+    return 0;
+  }
+
+  // === VEHICLE METHODS (Stubs) ===
+  
+  Future<List<Map<String, dynamic>>> getVehicles() async {
+    return [];
+  }
+
+  Future<Map<String, dynamic>?> getVehicleById(String id) async {
+    return null;
+  }
+
+  Future<String> insertVehicle(Map<String, dynamic> vehicle) async {
+    return '';
+  }
+
+  Future<int> updateVehicle(Map<String, dynamic> vehicle) async {
+    return 0;
+  }
+
+  // === SYNC QUEUE METHODS (Stubs) ===
+  
+  Future<String> addToSyncQueue(Map<String, dynamic> item) async {
+    return '';
+  }
+
+  Future<List<Map<String, dynamic>>> getPendingSyncItems({int limit = 100}) async {
+    return [];
+  }
+
+  Future<int> updateSyncItemStatus(String id, String status, {String? errorMessage}) async {
+    return 0;
+  }
+
+  Future<int> incrementRetryCount(String id) async {
+    return 0;
+  }
+
+  Future<int> deleteSyncItem(String id) async {
+    return 0;
+  }
+
+  // === SETTINGS METHODS (Stubs) ===
+  
+  Future<Map<String, dynamic>?> getAppSettings() async {
+    return null;
+  }
+
+  Future<void> saveAppSettings(Map<String, dynamic> settings) async {}
 }
