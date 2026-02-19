@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import '../utils/constants.dart';
+import '../utils/validators.dart';
 
 class SimpleDatabaseHelper {
   static final SimpleDatabaseHelper _instance = SimpleDatabaseHelper._internal();
@@ -23,7 +25,7 @@ class SimpleDatabaseHelper {
   // Кэш для производительности
   List<Map<String, dynamic>>? _equipmentCache;
   DateTime? _cacheTimestamp;
-  final Duration _cacheDuration = const Duration(minutes: 5);
+  final Duration _cacheDuration = AppConstants.equipmentCacheDuration;
 
   Future<void> initDatabase() async {
     if (_isInitialized) return;
@@ -127,6 +129,8 @@ class SimpleDatabaseHelper {
     return value.toString();
   }
 
+  // Safely compares IDs regardless of type (int or String)
+  // Handles backward compatibility with mixed ID types
   bool _idsMatch(dynamic first, dynamic second) {
     return first?.toString() == second?.toString();
   }
@@ -250,6 +254,12 @@ class SimpleDatabaseHelper {
   Future<int> safeUpdateEquipment(Map<String, dynamic> equipment) async {
     if (!_isInitialized) await initDatabase();
 
+    // Validate input
+    final validationError = Validators.validateEquipment(equipment);
+    if (validationError != null) {
+      throw ArgumentError(validationError);
+    }
+
     final index = _equipment.indexWhere((item) => _idsMatch(item['id'], equipment['id']));
     if (index != -1) {
       final existing = _equipment[index];
@@ -288,18 +298,19 @@ class SimpleDatabaseHelper {
   // Всегда возвращает String для консистентности типов
   String _generateEquipmentId() {
     if (_equipment.isEmpty) {
-      return 'eq_1';
+      return '${AppConstants.equipmentIdPrefix}1';
     }
 
-    final lastId = _equipment.last['id'];
+    final lastId = _equipment.last['id'] ?? '';
 
-    // Если последний ID - строка с префиксом "eq_", продолжаем эту нумерацию
-    if (lastId is String && lastId.startsWith('eq_')) {
-      final number = int.tryParse(lastId.substring(3)) ?? 0;
-      return 'eq_${number + 1}';
+    // Если последний ID - строка с префиксом, продолжаем эту нумерацию
+    if (lastId is String && lastId.startsWith(AppConstants.equipmentIdPrefix)) {
+      final prefixLength = AppConstants.equipmentIdPrefix.length;
+      final number = int.tryParse(lastId.substring(prefixLength)) ?? 0;
+      return '${AppConstants.equipmentIdPrefix}${number + 1}';
     }
 
-    // Если последний ID - число или строка-число, преобразуем в формат eq_
+    // Если последний ID - число или строка-число, преобразуем в формат с префиксом
     int? lastNumber;
     if (lastId is int) {
       lastNumber = lastId;
@@ -308,15 +319,21 @@ class SimpleDatabaseHelper {
     }
 
     if (lastNumber != null) {
-      return 'eq_${lastNumber + 1}';
+      return '${AppConstants.equipmentIdPrefix}${lastNumber + 1}';
     }
 
     // По умолчанию начинаем с eq_1
-    return 'eq_1';
+    return '${AppConstants.equipmentIdPrefix}1';
   }
 
   Future<String> insertEquipment(Map<String, dynamic> equipment) async {
     if (!_isInitialized) await initDatabase();
+
+    // Validate input
+    final validationError = Validators.validateEquipment(equipment);
+    if (validationError != null) {
+      throw ArgumentError(validationError);
+    }
 
     // Используем предоставленный ID или генерируем новый
     // Всегда сохраняем как String для консистентности
@@ -328,7 +345,7 @@ class SimpleDatabaseHelper {
       'category': _ensureString(equipment['category']),
       'serial_number': _ensureString(equipment['serial_number']),
       'inventory_number': _ensureString(equipment['inventory_number']),
-      'status': _ensureString(equipment['status'] ?? 'На складе'),
+      'status': _ensureString(equipment['status'] ?? AppConstants.equipmentStatusInStock),
       'location': _ensureString(equipment['location']),
       'notes': _ensureString(equipment['notes']),
       'purchase_date': equipment['purchase_date'],
@@ -387,9 +404,17 @@ class SimpleDatabaseHelper {
 
   Future<int> addMovement(Map<String, dynamic> movement) async {
     if (!_isInitialized) await initDatabase();
-    
+
+    // Validate input
+    final validationError = Validators.validateMovement(movement);
+    if (validationError != null) {
+      throw ArgumentError(validationError);
+    }
+
     final newMovement = Map<String, dynamic>.from(movement);
-    newMovement['id'] = _movements.isEmpty ? 1 : (_movements.last['id'] as int) + 1;
+    newMovement['id'] = _movements.isEmpty
+        ? 1
+        : (_movements.last['id'] as int? ?? 0) + 1;
     newMovement['created_at'] = DateTime.now().toIso8601String();
     
     // Гарантируем правильные типы данных
@@ -425,28 +450,28 @@ class SimpleDatabaseHelper {
     final filtered = _movements
         .where((movement) => _idsMatch(movement['equipment_id'], equipmentId))
         .toList();
-    
+
     // Сортируем по дате (новые сверху)
     filtered.sort((a, b) {
-      final dateA = DateTime.parse(a['movement_date'] ?? a['created_at']);
-      final dateB = DateTime.parse(b['movement_date'] ?? b['created_at']);
+      final dateA = DateTime.tryParse(a['movement_date'] ?? a['created_at'] ?? '') ?? DateTime.now();
+      final dateB = DateTime.tryParse(b['movement_date'] ?? b['created_at'] ?? '') ?? DateTime.now();
       return dateB.compareTo(dateA);
     });
-    
+
     return filtered;
   }
 
   Future<List<Map<String, dynamic>>> getRecentMovements({int limit = 50}) async {
     if (!_isInitialized) await initDatabase();
-    
+
     // Сортируем по дате (новые сверху)
     final sorted = List<Map<String, dynamic>>.from(_movements)
       ..sort((a, b) {
-        final dateA = DateTime.parse(a['movement_date'] ?? a['created_at']);
-        final dateB = DateTime.parse(b['movement_date'] ?? b['created_at']);
+        final dateA = DateTime.tryParse(a['movement_date'] ?? a['created_at'] ?? '') ?? DateTime.now();
+        final dateB = DateTime.tryParse(b['movement_date'] ?? b['created_at'] ?? '') ?? DateTime.now();
         return dateB.compareTo(dateA);
       });
-    
+
     return sorted.take(limit).toList();
   }
 
@@ -491,14 +516,14 @@ class SimpleDatabaseHelper {
 
   Future<Map<String, int>> getStatistics() async {
     if (!_isInitialized) await initDatabase();
-    
+
     final stats = {
       'total': _equipment.length,
-      'in_use': _equipment.where((item) => item['status'] == 'В использовании').length,
-      'in_stock': _equipment.where((item) => item['status'] == 'На складе').length,
-      'under_repair': _equipment.where((item) => item['status'] == 'В ремонте').length,
+      'in_use': _equipment.where((item) => item['status'] == AppConstants.equipmentStatusInUse).length,
+      'in_stock': _equipment.where((item) => item['status'] == AppConstants.equipmentStatusInStock).length,
+      'under_repair': _equipment.where((item) => item['status'] == AppConstants.equipmentStatusUnderRepair).length,
     };
-    
+
     return stats;
   }
 
@@ -605,10 +630,10 @@ class SimpleDatabaseHelper {
   // Быстрый доступ к часто используемым данным
   Future<Map<String, List<Map<String, dynamic>>>> getQuickStatsData() async {
     if (!_isInitialized) await initDatabase();
-    
+
     return {
-      'in_use': _equipment.where((item) => item['status'] == 'В использовании').take(10).toList(),
-      'in_stock': _equipment.where((item) => item['status'] == 'На складе').take(10).toList(),
+      'in_use': _equipment.where((item) => item['status'] == AppConstants.equipmentStatusInUse).take(10).toList(),
+      'in_stock': _equipment.where((item) => item['status'] == AppConstants.equipmentStatusInStock).take(10).toList(),
       'recent': _equipment.take(10).toList(),
       'recent_movements': await getRecentMovements(limit: 10),
     };
@@ -727,8 +752,14 @@ class SimpleDatabaseHelper {
 
   Future<String> insertConsumable(Map<String, dynamic> consumable) async {
     if (!_isInitialized) await initDatabase();
-    
-    final newId = consumable['id'] ?? 'cons_${DateTime.now().millisecondsSinceEpoch}';
+
+    // Validate input
+    final validationError = Validators.validateConsumable(consumable);
+    if (validationError != null) {
+      throw ArgumentError(validationError);
+    }
+
+    final newId = consumable['id'] ?? '${AppConstants.consumableIdPrefix}${DateTime.now().millisecondsSinceEpoch}';
     final newConsumable = <String, dynamic>{
       'id': newId,
       'name': _ensureString(consumable['name']),
@@ -749,7 +780,13 @@ class SimpleDatabaseHelper {
 
   Future<int> updateConsumable(Map<String, dynamic> consumable) async {
     if (!_isInitialized) await initDatabase();
-    
+
+    // Validate input
+    final validationError = Validators.validateConsumable(consumable);
+    if (validationError != null) {
+      throw ArgumentError(validationError);
+    }
+
     final index = _consumables.indexWhere((item) => item['id']?.toString() == consumable['id']?.toString());
     if (index != -1) {
       final existing = _consumables[index];
@@ -812,8 +849,16 @@ class SimpleDatabaseHelper {
 
   Future<int> addConsumableMovement(Map<String, dynamic> movement) async {
     if (!_isInitialized) await initDatabase();
-    
-    final newId = _consumableMovements.isEmpty ? 1 : (_consumableMovements.last['id'] as int) + 1;
+
+    // Validate input
+    final validationError = Validators.validateConsumableMovement(movement);
+    if (validationError != null) {
+      throw ArgumentError(validationError);
+    }
+
+    final newId = _consumableMovements.isEmpty
+        ? 1
+        : (_consumableMovements.last['id'] as int? ?? 0) + 1;
     final newMovement = <String, dynamic>{
       'id': newId,
       'consumable_id': _ensureString(movement['consumable_id']),
@@ -898,8 +943,14 @@ class SimpleDatabaseHelper {
 
   Future<String> insertEmployee(Map<String, dynamic> employee) async {
     if (!_isInitialized) await initDatabase();
-    
-    final newId = employee['id'] ?? 'emp_${DateTime.now().millisecondsSinceEpoch}';
+
+    // Validate input
+    final validationError = Validators.validateEmployee(employee);
+    if (validationError != null) {
+      throw ArgumentError(validationError);
+    }
+
+    final newId = employee['id'] ?? '${AppConstants.employeeIdPrefix}${DateTime.now().millisecondsSinceEpoch}';
     final newEmployee = <String, dynamic>{
       'id': newId,
       'full_name': _ensureString(employee['full_name'] ?? employee['name']),
@@ -921,7 +972,13 @@ class SimpleDatabaseHelper {
 
   Future<int> updateEmployee(Map<String, dynamic> employee) async {
     if (!_isInitialized) await initDatabase();
-    
+
+    // Validate input
+    final validationError = Validators.validateEmployee(employee);
+    if (validationError != null) {
+      throw ArgumentError(validationError);
+    }
+
     final index = _employees.indexWhere((item) => item['id']?.toString() == employee['id']?.toString());
     if (index != -1) {
       final existing = _employees[index];
@@ -1064,14 +1121,14 @@ class SimpleDatabaseHelper {
       
       // Обновляем статус в зависимости от типа операции
       switch (movementType) {
-        case 'Выдача':
-          updatedEquipment['status'] = 'В использовании';
+        case AppConstants.movementTypeIssue:
+          updatedEquipment['status'] = AppConstants.equipmentStatusInUse;
           break;
-        case 'Возврат':
-          updatedEquipment['status'] = 'На складе';
+        case AppConstants.movementTypeReturn:
+          updatedEquipment['status'] = AppConstants.equipmentStatusInStock;
           break;
-        case 'Списание':
-          updatedEquipment['status'] = 'Списано';
+        case AppConstants.movementTypeWriteOff:
+          updatedEquipment['status'] = AppConstants.equipmentStatusWrittenOff;
           break;
       }
       

@@ -87,7 +87,7 @@ class _CreateMovementScreenState extends State<CreateMovementScreen> {
   Future<void> _loadSelectedEquipment(String equipmentId) async {
     try {
       final equipment = await _dbHelper.getEquipmentById(equipmentId);
-      if (equipment != null) {
+      if (equipment != null && mounted) {
         setState(() {
           _selectedEquipment = equipment;
           _equipmentController.text = equipment['name']?.toString() ?? '';
@@ -97,9 +97,11 @@ class _CreateMovementScreenState extends State<CreateMovementScreen> {
       }
     } catch (e) {
       print('Ошибка загрузки оборудования: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка загрузки оборудования: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка загрузки оборудования: $e')),
+        );
+      }
     }
   }
 
@@ -172,25 +174,28 @@ class _CreateMovementScreenState extends State<CreateMovementScreen> {
         await _dbHelper.safeUpdateEquipment(updatedEquipment);
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Перемещение "${_movementType.toLowerCase()}" сохранено'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Перемещение "${_movementType.toLowerCase()}" сохранено'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
 
-      // Возвращаемся назад
-      await Future.delayed(const Duration(milliseconds: 500));
-      Navigator.pop(context, true);
-      
+        // Возвращаемся назад
+        await Future.delayed(const Duration(milliseconds: 500));
+        Navigator.pop(context, true);
+      }
     } catch (e) {
       print('Ошибка сохранения перемещения: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Ошибка: ${e.toString()}'),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка: ${e.toString()}'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

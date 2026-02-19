@@ -47,7 +47,7 @@ class _BulkOperationsScreenState extends State<BulkOperationsScreen> {
 
   Future<void> _loadSelectedEquipment() async {
     if (_selectedEquipmentIds.isEmpty) return;
-    
+
     final equipment = <Map<String, dynamic>>[];
     for (final id in _selectedEquipmentIds) {
       final item = await _dbHelper.getEquipmentById(id);
@@ -55,10 +55,12 @@ class _BulkOperationsScreenState extends State<BulkOperationsScreen> {
         equipment.add(item);
       }
     }
-    
-    setState(() {
-      _selectedEquipment = equipment;
-    });
+
+    if (mounted) {
+      setState(() {
+        _selectedEquipment = equipment;
+      });
+    }
   }
 
   Future<void> _selectEquipment() async {
@@ -71,7 +73,7 @@ class _BulkOperationsScreenState extends State<BulkOperationsScreen> {
         ),
       ),
     );
-    
+
     if (result != null && result is List<String>) {
       setState(() {
         _selectedEquipmentIds = result;
