@@ -53,21 +53,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final consumableStats = await simpleDb.getConsumableStats();
       final employeeStats = await simpleDb.getEmployeeStats();
       
-      setState(() {
-        _totalEquipment = allEquipment.length;
-        _inUseCount = allEquipment.where((e) => e.status == EquipmentStatus.inUse).length;
-        _inStockCount = allEquipment.where((e) => e.status == EquipmentStatus.inStock).length;
-        _inRepairCount = allEquipment.where((e) => e.status == EquipmentStatus.underRepair).length;
-        _consumablesCount = consumableStats['total'] ?? 0;
-        _lowStockCount = consumableStats['low_stock'] ?? 0;
-        _employeesCount = employeeStats['active'] ?? 0;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _totalEquipment = allEquipment.length;
+          _inUseCount = allEquipment.where((e) => e.status == EquipmentStatus.inUse).length;
+          _inStockCount = allEquipment.where((e) => e.status == EquipmentStatus.inStock).length;
+          _inRepairCount = allEquipment.where((e) => e.status == EquipmentStatus.underRepair).length;
+          _consumablesCount = consumableStats['total'] ?? 0;
+          _lowStockCount = consumableStats['low_stock'] ?? 0;
+          _employeesCount = employeeStats['active'] ?? 0;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       print('Ошибка загрузки статистики: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
