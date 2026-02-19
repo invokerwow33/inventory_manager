@@ -292,6 +292,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final destinations = _getDestinations(settings);
     final screens = _getScreens(settings, auth);
 
+    // Calculate isExtended at build level where layout constraints are guaranteed
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isExtended = _extendedNavigation && screenWidth > 800;
+
     // Ensure selected index is valid
     if (_selectedIndex >= screens.length) {
       _selectedIndex = 0;
@@ -306,10 +310,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             onDestinationSelected: (index) {
               setState(() => _selectedIndex = index);
             },
-            extended: _extendedNavigation && MediaQuery.of(context).size.width > 800,
+            extended: isExtended,
             minExtendedWidth: 200,
             destinations: destinations,
-            leading: _buildLeadingHeader(),
+            leading: _buildLeadingHeader(isExtended: isExtended),
             trailing: _buildTrailingControls(auth),
           ),
 
@@ -324,9 +328,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  Widget _buildLeadingHeader() {
-    final isExtended = _extendedNavigation && MediaQuery.of(context).size.width > 800;
-    
+  Widget _buildLeadingHeader({required bool isExtended}) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: isExtended
@@ -412,7 +414,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.primary,
               child: Text(
-                auth.currentUser!.username.substring(0, 1).toUpperCase(),
+                auth.currentUser?.username.substring(0, 1).toUpperCase() ?? '?',
                 style: const TextStyle(color: Colors.white),
               ),
             ),
