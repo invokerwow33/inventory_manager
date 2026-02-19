@@ -124,17 +124,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   Future<void> _initializeApp() async {
-    final settings = context.read<SettingsProvider>();
-    final auth = context.read<AuthProvider>();
-    final sync = context.read<SyncProvider>();
-    
-    // Load settings
-    await settings.loadSettings();
-    
-    // Start auto sync if enabled
-    if (settings.appSettings.autoSync) {
-      sync.startAutoSync(intervalMinutes: settings.appSettings.syncInterval);
-    }
+    await Future.microtask(() async {
+      final settings = context.read<SettingsProvider>();
+      final auth = context.read<AuthProvider>();
+      final sync = context.read<SyncProvider>();
+
+      // Load settings
+      await settings.loadSettings();
+
+      // Start auto sync if enabled
+      if (settings.appSettings.autoSync) {
+        sync.startAutoSync(intervalMinutes: settings.appSettings.syncInterval);
+      }
+    });
 
     // Initialize providers
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -329,40 +331,45 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   Widget _buildLeadingHeader({required bool isExtended}) {
+    const double headerContentWidth = 168;
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: isExtended
-          ? Row(
-              children: [
-                Icon(
-                  Icons.business,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 32,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Инвентарь',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        'v1.0.0',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                        ),
-                      ),
-                    ],
+          ? SizedBox(
+              width: headerContentWidth,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.business,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 32,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Инвентарь',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'v1.0.0',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             )
           : Icon(
               Icons.business,
