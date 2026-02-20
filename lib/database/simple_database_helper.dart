@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
+import 'database_helper_interface.dart';
 
-class SimpleDatabaseHelper {
+class SimpleDatabaseHelper implements IDatabaseHelper {
   static final SimpleDatabaseHelper _instance = SimpleDatabaseHelper._internal();
   factory SimpleDatabaseHelper() => _instance;
   SimpleDatabaseHelper._internal();
@@ -27,6 +28,7 @@ class SimpleDatabaseHelper {
   DateTime? _cacheTimestamp;
   final Duration _cacheDuration = AppConstants.equipmentCacheDuration;
 
+  @override
   Future<void> initDatabase() async {
     if (_isInitialized) return;
     
@@ -230,6 +232,7 @@ class SimpleDatabaseHelper {
   }
 
   // Метод с кэшированием
+  @override
   Future<List<Map<String, dynamic>>> getEquipment({bool forceRefresh = false}) async {
     if (!_isInitialized) await initDatabase();
     
@@ -290,6 +293,7 @@ class SimpleDatabaseHelper {
   }
 
   // Старый метод обновления (для обратной совместимости)
+  @override
   Future<int> updateEquipment(Map<String, dynamic> equipment) async {
     return await safeUpdateEquipment(equipment);
   }
@@ -359,6 +363,7 @@ class SimpleDatabaseHelper {
     return newEquipment['id'];
   }
 
+  @override
   Future<Map<String, dynamic>?> getEquipmentById(dynamic id) async {
     if (!_isInitialized) await initDatabase();
     return _equipment.firstWhere(

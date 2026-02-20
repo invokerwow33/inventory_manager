@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'database_helper_interface.dart';
+import 'migrations/database_migrations.dart';
 
-class DatabaseHelper {
+class DatabaseHelper implements IDatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   factory DatabaseHelper() => instance;
   DatabaseHelper._internal();
@@ -15,6 +17,7 @@ class DatabaseHelper {
     return _database!;
   }
 
+  @override
   Future<void> initDatabase() async {
     await database;
   }
@@ -685,13 +688,8 @@ class DatabaseHelper {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // Version 2 migrations
-    }
-    if (oldVersion < 3) {
-      // Version 3 migrations - add all new tables
-      await _createNewTables(db);
-    }
+    // Use the migration manager to run all migrations
+    await DatabaseMigrationManager.runMigrations(db, oldVersion, newVersion);
   }
 
   Future<void> _createNewTables(Database db) async {
@@ -1522,16 +1520,67 @@ class DatabaseHelper {
   Future<Map<String, int>> getStatistics() async {
     final db = await database;
     
-    final totalResult = await db.rawQuery('SELECT COUNT(*) as count FROM equipment');
-    final inUseResult = await db.rawQuery("SELECT COUNT(*) as count FROM equipment WHERE status = 'В использовании'");
-    final inStockResult = await db.rawQuery("SELECT COUNT(*) as count FROM equipment WHERE status = 'На складе'");
-    final underRepairResult = await db.rawQuery("SELECT COUNT(*) as count FROM equipment WHERE status = 'В ремонте'");
+    // Optimized: Single query instead of 4 separate queries
+    final result = await db.rawQuery('''
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'В использовании' THEN 1 ELSE 0 END) as in_use,
+        SUM(CASE WHEN status = 'На складе' THEN 1 ELSE 0 END) as in_stock,
+        SUM(CASE WHEN status = 'В ремонте' THEN 1 ELSE 0 END) as under_repair
+      FROM equipment
+    ''');
+    
+    if (result.isEmpty) {
+      return {'total': 0, 'in_use': 0, 'in_stock': 0, 'under_repair': 0};
+    }
     
     return {
-      'total': Sqflite.firstIntValue(totalResult) ?? 0,
-      'in_use': Sqflite.firstIntValue(inUseResult) ?? 0,
-      'in_stock': Sqflite.firstIntValue(inStockResult) ?? 0,
-      'under_repair': Sqflite.firstIntValue(underRepairResult) ?? 0,
+      'total': (result.first['total'] as int?) ?? 0,
+      'in_use': (result.first['in_use'] as int?) ?? 0,
+      'in_stock': (result.first['in_stock'] as int?) ?? 0,
+      'under_repair': (result.first['under_repair'] as int?) ?? 0,
+    };
+  }
+
+  Future<Map<String, int>> getConsumableStats() async {
+    final db = await database;
+    
+    final result = await db.rawQuery('''
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN quantity <= min_quantity THEN 1 ELSE 0 END) as low_stock
+      FROM consumables
+    ''');
+    
+    if (result.isEmpty) {
+      return {'total': 0, 'low_stock': 0};
+    }
+    
+    return {
+      'total': (result.first['total'] as int?) ?? 0,
+      'low_stock': (result.first['low_stock'] as int?) ?? 0,
+    };
+  }
+
+  Future<Map<String, int>> getEmployeeStats() async {
+    final db = await database;
+    
+    final result = await db.rawQuery('''
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active,
+        SUM(CASE WHEN is_on_leave = 1 THEN 1 ELSE 0 END) as on_leave
+      FROM employees
+    ''');
+    
+    if (result.isEmpty) {
+      return {'total': 0, 'active': 0, 'on_leave': 0};
+    }
+    
+    return {
+      'total': (result.first['total'] as int?) ?? 0,
+      'active': (result.first['active'] as int?) ?? 0,
+      'on_leave': (result.first['on_leave'] as int?) ?? 0,
     };
   }
 
