@@ -38,8 +38,8 @@ class SyncService {
   }
 
   Future<void> _sendLocalChanges() async {
-    final dbHelper = getDatabaseHelper();
-    final localEquipmentData = await dbHelper.getAllEquipment();
+    final dbHelper = DatabaseHelper.instance;
+    final localEquipmentData = await dbHelper.getEquipment();
     final localEquipment = localEquipmentData.map((m) => Equipment.fromMap(m)).toList();
 
     // Фильтруем только измененные записи
@@ -63,7 +63,7 @@ class SyncService {
 
   Future<void> _fetchUpdates(int lastSync) async {
     try {
-      final dbHelper = getDatabaseHelper();
+      final dbHelper = DatabaseHelper.instance;
       final response = await _dio.get(
         '$_baseUrl/equipment/updates',
         queryParameters: {'since': lastSync},
@@ -109,8 +109,8 @@ class SyncService {
   }
 
   Future<bool> _hasPendingChanges() async {
-    final dbHelper = getDatabaseHelper();
-    final localEquipmentData = await dbHelper.getAllEquipment();
+    final dbHelper = DatabaseHelper.instance;
+    final localEquipmentData = await dbHelper.getEquipment();
     final localEquipment = localEquipmentData.map((m) => Equipment.fromMap(m)).toList();
     final lastSyncTime = _getLastSyncTime();
 

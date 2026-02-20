@@ -40,23 +40,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _loadStatistics() async {
     setState(() => _isLoading = true);
     try {
-      final dbHelper = getDatabaseHelper();
-      
+      final dbHelper = DatabaseHelper.instance;
+
       await dbHelper.initDatabase();
-      
-      final stats = await dbHelper.getStatistics();
-      final consumableStats = await dbHelper.getConsumableStats();
-      final employeeStats = await dbHelper.getEmployeeStats();
-      
+
+      final allEquipmentData = await dbHelper.getEquipment();
+      final allEquipment = allEquipmentData.map((map) => Equipment.fromMap(map)).toList();
+      final allConsumables = await dbHelper.getConsumables();
+      final allEmployees = await dbHelper.getEmployees();
+      final lowStockConsumables = await dbHelper.getLowStockConsumables();
+
       if (mounted) {
         setState(() {
-          _totalEquipment = stats['total'] ?? 0;
-          _inUseCount = stats['in_use'] ?? 0;
-          _inStockCount = stats['in_stock'] ?? 0;
-          _inRepairCount = stats['under_repair'] ?? 0;
-          _consumablesCount = consumableStats['total'] ?? 0;
-          _lowStockCount = consumableStats['low_stock'] ?? 0;
-          _employeesCount = employeeStats['active'] ?? 0;
+          _totalEquipment = allEquipment.length;
+          _inUseCount = allEquipment.where((e) => e.status == EquipmentStatus.inUse).length;
+          _inStockCount = allEquipment.where((e) => e.status == EquipmentStatus.inStock).length;
+          _inRepairCount = allEquipment.where((e) => e.status == EquipmentStatus.underRepair).length;
+          _consumablesCount = allConsumables.length;
+          _lowStockCount = lowStockConsumables.length;
+          _employeesCount = allEmployees.where((e) => (e['is_active'] ?? 1) == 1).length;
           _isLoading = false;
         });
       }
