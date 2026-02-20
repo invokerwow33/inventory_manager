@@ -44,8 +44,8 @@ void main() {
       expect(map['id'], 'eq_1');
       expect(map['name'], 'Test Equipment');
       expect(map['type'], 'laptop');
-      expect(map['serialNumber'], 'SN123456');
-      expect(map['inventoryNumber'], 'INV001');
+      expect(map['serial_number'], 'SN123456');
+      expect(map['inventory_number'], 'INV001');
       expect(map['status'], 'inStock');
 
       final restoredEquipment = Equipment.fromMap(map);
@@ -145,6 +145,79 @@ void main() {
 
       final equipment = Equipment.fromMap(map);
       expect(equipment.status, EquipmentStatus.inUse);
+    });
+
+    test('should round-trip with snake_case keys (SQLite format)', () {
+      final now = DateTime.now();
+      final equipment = Equipment(
+        id: 'eq_1',
+        name: 'Test Equipment',
+        type: EquipmentType.laptop,
+        serialNumber: 'SN123456',
+        inventoryNumber: 'INV001',
+        manufacturer: 'Dell',
+        model: 'Latitude 5510',
+        purchaseDate: now,
+        purchasePrice: 50000.0,
+        department: 'IT',
+        responsiblePerson: 'Ivanov I.I.',
+        location: 'Office 101',
+        status: EquipmentStatus.inStock,
+        notes: 'Test notes',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      final map = equipment.toMap();
+
+      expect(map.containsKey('serial_number'), true);
+      expect(map.containsKey('inventory_number'), true);
+      expect(map.containsKey('purchase_date'), true);
+      expect(map.containsKey('purchase_price'), true);
+      expect(map.containsKey('responsible_person'), true);
+      expect(map.containsKey('created_at'), true);
+      expect(map.containsKey('updated_at'), true);
+
+      final restoredEquipment = Equipment.fromMap(map);
+      expect(restoredEquipment.id, equipment.id);
+      expect(restoredEquipment.name, equipment.name);
+      expect(restoredEquipment.serialNumber, equipment.serialNumber);
+      expect(restoredEquipment.inventoryNumber, equipment.inventoryNumber);
+      expect(restoredEquipment.manufacturer, equipment.manufacturer);
+      expect(restoredEquipment.model, equipment.model);
+      expect(restoredEquipment.purchasePrice, equipment.purchasePrice);
+      expect(restoredEquipment.department, equipment.department);
+      expect(restoredEquipment.responsiblePerson, equipment.responsiblePerson);
+      expect(restoredEquipment.location, equipment.location);
+      expect(restoredEquipment.status, equipment.status);
+      expect(restoredEquipment.notes, equipment.notes);
+    });
+
+    test('should read camelCase keys for backward compatibility', () {
+      final map = {
+        'id': 'eq_1',
+        'name': 'Test Equipment',
+        'type': 'laptop',
+        'serialNumber': 'SN123456',
+        'inventoryNumber': 'INV001',
+        'manufacturer': 'Dell',
+        'model': 'Latitude 5510',
+        'purchaseDate': '2024-01-15T00:00:00.000',
+        'purchasePrice': 50000.0,
+        'department': 'IT',
+        'responsiblePerson': 'Ivanov I.I.',
+        'location': 'Office 101',
+        'status': 'inStock',
+        'notes': 'Test notes',
+        'createdAt': '2024-01-15T10:00:00.000',
+        'updatedAt': '2024-01-15T10:00:00.000',
+      };
+
+      final equipment = Equipment.fromMap(map);
+      expect(equipment.serialNumber, 'SN123456');
+      expect(equipment.inventoryNumber, 'INV001');
+      expect(equipment.purchasePrice, 50000.0);
+      expect(equipment.responsiblePerson, 'Ivanov I.I.');
     });
   });
 
