@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import '../database/simple_database_helper.dart';
+import '../database/database_helper.dart';
 import '../models/equipment.dart';
+import '../services/logger_service.dart';
 
 class SyncService {
   static final SyncService _instance = SyncService._internal();
@@ -37,8 +38,10 @@ class SyncService {
   }
 
   Future<void> _sendLocalChanges() async {
-    final localEquipment = await DatabaseHelper.instance.getAllEquipment();
-    
+    final dbHelper = getDatabaseHelper();
+    final localEquipmentData = await dbHelper.getAllEquipment();
+    final localEquipment = localEquipmentData.map((m) => Equipment.fromMap(m)).toList();
+
     // Фильтруем только измененные записи
     final changedEquipment = localEquipment
         .where((e) => e.updatedAt.millisecondsSinceEpoch > _getLastSyncTime())
@@ -52,7 +55,7 @@ class SyncService {
           options: Options(headers: {'Content-Type': 'application/json'}),
         );
       } catch (e) {
-        print('Ошибка отправки оборудования ${equipment.id}: $e');
+        LoggerService().warning('Ошибка отправки оборудования ${equipment.id}: $e');
         // Можно добавить в очередь на повторную отправку
       }
     }
@@ -60,6 +63,7 @@ class SyncService {
 
   Future<void> _fetchUpdates(int lastSync) async {
     try {
+      final dbHelper = getDatabaseHelper();
       final response = await _dio.get(
         '$_baseUrl/equipment/updates',
         queryParameters: {'since': lastSync},
@@ -70,17 +74,18 @@ class SyncService {
         for (final item in data) {
           final equipment = Equipment.fromMap(item);
           // Проверяем, есть ли уже такая запись
-          final existing = await DatabaseHelper.instance.getEquipment(equipment.id);
-          
+          final existingMap = await dbHelper.getEquipmentById(equipment.id);
+          final existing = existingMap != null ? Equipment.fromMap(existingMap) : null;
+
           if (existing == null) {
-            await DatabaseHelper.instance.insertEquipment(equipment);
+            await dbHelper.insertEquipment(equipment.toMap());
           } else if (existing.updatedAt.isBefore(equipment.updatedAt)) {
-            await DatabaseHelper.instance.updateEquipment(equipment);
+            await dbHelper.updateEquipment(equipment.toMap());
           }
         }
       }
     } catch (e) {
-      print('Ошибка получения обновлений: $e');
+      LoggerService().warning('Ошибка получения обновлений: $e');
     }
   }
 
@@ -104,9 +109,11 @@ class SyncService {
   }
 
   Future<bool> _hasPendingChanges() async {
-    final localEquipment = await DatabaseHelper.instance.getAllEquipment();
+    final dbHelper = getDatabaseHelper();
+    final localEquipmentData = await dbHelper.getAllEquipment();
+    final localEquipment = localEquipmentData.map((m) => Equipment.fromMap(m)).toList();
     final lastSyncTime = _getLastSyncTime();
-    
+
     return localEquipment.any(
       (e) => e.updatedAt.millisecondsSinceEpoch > lastSyncTime,
     );

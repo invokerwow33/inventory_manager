@@ -249,8 +249,13 @@ class SimpleDatabaseHelper implements IDatabaseHelper {
     _equipmentCache = List.from(_equipment);
     _cacheTimestamp = DateTime.now();
     print('Данные загружены и закэшированы');
-    
+
     return List.from(_equipment);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAllEquipment() async {
+    return await getEquipment();
   }
 
   // НОВЫЙ МЕТОД: безопасное обновление с гарантией типов
@@ -1170,39 +1175,71 @@ class SimpleDatabaseHelper implements IDatabaseHelper {
   }
 
   // === USER METHODS (Stubs for SimpleDatabaseHelper) ===
-  
+  //
+  // WARNING: These methods return empty/null values in SimpleDatabaseHelper.
+  // SimpleDatabaseHelper is designed for web/platforms without full SQLite support,
+  // using JSON file storage instead. User authentication and management are not
+  // fully supported on these platforms.
+  //
+  // For full user authentication support:
+  // - Desktop platforms: Use DatabaseHelper (SQLite) instead
+  // - Web platforms: Implement proper SharedPreferences-based user storage
+  // - Or use a server backend for authentication
+  //
+  // Currently, web authentication is not fully supported and these methods are stubs.
+
+  /// Returns empty list - user storage not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full user management
   Future<List<Map<String, dynamic>>> getUsers({bool includeInactive = false}) async {
     return [];
   }
 
+  /// Returns null - user storage not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full user management
   Future<Map<String, dynamic>?> getUserById(String id) async {
     return null;
   }
 
+  /// Returns null - user storage not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full user management
   Future<Map<String, dynamic>?> getUserByUsername(String username) async {
     return null;
   }
 
+  /// Returns empty string - user storage not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full user management
   Future<String> insertUser(Map<String, dynamic> user) async {
     return '';
   }
 
+  /// Returns 0 - user storage not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full user management
   Future<int> updateUser(Map<String, dynamic> user) async {
     return 0;
   }
 
+  /// Returns 0 - user storage not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full user management
   Future<int> deleteUser(String id) async {
     return 0;
   }
 
+  /// No-op - user storage not supported in SimpleDatabaseHelper
   Future<void> updateLastLogin(String userId) async {}
 
   // === AUDIT LOG METHODS (Stubs) ===
-  
+  //
+  // WARNING: Audit logging is not supported in SimpleDatabaseHelper.
+  // For audit trail support, use DatabaseHelper (SQLite) on desktop platforms.
+
+  /// Returns 0 - audit logging not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full audit trail support
   Future<int> addAuditLog(Map<String, dynamic> log) async {
     return 0;
   }
 
+  /// Returns empty list - audit logging not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full audit trail support
   Future<List<Map<String, dynamic>>> getAuditLogs({
     int limit = 100,
     int offset = 0,
@@ -1216,90 +1253,146 @@ class SimpleDatabaseHelper implements IDatabaseHelper {
   }
 
   // === MAINTENANCE METHODS (Stubs) ===
-  
+  //
+  // WARNING: Maintenance tracking is not supported in SimpleDatabaseHelper.
+  // For maintenance management support, use DatabaseHelper (SQLite) on desktop platforms.
+
+  /// Returns empty list - maintenance tracking not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full maintenance management
   Future<List<Map<String, dynamic>>> getMaintenanceRecords({String? equipmentId}) async {
     return [];
   }
 
+  /// Returns empty string - maintenance tracking not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full maintenance management
   Future<String> insertMaintenanceRecord(Map<String, dynamic> record) async {
     return '';
   }
 
+  /// Returns 0 - maintenance tracking not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full maintenance management
   Future<int> updateMaintenanceRecord(Map<String, dynamic> record) async {
     return 0;
   }
 
+  /// Returns empty list - maintenance tracking not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full maintenance management
   Future<List<Map<String, dynamic>>> getOverdueMaintenance() async {
     return [];
   }
 
+  /// Returns empty list - maintenance tracking not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full maintenance management
   Future<List<Map<String, dynamic>>> getUpcomingMaintenance({int days = 7}) async {
     return [];
   }
 
   // === ROOM METHODS (Stubs) ===
-  
+  //
+  // WARNING: Room management is not supported in SimpleDatabaseHelper.
+  // For room tracking support, use DatabaseHelper (SQLite) on desktop platforms.
+
+  /// Returns empty list - room management not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full room management
   Future<List<Map<String, dynamic>>> getRooms() async {
     return [];
   }
 
+  /// Returns null - room management not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full room management
   Future<Map<String, dynamic>?> getRoomById(String id) async {
     return null;
   }
 
+  /// Returns empty string - room management not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full room management
   Future<String> insertRoom(Map<String, dynamic> room) async {
     return '';
   }
 
+  /// Returns 0 - room management not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full room management
   Future<int> updateRoom(Map<String, dynamic> room) async {
     return 0;
   }
 
   // === VEHICLE METHODS (Stubs) ===
-  
+  //
+  // WARNING: Vehicle tracking is not supported in SimpleDatabaseHelper.
+  // For vehicle management support, use DatabaseHelper (SQLite) on desktop platforms.
+
+  /// Returns empty list - vehicle management not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full vehicle management
   Future<List<Map<String, dynamic>>> getVehicles() async {
     return [];
   }
 
+  /// Returns null - vehicle management not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full vehicle management
   Future<Map<String, dynamic>?> getVehicleById(String id) async {
     return null;
   }
 
+  /// Returns empty string - vehicle management not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full vehicle management
   Future<String> insertVehicle(Map<String, dynamic> vehicle) async {
     return '';
   }
 
+  /// Returns 0 - vehicle management not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full vehicle management
   Future<int> updateVehicle(Map<String, dynamic> vehicle) async {
     return 0;
   }
 
   // === SYNC QUEUE METHODS (Stubs) ===
-  
+  //
+  // WARNING: Sync queue management is not supported in SimpleDatabaseHelper.
+  // For synchronization support, use DatabaseHelper (SQLite) on desktop platforms.
+
+  /// Returns empty string - sync queue not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full synchronization support
   Future<String> addToSyncQueue(Map<String, dynamic> item) async {
     return '';
   }
 
+  /// Returns empty list - sync queue not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full synchronization support
   Future<List<Map<String, dynamic>>> getPendingSyncItems({int limit = 100}) async {
     return [];
   }
 
+  /// Returns 0 - sync queue not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full synchronization support
   Future<int> updateSyncItemStatus(String id, String status, {String? errorMessage}) async {
     return 0;
   }
 
+  /// Returns 0 - sync queue not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full synchronization support
   Future<int> incrementRetryCount(String id) async {
     return 0;
   }
 
+  /// Returns 0 - sync queue not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop for full synchronization support
   Future<int> deleteSyncItem(String id) async {
     return 0;
   }
 
   // === SETTINGS METHODS (Stubs) ===
-  
+  //
+  // WARNING: App settings management is not supported in SimpleDatabaseHelper.
+  // For settings persistence, use DatabaseHelper (SQLite) on desktop platforms
+  // or SharedPreferences for web.
+
+  /// Returns null - settings not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop or SharedPreferences on web
   Future<Map<String, dynamic>?> getAppSettings() async {
     return null;
   }
 
+  /// No-op - settings not supported in SimpleDatabaseHelper
+  /// Use DatabaseHelper (SQLite) on desktop or SharedPreferences on web
   Future<void> saveAppSettings(Map<String, dynamic> settings) async {}
 }

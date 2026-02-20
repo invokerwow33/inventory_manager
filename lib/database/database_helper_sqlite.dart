@@ -668,17 +668,6 @@ class DatabaseHelper implements IDatabaseHelper {
       )
     ''');
 
-    // Create default admin user
-    await db.insert('users', {
-      'id': 'admin_default',
-      'username': 'admin',
-      'password_hash': '\$2a\$10\$YourHashedPasswordHere', // Placeholder - should be properly hashed
-      'role': 'admin',
-      'is_active': 1,
-      'created_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
-    });
-
     // Insert default settings
     await db.insert('app_settings', {
       'id': 1,
@@ -984,6 +973,11 @@ class DatabaseHelper implements IDatabaseHelper {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('equipment');
     return maps.map((map) => Map<String, dynamic>.from(map)).toList();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAllEquipment() async {
+    return await getEquipment();
   }
 
   Future<Map<String, dynamic>?> getEquipmentById(dynamic id) async {

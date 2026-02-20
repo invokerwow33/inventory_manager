@@ -14,6 +14,9 @@ abstract class IDatabaseHelper {
   Future<List<Map<String, dynamic>>> searchEquipmentByInventoryNumber(String inventoryNumber);
   Future<int> getEquipmentCount();
   
+  // Helper methods for backward compatibility
+  Future<List<Map<String, dynamic>>> getAllEquipment();
+  
   // Employee operations
   Future<List<Map<String, dynamic>>> getEmployees({bool includeInactive = false});
   Future<Map<String, dynamic>?> getEmployeeById(String id);
