@@ -53,4 +53,39 @@ class AppConstants {
   static const String equipmentIdPrefix = 'eq_';
   static const String consumableIdPrefix = 'cons_';
   static const String employeeIdPrefix = 'emp_';
+
+  // Status conversion helpers
+  static String getStatusLabel(String statusKey) {
+    switch (statusKey) {
+      case 'inUse':
+        return equipmentStatusInUse;
+      case 'inStock':
+        return equipmentStatusInStock;
+      case 'underRepair':
+        return equipmentStatusUnderRepair;
+      case 'writtenOff':
+        return equipmentStatusWrittenOff;
+      case 'reserved':
+        return equipmentStatusReserved;
+      default:
+        return statusKey;
+    }
+  }
+
+  static String getStatusKey(String label) {
+    switch (label) {
+      case equipmentStatusInUse:
+        return 'inUse';
+      case equipmentStatusInStock:
+        return 'inStock';
+      case equipmentStatusUnderRepair:
+        return 'underRepair';
+      case equipmentStatusWrittenOff:
+        return 'writtenOff';
+      case equipmentStatusReserved:
+        return 'reserved';
+      default:
+        return label;
+    }
+  }
 }
