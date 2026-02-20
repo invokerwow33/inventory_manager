@@ -7,9 +7,9 @@ import '../models/equipment.dart';
 
 class ExportService {
   static Future<void> exportToCsv({List<Equipment>? equipmentList}) async {
-    final dbHelper = getDatabaseHelper();
+    final dbHelper = DatabaseHelper.instance;
     final equipmentData = equipmentList == null
-        ? await dbHelper.getAllEquipment()
+        ? await dbHelper.getEquipment()
         : equipmentList.map((e) => e.toMap()).toList();
     final equipment = equipmentList ?? equipmentData.map((m) => Equipment.fromMap(m)).toList();
 
@@ -54,9 +54,9 @@ class ExportService {
   }
 
   static Future<void> exportToExcel({List<Equipment>? equipmentList}) async {
-    final dbHelper = getDatabaseHelper();
+    final dbHelper = DatabaseHelper.instance;
     final equipmentData = equipmentList == null
-        ? await dbHelper.getAllEquipment()
+        ? await dbHelper.getEquipment()
         : equipmentList.map((e) => e.toMap()).toList();
     final equipment = equipmentList ?? equipmentData.map((m) => Equipment.fromMap(m)).toList();
 
