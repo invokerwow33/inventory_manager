@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'database_helper_interface.dart';
 import 'migrations/database_migrations.dart';
 
-class DatabaseHelper implements IDatabaseHelper {
+class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   factory DatabaseHelper() => instance;
   DatabaseHelper._internal();
@@ -17,7 +16,6 @@ class DatabaseHelper implements IDatabaseHelper {
     return _database!;
   }
 
-  @override
   Future<void> initDatabase() async {
     await database;
   }
@@ -975,7 +973,6 @@ class DatabaseHelper implements IDatabaseHelper {
     return maps.map((map) => Map<String, dynamic>.from(map)).toList();
   }
 
-  @override
   Future<List<Map<String, dynamic>>> getAllEquipment() async {
     return await getEquipment();
   }
