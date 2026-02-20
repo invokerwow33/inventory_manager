@@ -7,7 +7,11 @@ import '../models/equipment.dart';
 
 class ExportService {
   static Future<void> exportToCsv({List<Equipment>? equipmentList}) async {
-    final equipment = equipmentList ?? await DatabaseHelper.instance.getAllEquipment();
+    final dbHelper = getDatabaseHelper();
+    final equipmentData = equipmentList == null
+        ? await dbHelper.getAllEquipment()
+        : equipmentList.map((e) => e.toMap()).toList();
+    final equipment = equipmentList ?? equipmentData.map((m) => Equipment.fromMap(m)).toList();
 
     if (equipment.isEmpty) {
       throw Exception('Нет данных для экспорта');
@@ -50,7 +54,11 @@ class ExportService {
   }
 
   static Future<void> exportToExcel({List<Equipment>? equipmentList}) async {
-    final equipment = equipmentList ?? await DatabaseHelper.instance.getAllEquipment();
+    final dbHelper = getDatabaseHelper();
+    final equipmentData = equipmentList == null
+        ? await dbHelper.getAllEquipment()
+        : equipmentList.map((e) => e.toMap()).toList();
+    final equipment = equipmentList ?? equipmentData.map((m) => Equipment.fromMap(m)).toList();
 
     if (equipment.isEmpty) {
       throw Exception('Нет данных для экспорта');

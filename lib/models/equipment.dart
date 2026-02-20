@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../services/logger_service.dart';
 
 class Equipment {
   String id;
@@ -73,7 +74,10 @@ class Equipment {
       name: map['name'],
       type: EquipmentType.values.firstWhere(
         (e) => e.toString().split('.').last == map['type'],
-        orElse: () => EquipmentType.computer,
+        orElse: () {
+          LoggerService().warning('Unknown equipment type: ${map['type']}, defaulting to computer');
+          return EquipmentType.computer;
+        },
       ),
       serialNumber: map['serialNumber'] ?? map['serial_number'],
       inventoryNumber: map['inventoryNumber'] ?? map['inventory_number'],
@@ -88,7 +92,10 @@ class Equipment {
       location: map['location'],
       status: EquipmentStatus.values.firstWhere(
         (e) => e.toString().split('.').last == map['status'],
-        orElse: () => EquipmentStatus.inUse,
+        orElse: () {
+          LoggerService().warning('Unknown equipment status: ${map['status']}, defaulting to inUse');
+          return EquipmentStatus.inUse;
+        },
       ),
       notes: map['notes'],
       createdAt: DateTime.tryParse(map['createdAt'] ?? map['created_at'] ?? '') ?? DateTime.now(),
