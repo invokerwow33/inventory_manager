@@ -42,11 +42,11 @@ class MigrationV3 extends Migration {
 
 class MigrationV4 extends Migration {
   MigrationV4() : super(4, 'Add sync_queue table');
-  
+
   @override
   Future<void> up(Database db) async {
     await db.execute('''
-      CREATE TABLE sync_queue(
+      CREATE TABLE IF NOT EXISTS sync_queue(
         id TEXT PRIMARY KEY,
         table_name TEXT NOT NULL,
         record_id TEXT NOT NULL,
@@ -59,20 +59,20 @@ class MigrationV4 extends Migration {
       )
     ''');
   }
-  
+
   @override
   Future<void> down(Database db) async {
-    await db.execute('DROP TABLE sync_queue');
+    await db.execute('DROP TABLE IF EXISTS sync_queue');
   }
 }
 
 class MigrationV5 extends Migration {
   MigrationV5() : super(5, 'Add room_equipment junction table');
-  
+
   @override
   Future<void> up(Database db) async {
     await db.execute('''
-      CREATE TABLE room_equipment(
+      CREATE TABLE IF NOT EXISTS room_equipment(
         id TEXT PRIMARY KEY,
         room_id TEXT NOT NULL,
         equipment_id TEXT NOT NULL,
@@ -83,10 +83,10 @@ class MigrationV5 extends Migration {
       )
     ''');
   }
-  
+
   @override
   Future<void> down(Database db) async {
-    await db.execute('DROP TABLE room_equipment');
+    await db.execute('DROP TABLE IF EXISTS room_equipment');
   }
 }
 
@@ -97,7 +97,7 @@ class MigrationV6 extends Migration {
   Future<void> up(Database db) async {
     // Tasks table
     await db.execute('''
-      CREATE TABLE tasks(
+      CREATE TABLE IF NOT EXISTS tasks(
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
         description TEXT NOT NULL,
@@ -117,7 +117,7 @@ class MigrationV6 extends Migration {
 
     // Task comments table (chat)
     await db.execute('''
-      CREATE TABLE task_comments(
+      CREATE TABLE IF NOT EXISTS task_comments(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         task_id TEXT NOT NULL,
         author_id TEXT NOT NULL,
@@ -129,19 +129,20 @@ class MigrationV6 extends Migration {
       )
     ''');
 
-    // Index for faster lookups
-    await db.execute('CREATE INDEX idx_task_comments_task_id ON task_comments(task_id)');
-    await db.execute('CREATE INDEX idx_tasks_assigned_to ON tasks(assigned_to)');
-    await db.execute('CREATE INDEX idx_tasks_status ON tasks(status)');
+    // Index for faster lookups (ignore errors if index exists)
+    try {
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_task_comments_task_id ON task_comments(task_id)');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON tasks(assigned_to)');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)');
+    } catch (_) {
+      // Ignore index errors
+    }
   }
 
   @override
   Future<void> down(Database db) async {
-    await db.execute('DROP INDEX idx_tasks_status');
-    await db.execute('DROP INDEX idx_tasks_assigned_to');
-    await db.execute('DROP INDEX idx_task_comments_task_id');
-    await db.execute('DROP TABLE task_comments');
-    await db.execute('DROP TABLE tasks');
+    await db.execute('DROP TABLE IF EXISTS task_comments');
+    await db.execute('DROP TABLE IF EXISTS tasks');
   }
 }
 
