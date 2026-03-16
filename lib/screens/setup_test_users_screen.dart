@@ -79,6 +79,19 @@ class _SetupTestUsersScreenState extends State<SetupTestUsersScreen> {
     }
   }
 
+  Future<void> _quickLogin(String username, String password) async {
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.login(username, password);
+    
+    if (success && mounted) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ошибка входа')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -152,12 +165,49 @@ class _SetupTestUsersScreenState extends State<SetupTestUsersScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        ElevatedButton(
+                        const Text(
+                          'Выберите пользователя для входа:',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 16),
+                        // Кнопка входа за админа
+                        SizedBox(
+                          width: double.maxFinite,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              _quickLogin('admin', 'admin123');
+                            },
+                            icon: const Icon(Icons.admin_panel_settings),
+                            label: const Text('Войти как Администратор'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Кнопка входа за сотрудника
+                        SizedBox(
+                          width: double.maxFinite,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              _quickLogin('employee', 'user123');
+                            },
+                            icon: const Icon(Icons.person),
+                            label: const Text('Войти как Сотрудник'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextButton(
                           onPressed: () {
                             context.read<AuthProvider>().logout();
                             Navigator.pushReplacementNamed(context, '/login');
                           },
-                          child: const Text('Перейти на страницу входа'),
+                          child: const Text('Вернуться на страницу входа'),
                         ),
                       ],
                     )
