@@ -1775,21 +1775,19 @@ class DatabaseHelper {
   // Get statistics
   Future<Map<String, int>> getTaskStats({String? assignedTo}) async {
     final db = await database;
-    String? whereClause = assignedTo != null ? 'assigned_to = ?' : null;
-    List<dynamic>? whereArgs = assignedTo != null ? [assignedTo] : null;
     
     final totalResult = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM tasks' + (whereClause != null ? ' WHERE $whereClause' : ''),
-      whereArgs,
+      'SELECT COUNT(*) as count FROM tasks' + (assignedTo != null ? ' WHERE assigned_to = ?' : ''),
+      assignedTo != null ? [assignedTo] : null,
     );
     
     final statusResult = await db.rawQuery(
-      'SELECT status, COUNT(*) as count FROM tasks' + (whereClause != null ? ' WHERE $whereClause' : '') + ' GROUP BY status',
-      whereArgs,
+      'SELECT status, COUNT(*) as count FROM tasks' + (assignedTo != null ? ' WHERE assigned_to = ?' : '') + ' GROUP BY status',
+      assignedTo != null ? [assignedTo] : null,
     );
     
     final stats = <String, int>{
-      'total': Sqflite.firstIntValue(totalResult.first.values) ?? 0,
+      'total': (totalResult.first['count'] as int?) ?? 0,
     };
     
     for (var row in statusResult) {
