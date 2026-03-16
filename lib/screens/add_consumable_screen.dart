@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../database/database_helper.dart';
 import '../models/consumable.dart';
 import '../providers/consumable_provider.dart';
 import '../utils/validators.dart';
@@ -17,8 +16,7 @@ class AddConsumableScreen extends StatefulWidget {
 
 class _AddConsumableScreenState extends State<AddConsumableScreen> {
   final _formKey = GlobalKey<FormState>();
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
-  
+
   // Controllers
   late final TextEditingController _nameController;
   late final TextEditingController _quantityController;

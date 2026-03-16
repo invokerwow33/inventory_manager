@@ -70,9 +70,7 @@ class _EquipmentAutocompleteFieldState extends State<EquipmentAutocompleteField>
   Timer? _searchDebounce;
   bool _isUpdating = false;
   Map<String, dynamic>? _selectedEquipment;
-  
-  // Опции для autocomplete
-  List<Map<String, dynamic>> _equipmentOptions = [];
+
   bool _isLoading = false;
 
   @override

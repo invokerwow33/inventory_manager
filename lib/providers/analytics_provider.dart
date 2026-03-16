@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../database/database_helper.dart';
-import '../models/equipment.dart';
 
 class AnalyticsProvider extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -248,8 +247,7 @@ class AnalyticsProvider extends ChangeNotifier {
       {'value': stats['in_stock'] ?? 0, 'title': 'На складе', 'color': colors[1]},
       {'value': stats['under_repair'] ?? 0, 'title': 'В ремонте', 'color': colors[2]},
     ];
-    
-    int colorIndex = 0;
+
     for (final section in sections) {
       final value = section['value'] as int;
       if (value > 0) {
@@ -265,9 +263,8 @@ class AnalyticsProvider extends ChangeNotifier {
           ),
         ));
       }
-      colorIndex++;
     }
-    
+
     return data;
   }
 

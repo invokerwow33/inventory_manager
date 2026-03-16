@@ -71,16 +71,16 @@ class Equipment {
           return EquipmentType.computer;
         },
       ),
-      serialNumber: map['serialNumber'] ?? map['serial_number'],
-      inventoryNumber: map['inventoryNumber'] ?? map['inventory_number'],
+      serialNumber: map['serial_number'],
+      inventoryNumber: map['inventory_number'],
       manufacturer: map['manufacturer'],
       model: map['model'],
-      purchaseDate: map['purchaseDate'] != null || map['purchase_date'] != null
-          ? DateTime.tryParse(map['purchaseDate'] ?? map['purchase_date'] ?? '')
+      purchaseDate: map['purchase_date'] != null
+          ? DateTime.tryParse(map['purchase_date'])
           : null,
-      purchasePrice: map['purchasePrice'] ?? map['purchase_price'],
+      purchasePrice: map['purchase_price'],
       department: map['department'],
-      responsiblePerson: map['responsiblePerson'] ?? map['responsible_person'],
+      responsiblePerson: map['responsible_person'],
       location: map['location'],
       status: EquipmentStatus.values.firstWhere(
         (e) => e.toString().split('.').last == map['status'],
@@ -90,8 +90,8 @@ class Equipment {
         },
       ),
       notes: map['notes'],
-      createdAt: DateTime.tryParse(map['createdAt'] ?? map['created_at'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(map['updatedAt'] ?? map['updated_at'] ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(map['created_at'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(map['updated_at'] ?? '') ?? DateTime.now(),
     );
   }
 

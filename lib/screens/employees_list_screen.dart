@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_manager/database/simple_database_helper.dart';
-import 'package:inventory_manager/models/employee.dart';
-import 'package:inventory_manager/screens/add_employee_screen.dart';
-import 'package:inventory_manager/screens/employee_detail_screen.dart';
+import 'package:provider/provider.dart';
+import '../models/employee.dart';
+import '../providers/employee_provider.dart';
+import '../screens/add_employee_screen.dart';
+import '../screens/employee_detail_screen.dart';
 
 class EmployeesListScreen extends StatefulWidget {
   const EmployeesListScreen({super.key});
@@ -12,10 +13,8 @@ class EmployeesListScreen extends StatefulWidget {
 }
 
 class _EmployeesListScreenState extends State<EmployeesListScreen> {
-  final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
-  List<Employee> _employees = [];
-  List<Employee> _filteredEmployees = [];
   final TextEditingController _searchController = TextEditingController();
+  List<Employee> _filteredEmployees = [];
   bool _isLoading = true;
   String? _selectedDepartment;
   List<String> _departments = [];
@@ -23,33 +22,38 @@ class _EmployeesListScreenState extends State<EmployeesListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
     _searchController.addListener(_onSearchChanged);
+    
+    // Load data when screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
-      await _dbHelper.initDatabase();
+      final provider = context.read<EmployeeProvider>();
+      await provider.loadEmployees(forceRefresh: true);
       
-      // Загружаем сотрудников и отделы параллельно
-      final results = await Future.wait([
-        _dbHelper.getEmployees(),
-        _dbHelper.getDepartments(),
-      ]);
+      // Extract departments from loaded employees
+      final depts = provider.employees
+          .where((e) => e.department != null && e.department!.isNotEmpty)
+          .map((e) => e.department!)
+          .toSet()
+          .toList();
       
-      final employeesData = results[0] as List<Map<String, dynamic>>;
-      final departments = results[1] as List<String>;
-      
-      setState(() {
-        _employees = employeesData.map((e) => Employee.fromMap(e)).toList();
-        _departments = departments;
-        _applyFilters();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _departments = depts..sort();
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       print('Ошибка загрузки сотрудников: $e');
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -58,19 +62,20 @@ class _EmployeesListScreenState extends State<EmployeesListScreen> {
   }
 
   void _applyFilters() {
+    final provider = context.read<EmployeeProvider>();
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredEmployees = _employees.where((employee) {
+      _filteredEmployees = provider.employees.where((employee) {
         final matchesSearch = employee.fullName.toLowerCase().contains(query) ||
             (employee.position?.toLowerCase().contains(query) ?? false) ||
             (employee.employeeNumber?.toLowerCase().contains(query) ?? false);
-        
-        final matchesDepartment = _selectedDepartment == null || 
+
+        final matchesDepartment = _selectedDepartment == null ||
             employee.department == _selectedDepartment;
-        
+
         return matchesSearch && matchesDepartment;
       }).toList();
-      
+
       // Сортируем по ФИО
       _filteredEmployees.sort((a, b) => a.fullName.compareTo(b.fullName));
     });
@@ -78,6 +83,16 @@ class _EmployeesListScreenState extends State<EmployeesListScreen> {
 
   Future<void> _refreshData() async {
     await _loadData();
+  }
+
+  Future<void> _addEmployee() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => const AddEmployeeScreen()),
+    );
+    if (result == true && mounted) {
+      await _refreshData();
+    }
   }
 
   Future<void> _confirmDelete(Employee employee) async {
@@ -105,9 +120,10 @@ class _EmployeesListScreenState extends State<EmployeesListScreen> {
 
     if (result == true) {
       try {
-        await _dbHelper.deleteEmployee(employee.id);
+        final provider = context.read<EmployeeProvider>();
+        await provider.deleteEmployee(employee.id);
         await _refreshData();
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Сотрудник удален')),
@@ -125,107 +141,102 @@ class _EmployeesListScreenState extends State<EmployeesListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Сотрудники'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshData,
-            tooltip: 'Обновить',
+    return Consumer<EmployeeProvider>(
+      builder: (context, provider, _) {
+        final employees = provider.employees;
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Сотрудники'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: _refreshData,
+                tooltip: 'Обновить',
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Панель поиска и фильтров
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    hintText: 'Поиск по ФИО, должности, табельному номеру...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () => _searchController.clear(),
-                    ),
-                  ),
-                ),
-                if (_departments.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        FilterChip(
-                          label: const Text('Все отделы'),
-                          selected: _selectedDepartment == null,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedDepartment = null;
-                              _applyFilters();
-                            });
-                          },
+          body: Column(
+            children: [
+              // Панель поиска и фильтров
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.search),
+                        hintText: 'Поиск по ФИО, должности, табельному номеру...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        const SizedBox(width: 8),
-                        ..._departments.map((department) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: FilterChip(
-                              label: Text(department),
-                              selected: _selectedDepartment == department,
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () => _searchController.clear(),
+                        ),
+                      ),
+                    ),
+                    if (_departments.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            FilterChip(
+                              label: const Text('Все отделы'),
+                              selected: _selectedDepartment == null,
                               onSelected: (selected) {
                                 setState(() {
-                                  _selectedDepartment = selected ? department : null;
+                                  _selectedDepartment = null;
                                   _applyFilters();
                                 });
                               },
                             ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+                            const SizedBox(width: 8),
+                            ..._departments.map((department) {
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: FilterChip(
+                                  label: Text(department),
+                                  selected: _selectedDepartment == department,
+                                  onSelected: (selected) {
+                                    setState(() {
+                                      _selectedDepartment = selected ? department : null;
+                                      _applyFilters();
+                                    });
+                                  },
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
 
-          // Индикатор загрузки или список
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _filteredEmployees.isEmpty
-                    ? _buildEmptyState()
-                    : _buildEmployeesList(),
+              // Индикатор загрузки или список
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _filteredEmployees.isEmpty
+                        ? _buildEmptyState(employees.isEmpty)
+                        : _buildEmployeesList(),
+              ),
+            ],
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddEmployeeScreen(),
-            ),
-          );
-          if (result == true) {
-            _refreshData();
-          }
-        },
-        child: const Icon(Icons.person_add),
-        tooltip: 'Добавить сотрудника',
-      ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: _addEmployee,
+            tooltip: 'Добавить сотрудника',
+            child: const Icon(Icons.person_add),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isEmpty) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -233,24 +244,14 @@ class _EmployeesListScreenState extends State<EmployeesListScreen> {
           const Icon(Icons.people, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
           Text(
-            _employees.isEmpty
+            isEmpty
                 ? 'Нет сотрудников'
                 : 'Не найдено по запросу',
             style: const TextStyle(fontSize: 18, color: Colors.grey),
           ),
-          if (_employees.isEmpty)
+          if (isEmpty)
             TextButton(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddEmployeeScreen(),
-                  ),
-                );
-                if (result == true) {
-                  _refreshData();
-                }
-              },
+              onPressed: _addEmployee,
               child: const Text('Добавить первого сотрудника'),
             ),
         ],

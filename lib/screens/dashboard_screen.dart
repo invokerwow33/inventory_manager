@@ -25,6 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _totalEquipment = 0;
   int _inUseCount = 0;
   int _inStockCount = 0;
+  // ignore: unused_field
   int _inRepairCount = 0;
   int _consumablesCount = 0;
   int _lowStockCount = 0;

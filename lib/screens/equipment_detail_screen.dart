@@ -25,11 +25,11 @@ class _EquipmentDetailScreenState extends State<EquipmentDetailScreen> {
   Future<void> _loadEquipment() async {
     try {
       final dbHelper = DatabaseHelper.instance;
-      final equipment = await dbHelper.getEquipment(widget.equipmentId);
-      
+      final equipmentMap = await dbHelper.getEquipmentById(widget.equipmentId);
+
       if (mounted) {
         setState(() {
-          _equipment = equipment;
+          _equipment = equipmentMap != null ? Equipment.fromMap(equipmentMap) : null;
           _isLoading = false;
         });
       }

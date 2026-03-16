@@ -42,7 +42,6 @@ class LoggerService {
 
   static const String _logsKey = 'error_logs';
   static const int _maxLogs = 1000;
-  static const int _maxInfoLogs = 500;
 
   bool _debugMode = false;
 

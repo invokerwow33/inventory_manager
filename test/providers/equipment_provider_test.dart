@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inventory_manager/models/equipment.dart';
 import 'package:inventory_manager/providers/equipment_provider.dart';
 
 void main() {

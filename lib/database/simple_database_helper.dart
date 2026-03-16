@@ -167,8 +167,7 @@ class SimpleDatabaseHelper {
       final item = _equipment[i];
 
       // ID должен быть String - конвертируем int в String для совместимости
-      final dynamic rawId = item['id'];
-      final String fixedId = rawId?.toString() ?? '';
+      // final String fixedId = rawId?.toString() ?? '';
 
       final fixedItem = <String, dynamic>{
         'id': item['id'].toString(),

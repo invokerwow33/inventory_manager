@@ -241,7 +241,12 @@ class KeyIssueRecord {
     return DateTime.now().difference(issuedAt).inDays;
   }
 
-  int? get daysUntilDue(DateTime dueDate) {
+  int? get daysUntilDue {
+    // This getter is deprecated. Use daysUntilDueDate(DateTime dueDate) instead.
+    return null;
+  }
+
+  int? daysUntilDueDate(DateTime dueDate) {
     return dueDate.difference(DateTime.now()).inDays;
   }
 }

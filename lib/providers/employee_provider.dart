@@ -125,10 +125,16 @@ class EmployeeProvider extends ChangeNotifier {
   Future<Employee?> getEmployeeById(String id) async {
     try {
       // Check cache first
-      final cached = _employees.firstWhere(
-        (e) => e.id == id,
-        orElse: () => null as Employee,
-      );
+      Employee? cached;
+      try {
+        cached = _employees.firstWhere(
+          (e) => e.id == id,
+          orElse: () => throw Exception('Not found'),
+        );
+      } catch (_) {
+        cached = null;
+      }
+      
       if (cached != null) {
         _selectedEmployee = cached;
         notifyListeners();

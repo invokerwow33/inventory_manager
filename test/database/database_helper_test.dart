@@ -39,7 +39,7 @@ void main() {
 
     test('getEquipmentById returns map for existing id', () async {
       // First insert an equipment
-      final id = await dbHelper.insertEquipment({
+      final _ = await dbHelper.insertEquipment({
         'id': 'test_equip_001',
         'name': 'Test Equipment',
         'type': 'computer',
@@ -81,7 +81,7 @@ void main() {
 
     test('updateEquipment updates existing record', () async {
       // Insert an equipment
-      final id = await dbHelper.insertEquipment({
+      final _ = await dbHelper.insertEquipment({
         'id': 'update_test_id',
         'name': 'Original Name',
         'type': 'computer',
@@ -107,7 +107,7 @@ void main() {
 
     test('deleteEquipment soft-deletes record', () async {
       // Insert an equipment
-      final id = await dbHelper.insertEquipment({
+      final _ = await dbHelper.insertEquipment({
         'id': 'delete_test_id',
         'name': 'To Delete',
         'type': 'computer',

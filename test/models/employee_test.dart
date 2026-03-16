@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:inventory_manager/models/employee.dart';
 
@@ -185,6 +186,16 @@ void main() {
 
       expect(issue.icon, Icons.arrow_forward);
       expect(issue.color, isNotNull);
+    });
+
+    test('should return correct icon for return type', () {
+      final returnMovement = EmployeeMovementSummary(
+        movementType: 'Возврат',
+        equipmentName: 'Monitor',
+        date: DateTime.now(),
+      );
+
+      expect(returnMovement.icon, Icons.arrow_back);
     });
   });
 }

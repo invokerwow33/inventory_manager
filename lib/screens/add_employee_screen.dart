@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../database/database_helper.dart';
 import '../models/employee.dart';
 import '../providers/employee_provider.dart';
 import '../utils/validators.dart';
@@ -17,8 +16,7 @@ class AddEmployeeScreen extends StatefulWidget {
 
 class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   final _formKey = GlobalKey<FormState>();
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
-  
+
   // Controllers
   late final TextEditingController _fullNameController;
   late final TextEditingController _departmentController;

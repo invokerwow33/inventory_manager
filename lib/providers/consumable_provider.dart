@@ -122,10 +122,16 @@ class ConsumableProvider extends ChangeNotifier {
   Future<Consumable?> getConsumableById(String id) async {
     try {
       // Check cache first
-      final cached = _consumables.firstWhere(
-        (c) => c.id == id,
-        orElse: () => null as Consumable,
-      );
+      Consumable? cached;
+      try {
+        cached = _consumables.firstWhere(
+          (c) => c.id == id,
+          orElse: () => throw Exception('Not found'),
+        );
+      } catch (_) {
+        cached = null;
+      }
+      
       if (cached != null) {
         _selectedConsumable = cached;
         notifyListeners();

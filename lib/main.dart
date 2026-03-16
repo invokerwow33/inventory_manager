@@ -126,7 +126,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Future<void> _initializeApp() async {
     await Future.microtask(() async {
       final settings = context.read<SettingsProvider>();
-      final auth = context.read<AuthProvider>();
       final sync = context.read<SyncProvider>();
 
       // Load settings

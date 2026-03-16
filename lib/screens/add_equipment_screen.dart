@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import '../database/database_helper.dart';
 import '../models/equipment.dart';
 import '../providers/equipment_provider.dart';
 import '../utils/validators.dart';
@@ -18,8 +16,7 @@ class AddEquipmentScreen extends StatefulWidget {
 
 class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
   final _formKey = GlobalKey<FormState>();
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
-  
+
   // Controllers
   late final TextEditingController _nameController;
   late final TextEditingController _serialNumberController;
@@ -101,14 +98,20 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
   
   Future<void> _generateInventoryNumber() async {
     try {
-      final count = await _dbHelper.getEquipmentCount();
-      setState(() {
-        _inventoryNumberController.text = 'INV-${DateTime.now().year}-${(count + 1).toString().padLeft(5, '0')}';
-      });
+      final provider = context.read<EquipmentProvider>();
+      final stats = provider.statistics;
+      final count = stats['total'] ?? 0;
+      if (mounted) {
+        setState(() {
+          _inventoryNumberController.text = 'INV-${DateTime.now().year}-${(count + 1).toString().padLeft(5, '0')}';
+        });
+      }
     } catch (e) {
-      setState(() {
-        _inventoryNumberController.text = 'INV-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
-      });
+      if (mounted) {
+        setState(() {
+          _inventoryNumberController.text = 'INV-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
+        });
+      }
     }
   }
 
