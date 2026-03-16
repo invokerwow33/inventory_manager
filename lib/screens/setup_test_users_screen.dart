@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bcrypt/bcrypt.dart';
+import 'package:sqflite/sqflite.dart';
 import '../database/database_helper.dart';
-import '../models/user.dart';
 import '../providers/auth_provider.dart';
 
 /// Экран для создания тестовых пользователей
@@ -31,7 +31,7 @@ class _SetupTestUsersScreenState extends State<SetupTestUsersScreen> {
 
       // Создаем админа
       final adminId = 'admin_${DateTime.now().millisecondsSinceEpoch}';
-      final adminHash = const PasswordHash(4).hash('admin123');
+      final adminHash = BCrypt.hashpw('admin123', BCrypt.gensalt(logRounds: 4));
       
       await db.insert(
         'users',
@@ -50,7 +50,7 @@ class _SetupTestUsersScreenState extends State<SetupTestUsersScreen> {
 
       // Создаем сотрудника
       final employeeId = 'emp_${DateTime.now().millisecondsSinceEpoch}';
-      final employeeHash = const PasswordHash(4).hash('user123');
+      final employeeHash = BCrypt.hashpw('user123', BCrypt.gensalt(logRounds: 4));
       
       await db.insert(
         'users',
