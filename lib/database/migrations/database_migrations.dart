@@ -90,12 +90,68 @@ class MigrationV5 extends Migration {
   }
 }
 
+class MigrationV6 extends Migration {
+  MigrationV6() : super(6, 'Add tasks and task_comments tables');
+
+  @override
+  Future<void> up(Database db) async {
+    // Tasks table
+    await db.execute('''
+      CREATE TABLE tasks(
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        created_by TEXT NOT NULL,
+        created_by_name TEXT NOT NULL,
+        assigned_to TEXT,
+        assigned_to_name TEXT,
+        status TEXT DEFAULT 'pending',
+        priority TEXT DEFAULT 'normal',
+        created_at TEXT NOT NULL,
+        due_date TEXT,
+        started_at TEXT,
+        completed_at TEXT,
+        notes TEXT
+      )
+    ''');
+
+    // Task comments table (chat)
+    await db.execute('''
+      CREATE TABLE task_comments(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id TEXT NOT NULL,
+        author_id TEXT NOT NULL,
+        author_name TEXT NOT NULL,
+        message TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        is_system INTEGER DEFAULT 0,
+        FOREIGN KEY (task_id) REFERENCES tasks(id)
+      )
+    ''');
+
+    // Index for faster lookups
+    await db.execute('CREATE INDEX idx_task_comments_task_id ON task_comments(task_id)');
+    await db.execute('CREATE INDEX idx_tasks_assigned_to ON tasks(assigned_to)');
+    await db.execute('CREATE INDEX idx_tasks_status ON tasks(status)');
+  }
+
+  @override
+  Future<void> down(Database db) async {
+    await db.execute('DROP INDEX idx_tasks_status');
+    await db.execute('DROP INDEX idx_tasks_assigned_to');
+    await db.execute('DROP INDEX idx_task_comments_task_id');
+    await db.execute('DROP TABLE task_comments');
+    await db.execute('DROP TABLE tasks');
+  }
+}
+
 class DatabaseMigrationManager {
   static final List<Migration> migrations = [
     MigrationV2(),
     MigrationV3(),
     MigrationV4(),
     MigrationV5(),
+    MigrationV6(),
   ];
   
   static Migration? getMigration(int version) {

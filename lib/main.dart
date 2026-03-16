@@ -23,6 +23,7 @@ import 'package:inventory_manager/screens/keys_screen.dart';
 import 'package:inventory_manager/screens/telephony_screen.dart';
 import 'package:inventory_manager/screens/audit_log_screen.dart';
 import 'package:inventory_manager/screens/users_screen.dart';
+import 'package:inventory_manager/screens/tasks_screen.dart';
 
 // Database
 import 'package:inventory_manager/database/database_init.dart';
@@ -38,6 +39,7 @@ import 'package:inventory_manager/providers/settings_provider.dart';
 import 'package:inventory_manager/providers/maintenance_provider.dart';
 import 'package:inventory_manager/providers/analytics_provider.dart';
 import 'package:inventory_manager/providers/sync_provider.dart';
+import 'package:inventory_manager/providers/task_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,6 +77,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MaintenanceProvider()),
         ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
         ChangeNotifierProvider(create: (_) => SyncProvider()),
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
       ],
       child: Consumer2<SettingsProvider, AuthProvider>(
         builder: (context, settings, auth, child) {
@@ -238,6 +241,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         label: Text('Документы'),
       ),
       const NavigationRailDestination(
+        icon: Icon(Icons.task_alt_outlined),
+        selectedIcon: Icon(Icons.task_alt),
+        label: Text('Задачи'),
+      ),
+      const NavigationRailDestination(
         icon: Icon(Icons.settings_outlined),
         selectedIcon: Icon(Icons.settings),
         label: Text('Настройки'),
@@ -280,6 +288,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     screens.addAll([
       const DocumentsScreen(),
+      const TasksScreen(),
       const SettingsScreen(),
     ]);
 

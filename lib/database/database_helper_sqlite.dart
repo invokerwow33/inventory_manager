@@ -24,7 +24,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'inventory.db');
     return await openDatabase(
       path,
-      version: 3,
+      version: 6,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -1649,5 +1649,153 @@ class DatabaseHelper {
       {'id': 1, ...settings},
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  // ========== TASK METHODS ==========
+
+  Future<List<Map<String, dynamic>>> getTasks({String? assignedTo, String? createdBy, String? status}) async {
+    final db = await database;
+    List<Map<String, dynamic>> maps;
+    
+    if (assignedTo != null) {
+      // Задачи конкретного сотрудника
+      maps = await db.query(
+        'tasks',
+        where: 'assigned_to = ?' + (status != null ? ' AND status = ?' : ''),
+        whereArgs: [assignedTo, if (status != null) status],
+        orderBy: 'created_at DESC',
+      );
+    } else if (createdBy != null) {
+      // Задачи созданные директором
+      maps = await db.query(
+        'tasks',
+        where: 'created_by = ?' + (status != null ? ' AND status = ?' : ''),
+        whereArgs: [createdBy, if (status != null) status],
+        orderBy: 'created_at DESC',
+      );
+    } else {
+      // Все задачи
+      maps = await db.query(
+        'tasks',
+        where: status != null ? 'status = ?' : '',
+        whereArgs: status != null ? [status] : null,
+        orderBy: 'created_at DESC',
+      );
+    }
+    
+    return maps.map((map) => Map<String, dynamic>.from(map)).toList();
+  }
+
+  Future<Map<String, dynamic>?> getTaskById(String id) async {
+    final db = await database;
+    final maps = await db.query(
+      'tasks',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    return maps.isNotEmpty ? Map<String, dynamic>.from(maps.first) : null;
+  }
+
+  Future<String> createTask(Map<String, dynamic> task) async {
+    final db = await database;
+    final now = DateTime.now().toIso8601String();
+    task['created_at'] ??= now;
+    
+    await db.insert('tasks', task, conflictAlgorithm: ConflictAlgorithm.replace);
+    return task['id'];
+  }
+
+  Future<int> updateTask(Map<String, dynamic> task) async {
+    final db = await database;
+    task['updated_at'] = DateTime.now().toIso8601String();
+    
+    return await db.update(
+      'tasks',
+      task,
+      where: 'id = ?',
+      whereArgs: [task['id'].toString()],
+    );
+  }
+
+  Future<int> updateTaskStatus(String id, String status) async {
+    final db = await database;
+    final updates = <String, dynamic>{
+      'status': status,
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    
+    if (status == 'inProgress') {
+      updates['started_at'] = DateTime.now().toIso8601String();
+    } else if (status == 'completed') {
+      updates['completed_at'] = DateTime.now().toIso8601String();
+    }
+    
+    return await db.update(
+      'tasks',
+      updates,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<int> deleteTask(String id) async {
+    final db = await database;
+    // Сначала удалим комментарии
+    await db.delete('task_comments', where: 'task_id = ?', whereArgs: [id]);
+    // Затем задачу
+    return await db.delete('tasks', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ========== TASK COMMENT METHODS ==========
+
+  Future<List<Map<String, dynamic>>> getTaskComments(String taskId) async {
+    final db = await database;
+    final maps = await db.query(
+      'task_comments',
+      where: 'task_id = ?',
+      whereArgs: [taskId],
+      orderBy: 'created_at ASC',
+    );
+    return maps.map((map) => Map<String, dynamic>.from(map)).toList();
+  }
+
+  Future<int> addTaskComment(Map<String, dynamic> comment) async {
+    final db = await database;
+    comment['created_at'] = DateTime.now().toIso8601String();
+    comment['is_system'] ??= 0;
+    
+    return await db.insert('task_comments', comment);
+  }
+
+  Future<int> deleteTaskComment(int id) async {
+    final db = await database;
+    return await db.delete('task_comments', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Get statistics
+  Future<Map<String, int>> getTaskStats({String? assignedTo}) async {
+    final db = await database;
+    String? whereClause = assignedTo != null ? 'assigned_to = ?' : null;
+    List<dynamic>? whereArgs = assignedTo != null ? [assignedTo] : null;
+    
+    final totalResult = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM tasks' + (whereClause != null ? ' WHERE $whereClause' : ''),
+      whereArgs,
+    );
+    
+    final statusResult = await db.rawQuery(
+      'SELECT status, COUNT(*) as count FROM tasks' + (whereClause != null ? ' WHERE $whereClause' : '') + ' GROUP BY status',
+      whereArgs,
+    );
+    
+    final stats = <String, int>{
+      'total': Sqflite.firstIntValue(totalResult.first.values) ?? 0,
+    };
+    
+    for (var row in statusResult) {
+      stats[row['status'] as String] = (row['count'] as int?) ?? 0;
+    }
+    
+    return stats;
   }
 }
