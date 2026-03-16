@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:inventory_manager/models/consumable.dart';
 import 'package:inventory_manager/providers/consumable_provider.dart';
-import 'package:intl/intl.dart';
 
 class ConsumableHistoryScreen extends StatefulWidget {
   final Consumable consumable;
@@ -218,7 +217,6 @@ class _ConsumableHistoryScreenState extends State<ConsumableHistoryScreen> {
   Widget _buildMovementCard(ConsumableMovement movement) {
     final isIncoming = movement.isIncoming;
     final quantity = movement.quantity;
-    final operationDate = movement.operationDate;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
