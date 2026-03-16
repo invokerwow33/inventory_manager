@@ -196,6 +196,30 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
 
+                        // Создать тестовых пользователей - ВЫДЕЛЕННАЯ КНОПКА
+                        SizedBox(
+                          width: double.maxFinite,
+                          child: OutlinedButton.icon(
+                            onPressed: _isLoading
+                                ? null
+                                : () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const SetupTestUsersScreen(),
+                                      ),
+                                    );
+                                  },
+                            icon: const Icon(Icons.person_add, size: 20),
+                            label: const Text('Создать тестовых пользователей'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: const BorderSide(color: Colors.blue, width: 2),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
                         // Quick login for demo
                         if (settings.appSettings.developerMode)
                           TextButton.icon(
@@ -209,22 +233,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             icon: const Icon(Icons.bug_report),
                             label: const Text('Войти как admin (debug)'),
                           ),
-
-                        // Create test users
-                        TextButton.icon(
-                          onPressed: _isLoading
-                              ? null
-                              : () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const SetupTestUsersScreen(),
-                                    ),
-                                  );
-                                },
-                          icon: const Icon(Icons.person_add),
-                          label: const Text('Создать тестовых пользователей'),
-                        ),
                       ],
                     ),
                   ),
