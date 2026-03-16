@@ -1142,6 +1142,7 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getConsumables() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('consumables');
+    print('Загружено расходников из БД: ${maps.length}');
     return maps.map((map) => Map<String, dynamic>.from(map)).toList();
   }
 
@@ -1164,8 +1165,10 @@ class DatabaseHelper {
     final now = DateTime.now().toIso8601String();
     consumable['created_at'] ??= now;
     consumable['updated_at'] ??= now;
-    
-    await db.insert('consumables', consumable, conflictAlgorithm: ConflictAlgorithm.replace);
+
+    print('Вставка расходника в БД: ${consumable['name']} (ID: ${consumable['id']})');
+    final result = await db.insert('consumables', consumable, conflictAlgorithm: ConflictAlgorithm.replace);
+    print('Результат вставки: $result');
     return consumable['id'];
   }
 

@@ -64,11 +64,14 @@ class ConsumableProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      await _dbHelper.insertConsumable(consumable.toMap());
+      print('Добавление расходника: ${consumable.toMap()}');
+      final id = await _dbHelper.insertConsumable(consumable.toMap());
+      print('Расходник добавлен с ID: $id');
       _consumables.add(consumable);
       _lastFetch = DateTime.now();
       notifyListeners();
     } catch (e) {
+      print('Ошибка добавления расходника: $e');
       _setError('Ошибка добавления расходника: $e');
       rethrow;
     } finally {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_manager/database/simple_database_helper.dart';
+import 'package:provider/provider.dart';
 import 'package:inventory_manager/models/consumable.dart';
+import 'package:inventory_manager/providers/consumable_provider.dart';
 import 'package:inventory_manager/screens/add_consumable_screen.dart';
 import 'package:inventory_manager/screens/consumable_history_screen.dart';
 
@@ -12,7 +13,6 @@ class ConsumablesListScreen extends StatefulWidget {
 }
 
 class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
-  final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
   List<Consumable> _consumables = [];
   List<Consumable> _filteredConsumables = [];
   final TextEditingController _searchController = TextEditingController();
@@ -29,16 +29,21 @@ class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
   Future<void> _loadConsumables() async {
     setState(() => _isLoading = true);
     try {
-      await _dbHelper.initDatabase();
-      final consumablesData = await _dbHelper.getConsumables();
-      setState(() {
-        _consumables = consumablesData.map((c) => Consumable.fromMap(c)).toList();
-        _applyFilters();
-        _isLoading = false;
-      });
+      final provider = context.read<ConsumableProvider>();
+      await provider.loadConsumables(forceRefresh: true);
+      if (mounted) {
+        print('Загружено расходников: ${provider.allConsumables.length}');
+        setState(() {
+          _consumables = provider.allConsumables;
+          _applyFilters();
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       print('Ошибка загрузки расходников: $e');
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -142,17 +147,22 @@ class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
 
   Future<void> _performWriteOff(Consumable consumable, double quantity, String? notes) async {
     try {
-      await _dbHelper.addConsumableMovement({
-        'consumable_id': consumable.id,
-        'consumable_name': consumable.name,
-        'quantity': quantity,
-        'operation_type': 'расход',
-        'operation_date': DateTime.now().toIso8601String(),
-        'notes': notes ?? 'Списание',
-      });
+      final provider = context.read<ConsumableProvider>();
       
+      // Создаем движение
+      final movement = ConsumableMovement(
+        consumableId: consumable.id,
+        consumableName: consumable.name,
+        quantity: quantity,
+        operationType: 'расход',
+        operationDate: DateTime.now(),
+        notes: notes,
+        createdAt: DateTime.now(),
+      );
+      
+      await provider.addMovement(movement);
       await _refreshData();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Списано $quantity ${consumable.unit.shortLabel} ${consumable.name}')),
@@ -239,23 +249,29 @@ class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
 
   Future<void> _performRestock(Consumable consumable, double quantity, String? supplier, String? notes) async {
     try {
-      await _dbHelper.addConsumableMovement({
-        'consumable_id': consumable.id,
-        'consumable_name': consumable.name,
-        'quantity': quantity,
-        'operation_type': 'приход',
-        'operation_date': DateTime.now().toIso8601String(),
-        'notes': notes ?? 'Приход',
-      });
+      final provider = context.read<ConsumableProvider>();
+      
+      // Создаем движение
+      final movement = ConsumableMovement(
+        consumableId: consumable.id,
+        consumableName: consumable.name,
+        quantity: quantity,
+        operationType: 'приход',
+        operationDate: DateTime.now(),
+        notes: notes,
+        createdAt: DateTime.now(),
+      );
+      
+      await provider.addMovement(movement);
       
       // Обновляем поставщика если указан
       if (supplier != null && supplier.isNotEmpty) {
         final updated = consumable.copyWith(supplier: supplier);
-        await _dbHelper.updateConsumable(updated.toMap());
+        await provider.updateConsumable(updated);
       }
-      
+
       await _refreshData();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Оприходовано $quantity ${consumable.unit.shortLabel} ${consumable.name}')),
