@@ -1287,13 +1287,15 @@ class DatabaseHelper {
   Future<int> addConsumableMovement(Map<String, dynamic> movement) async {
     final db = await database;
     movement['created_at'] = DateTime.now().toIso8601String();
+    print('Вставка движения расходника: ${movement['operation_type']} ${movement['quantity']} ${movement['consumable_name']}');
     final id = await db.insert('consumable_movements', movement);
-    
+    print('Движение добавлено с ID: $id');
+
     // Update consumable quantity
     final consumableId = movement['consumable_id']?.toString();
     final operationType = movement['operation_type']?.toString();
     final quantity = (movement['quantity'] ?? 0).toDouble();
-    
+
     if (consumableId != null) {
       final consumable = await getConsumableById(consumableId);
       if (consumable != null) {
@@ -1303,14 +1305,14 @@ class DatabaseHelper {
         } else if (operationType == 'расход') {
           newQuantity -= quantity;
         }
-        
+
         await updateConsumable({
           'id': consumableId,
           'quantity': newQuantity,
         });
       }
     }
-    
+
     return id;
   }
 
@@ -1318,12 +1320,14 @@ class DatabaseHelper {
     final db = await database;
     List<Map<String, dynamic>> maps;
     if (consumableId != null && consumableId.isNotEmpty) {
+      print('Загрузка движений для расходника: $consumableId');
       maps = await db.query(
         'consumable_movements',
         where: 'consumable_id = ?',
         whereArgs: [consumableId],
         orderBy: 'operation_date DESC',
       );
+      print('Загружено движений: ${maps.length}');
     } else {
       maps = await db.query('consumable_movements', orderBy: 'operation_date DESC');
     }

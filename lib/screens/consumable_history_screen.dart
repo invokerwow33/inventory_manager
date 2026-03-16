@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_manager/database/simple_database_helper.dart';
+import 'package:provider/provider.dart';
 import 'package:inventory_manager/models/consumable.dart';
+import 'package:inventory_manager/providers/consumable_provider.dart';
 import 'package:intl/intl.dart';
 
 class ConsumableHistoryScreen extends StatefulWidget {
   final Consumable consumable;
-  
+
   const ConsumableHistoryScreen({super.key, required this.consumable});
-  
+
   @override
   State<ConsumableHistoryScreen> createState() => _ConsumableHistoryScreenState();
 }
 
 class _ConsumableHistoryScreenState extends State<ConsumableHistoryScreen> {
-  final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
-  List<Map<String, dynamic>> _movements = [];
+  List<ConsumableMovement> _movements = [];
   bool _isLoading = true;
   String? _filterType;
 
@@ -27,21 +27,25 @@ class _ConsumableHistoryScreenState extends State<ConsumableHistoryScreen> {
   Future<void> _loadMovements() async {
     setState(() => _isLoading = true);
     try {
-      await _dbHelper.initDatabase();
-      final movements = await _dbHelper.getConsumableMovements(widget.consumable.id);
-      setState(() {
-        _movements = movements;
-        _isLoading = false;
-      });
+      final provider = context.read<ConsumableProvider>();
+      await provider.loadMovements(widget.consumable.id);
+      if (mounted) {
+        setState(() {
+          _movements = provider.movements;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       print('Ошибка загрузки истории: $e');
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  List<Map<String, dynamic>> get _filteredMovements {
+  List<ConsumableMovement> get _filteredMovements {
     if (_filterType == null) return _movements;
-    return _movements.where((m) => m['operation_type'] == _filterType).toList();
+    return _movements.where((m) => m.operationType == _filterType).toList();
   }
 
   @override
@@ -211,12 +215,11 @@ class _ConsumableHistoryScreenState extends State<ConsumableHistoryScreen> {
     );
   }
 
-  Widget _buildMovementCard(Map<String, dynamic> movement) {
-    final isIncoming = movement['operation_type'] == 'приход';
-    final quantity = (movement['quantity'] ?? 0).toDouble();
-    final date = DateTime.tryParse(movement['created_at'] ?? '') ?? DateTime.now();
-    final operationDate = DateTime.tryParse(movement['operation_date'] ?? '') ?? date;
-    
+  Widget _buildMovementCard(ConsumableMovement movement) {
+    final isIncoming = movement.isIncoming;
+    final quantity = movement.quantity;
+    final operationDate = movement.operationDate;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -259,25 +262,25 @@ class _ConsumableHistoryScreenState extends State<ConsumableHistoryScreen> {
           children: [
             const SizedBox(height: 4),
             Text(
-              DateFormat('dd.MM.yyyy HH:mm').format(operationDate),
+              movement.formattedDate,
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 12,
               ),
             ),
-            if (movement['employee_name'] != null && movement['employee_name'].toString().isNotEmpty)
+            if (movement.employeeName != null && movement.employeeName!.isNotEmpty)
               Text(
-                'Сотрудник: ${movement['employee_name']}',
+                'Сотрудник: ${movement.employeeName}',
                 style: const TextStyle(fontSize: 12),
               ),
-            if (movement['document_number'] != null && movement['document_number'].toString().isNotEmpty)
+            if (movement.documentNumber != null && movement.documentNumber!.isNotEmpty)
               Text(
-                'Документ: ${movement['document_number']}',
+                'Документ: ${movement.documentNumber}',
                 style: const TextStyle(fontSize: 12),
               ),
-            if (movement['notes'] != null && movement['notes'].toString().isNotEmpty)
+            if (movement.notes != null && movement.notes!.isNotEmpty)
               Text(
-                'Примечания: ${movement['notes']}',
+                'Примечания: ${movement.notes}',
                 style: const TextStyle(fontSize: 12),
               ),
           ],
