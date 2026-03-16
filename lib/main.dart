@@ -123,27 +123,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    // Используем addPostFrameCallback для избежания вызова setState во время сборки
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeApp();
+    });
   }
 
   Future<void> _initializeApp() async {
-    await Future.microtask(() async {
-      final settings = context.read<SettingsProvider>();
-      final sync = context.read<SyncProvider>();
+    final settings = context.read<SettingsProvider>();
+    final sync = context.read<SyncProvider>();
 
-      // Load settings
-      await settings.loadSettings();
+    // Load settings
+    await settings.loadSettings();
 
-      // Start auto sync if enabled
-      if (settings.appSettings.autoSync) {
-        sync.startAutoSync(intervalMinutes: settings.appSettings.syncInterval);
-      }
-    });
+    // Start auto sync if enabled
+    if (settings.appSettings.autoSync) {
+      sync.startAutoSync(intervalMinutes: settings.appSettings.syncInterval);
+    }
 
     // Initialize providers
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeProviders();
-    });
+    _initializeProviders();
   }
 
   void _initializeProviders() {
