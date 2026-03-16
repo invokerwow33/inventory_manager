@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
+import 'setup_test_users_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -208,6 +209,22 @@ class _LoginScreenState extends State<LoginScreen> {
                             icon: const Icon(Icons.bug_report),
                             label: const Text('Войти как admin (debug)'),
                           ),
+
+                        // Create test users
+                        TextButton.icon(
+                          onPressed: _isLoading
+                              ? null
+                              : () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const SetupTestUsersScreen(),
+                                    ),
+                                  );
+                                },
+                          icon: const Icon(Icons.person_add),
+                          label: const Text('Создать тестовых пользователей'),
+                        ),
                       ],
                     ),
                   ),
