@@ -18,13 +18,16 @@ class _TasksScreenState extends State<TasksScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTasks();
+    // Используем addPostFrameCallback чтобы избежать вызова setState во время сборки
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTasks();
+    });
   }
 
   Future<void> _loadTasks() async {
     final provider = context.read<TaskProvider>();
     final auth = context.read<AuthProvider>();
-    
+
     // Директор видит все задачи, сотрудник - только свои
     if (auth.isAdmin) {
       await provider.loadTasks(createdBy: auth.currentUser?.id, forceRefresh: true);
