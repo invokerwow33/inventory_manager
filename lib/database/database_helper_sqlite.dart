@@ -1711,12 +1711,12 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getTasks({String? assignedTo, String? createdBy, String? status}) async {
     final db = await database;
     List<Map<String, dynamic>> maps;
-    
+
     if (assignedTo != null) {
-      // Задачи конкретного сотрудника
+      // Задачи конкретного сотрудника ИЛИ общие (где assigned_to IS NULL)
       maps = await db.query(
         'tasks',
-        where: 'assigned_to = ?${status != null ? ' AND status = ?' : ''}',
+        where: '(assigned_to = ? OR assigned_to IS NULL)${status != null ? ' AND status = ?' : ''}',
         whereArgs: [assignedTo, if (status != null) status],
         orderBy: 'created_at DESC',
       );
@@ -1737,7 +1737,7 @@ class DatabaseHelper {
         orderBy: 'created_at DESC',
       );
     }
-    
+
     return maps.map((map) => Map<String, dynamic>.from(map)).toList();
   }
 

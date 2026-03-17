@@ -4,7 +4,6 @@ import '../../models/task.dart';
 import '../../models/permission.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/employee_provider.dart';
 
 class CreateTaskScreen extends StatefulWidget {
   const CreateTaskScreen({super.key});
@@ -76,26 +75,45 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   }
 
   Future<void> _selectEmployee() async {
-    final provider = context.read<EmployeeProvider>();
-    await provider.loadEmployees();
+    final auth = context.read<AuthProvider>();
     
-    final result = await showDialog<String>(
+    // Получаем всех пользователей (кроме текущего)
+    final users = await auth.getUsers();
+    final availableUsers = users.where((u) => u.id != auth.currentUser?.id && u.isActive).toList();
+
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Выберите сотрудника'),
+        title: const Text('Выберите исполнителя'),
         content: SizedBox(
           width: double.maxFinite,
-          child: ListView.builder(
+          child: ListView(
             shrinkWrap: true,
-            itemCount: provider.employees.length,
-            itemBuilder: (context, index) {
-              final employee = provider.employees[index];
-              return ListTile(
-                title: Text(employee.fullName),
-                subtitle: Text(employee.position ?? ''),
-                onTap: () => Navigator.pop(context, employee.id),
-              );
-            },
+            children: [
+              // Опция "Не назначено" - задача видна всем
+              ListTile(
+                title: const Text('📢 Все сотрудники', style: TextStyle(fontStyle: FontStyle.italic)),
+                subtitle: const Text('Задача будет видна всем пользователям'),
+                leading: const CircleAvatar(
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.people, color: Colors.white),
+                ),
+                onTap: () => Navigator.pop(context, {'id': null, 'name': null}),
+              ),
+              const Divider(),
+              // Список пользователей
+              ...availableUsers.map((user) {
+                final roleLabel = user.isAdmin ? 'Админ' : (user.isManager ? 'Менеджер' : 'Пользователь');
+                return ListTile(
+                  title: Text(user.username),
+                  subtitle: Text('${user.email ?? ''} • $roleLabel'),
+                  leading: CircleAvatar(
+                    child: Text(user.username.substring(0, 1).toUpperCase()),
+                  ),
+                  onTap: () => Navigator.pop(context, {'id': user.id, 'name': user.username}),
+                );
+              }),
+            ],
           ),
         ),
         actions: [
@@ -108,10 +126,9 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     );
 
     if (result != null) {
-      final employee = provider.employees.firstWhere((e) => e.id == result);
       setState(() {
-        _selectedEmployeeId = result;
-        _selectedEmployeeName = employee.fullName;
+        _selectedEmployeeId = result['id'];
+        _selectedEmployeeName = result['name'];
       });
     }
   }
@@ -139,6 +156,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     try {
       await taskProvider.createTask(task);
       if (mounted) {
+        // Принудительно обновляем список задач
+        await taskProvider.loadTasks(forceRefresh: true);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Задача создана')),
         );

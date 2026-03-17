@@ -29,10 +29,12 @@ class _TasksScreenState extends State<TasksScreen> {
     final provider = context.read<TaskProvider>();
     final auth = context.read<AuthProvider>();
 
-    // Директор видит все задачи, сотрудник - только свои
+    // Директор видит все созданные им задачи
+    // Сотрудник видит задачи назначенные ему ИЛИ общие (без исполнителя)
     if (auth.isAdmin) {
       await provider.loadTasks(createdBy: auth.currentUser?.id, forceRefresh: true);
     } else {
+      // Сотрудник видит свои задачи или общие
       await provider.loadTasks(assignedTo: auth.currentUser?.id, forceRefresh: true);
     }
   }

@@ -47,7 +47,12 @@ class TaskProvider extends ChangeNotifier {
     String? createdBy,
     bool forceRefresh = false,
   }) async {
-    if (!forceRefresh && _tasks.isNotEmpty) return;
+    if (forceRefresh) {
+      _tasks.clear();
+      _filteredTasks.clear();
+    } else if (_tasks.isNotEmpty) {
+      return;
+    }
 
     _setLoading(true);
     _clearError();
@@ -58,6 +63,7 @@ class TaskProvider extends ChangeNotifier {
         createdBy: createdBy,
       );
       _tasks = data.map((map) => Task.fromMap(map)).toList();
+      _filteredTasks = List.from(_tasks);
       _applyFilters();
       notifyListeners();
     } catch (e) {
@@ -74,8 +80,8 @@ class TaskProvider extends ChangeNotifier {
 
     try {
       await _dbHelper.createTask(task.toMap());
-      _tasks.insert(0, task);
-      _applyFilters();
+      // Не добавляем задачу вручную, так как она будет загружена при следующем loadTasks
+      // Просто уведомляем об изменении
       notifyListeners();
     } catch (e) {
       _setError('Ошибка создания задачи: $e');
