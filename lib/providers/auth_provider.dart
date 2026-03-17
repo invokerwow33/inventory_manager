@@ -90,10 +90,21 @@ class AuthProvider extends ChangeNotifier {
     _clearError();
 
     try {
+      print('Попытка входа пользователя: $username');
       final userData = await _dbHelper.getUserByUsername(username);
+      print('Результат поиска в БД: ${userData == null ? "null" : "найдено"}');
+      if (userData != null) {
+        print('Данные пользователя: $userData');
+      }
 
       if (userData == null) {
-        _setError('Пользователь не найден');
+        // Получаем всех пользователей для отладки
+        final allUsers = await _dbHelper.getUsers();
+        print('Все пользователи в БД: ${allUsers.length}');
+        for (var user in allUsers) {
+          print('  - ${user['username']} (${user['role']})');
+        }
+        _setError('Пользователь не найден. В базе ${allUsers.length} пользователей.');
         return false;
       }
 
