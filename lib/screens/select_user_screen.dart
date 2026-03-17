@@ -26,7 +26,7 @@ class _SelectUserScreenState extends State<SelectUserScreen> {
 
   Future<void> _loadUsers() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final db = await DatabaseHelper.instance.database;
       final maps = await db.query(
@@ -35,7 +35,12 @@ class _SelectUserScreenState extends State<SelectUserScreen> {
         whereArgs: [1],
         orderBy: 'username ASC',
       );
-      
+
+      print('Загружено пользователей: ${maps.length}');
+      for (var map in maps) {
+        print('  - ${map['username']} (${map['role']}) active=${map['is_active']}');
+      }
+
       setState(() {
         _users = maps.map((map) => User.fromMap(map)).toList();
         _isLoading = false;

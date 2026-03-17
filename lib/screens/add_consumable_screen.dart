@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:inventory_manager/models/permission.dart';
 import '../models/consumable.dart';
 import '../providers/consumable_provider.dart';
+import '../providers/auth_provider.dart';
 import '../utils/validators.dart';
 import '../widgets/common/common_widgets.dart';
 
@@ -34,6 +36,31 @@ class _AddConsumableScreenState extends State<AddConsumableScreen> {
   void initState() {
     super.initState();
     
+    // Проверяем права доступа
+    final auth = context.read<AuthProvider>();
+    if (!_isEditMode && !auth.hasPermission(Permission.createConsumable)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Нет прав для создания расходников')),
+          );
+          Navigator.pop(context);
+        }
+      });
+      return;
+    }
+    if (_isEditMode && !auth.hasPermission(Permission.editConsumable)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Нет прав для редактирования расходников')),
+          );
+          Navigator.pop(context);
+        }
+      });
+      return;
+    }
+
     // Initialize controllers
     _nameController = TextEditingController();
     _quantityController = TextEditingController(text: '0');

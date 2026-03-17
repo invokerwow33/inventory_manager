@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/equipment.dart';
+import '../models/permission.dart';
 import '../providers/equipment_provider.dart';
+import '../providers/auth_provider.dart';
 import '../utils/validators.dart';
 import '../widgets/common/common_widgets.dart';
 
 class AddEquipmentScreen extends StatefulWidget {
   final Map<String, dynamic>? equipment;
-  
+
   const AddEquipmentScreen({super.key, this.equipment});
-  
+
   @override
   State<AddEquipmentScreen> createState() => _AddEquipmentScreenState();
 }
@@ -28,7 +30,7 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
   late final TextEditingController _responsiblePersonController;
   late final TextEditingController _locationController;
   late final TextEditingController _notesController;
-  
+
   // Form values
   EquipmentType _type = EquipmentType.computer;
   EquipmentStatus _status = EquipmentStatus.inUse;
@@ -40,6 +42,31 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
   void initState() {
     super.initState();
     _isEditMode = widget.equipment != null;
+    
+    // Проверяем права доступа
+    final auth = context.read<AuthProvider>();
+    if (!_isEditMode && !auth.hasPermission(Permission.createEquipment)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Нет прав для создания оборудования')),
+          );
+          Navigator.pop(context);
+        }
+      });
+      return;
+    }
+    if (_isEditMode && !auth.hasPermission(Permission.editEquipment)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Нет прав для редактирования оборудования')),
+          );
+          Navigator.pop(context);
+        }
+      });
+      return;
+    }
     
     // Initialize controllers
     _nameController = TextEditingController();

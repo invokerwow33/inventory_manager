@@ -112,10 +112,20 @@ class _EditUserScreenState extends State<EditUserScreen> {
           whereArgs: [userId],
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
+        print('Пользователь обновлен: ${userData['username']}');
       } else {
         userData['created_at'] = now;
-        await db.insert('users', userData, conflictAlgorithm: ConflictAlgorithm.replace);
+        final result = await db.insert('users', userData, conflictAlgorithm: ConflictAlgorithm.replace);
+        print('Пользователь создан: ${userData['username']}, ID=$result');
       }
+
+      // Проверяем что пользователь действительно сохранился
+      final checkResult = await db.query(
+        'users',
+        where: 'id = ?',
+        whereArgs: [userId],
+      );
+      print('Проверка: найдено записей=${checkResult.length}');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

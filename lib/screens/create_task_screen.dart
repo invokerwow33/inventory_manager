@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/task.dart';
+import '../../models/permission.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/employee_provider.dart';
@@ -22,6 +23,25 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   DateTime? _dueDate;
   String? _selectedEmployeeId;
   String? _selectedEmployeeName;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Проверяем права на создание задач
+    final auth = context.read<AuthProvider>();
+    if (!auth.hasPermission(Permission.createTask)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Нет прав для создания задач')),
+          );
+          Navigator.pop(context);
+        }
+      });
+      return;
+    }
+  }
 
   @override
   void dispose() {
