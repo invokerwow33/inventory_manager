@@ -24,6 +24,7 @@ import 'package:inventory_manager/screens/telephony_screen.dart';
 import 'package:inventory_manager/screens/audit_log_screen.dart';
 import 'package:inventory_manager/screens/users_screen.dart';
 import 'package:inventory_manager/screens/tasks_screen.dart';
+import 'package:inventory_manager/screens/select_user_screen.dart';
 
 // Database
 import 'package:inventory_manager/database/database_init.dart';
@@ -97,8 +98,9 @@ class MyApp extends StatelessWidget {
             theme: settings.getLightTheme(),
             darkTheme: settings.getDarkTheme(),
             themeMode: settings.themeMode,
-            initialRoute: settings.requireLogin && !auth.isAuthenticated ? '/login' : '/home',
+            initialRoute: '/select-user',
             routes: {
+              '/select-user': (context) => const SelectUserScreen(),
               '/login': (context) => const LoginScreen(),
               '/home': (context) => const MainNavigationScreen(),
             },

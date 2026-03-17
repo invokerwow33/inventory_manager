@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'permission.dart';
 
 enum UserRole {
   admin('Администратор', Colors.red, Icons.admin_panel_settings),
   manager('Менеджер', Colors.orange, Icons.manage_accounts),
-  user('Пользователь', Colors.blue, Icons.person);
+  user('Пользователь', Colors.blue, Icons.person),
+  employee('Сотрудник', Colors.green, Icons.badge),
+  viewer('Наблюдатель', Colors.grey, Icons.visibility);
 
   final String label;
   final Color color;
@@ -17,14 +20,19 @@ enum UserRole {
       orElse: () => UserRole.user,
     );
   }
+  
+  List<Permission> get defaultPermissions => Role.values
+      .firstWhere((r) => r.name == name, orElse: () => Role.employee)
+      .permissions;
 }
 
 class User {
   String id;
   String username;
   String? email;
-  String passwordHash;
+  String? passwordHash; // Может быть null для входа без пароля
   UserRole role;
+  List<Permission> permissions; // Индивидуальные права
   bool isActive;
   DateTime? lastLogin;
   String? employeeId;
@@ -36,15 +44,16 @@ class User {
     required this.id,
     required this.username,
     this.email,
-    required this.passwordHash,
+    this.passwordHash,
     this.role = UserRole.user,
+    List<Permission>? permissions,
     this.isActive = true,
     this.lastLogin,
     this.employeeId,
     this.useBiometric = false,
     required this.createdAt,
     required this.updatedAt,
-  });
+  }) : permissions = permissions ?? role.defaultPermissions;
 
   Map<String, dynamic> toMap() {
     return {
@@ -53,6 +62,7 @@ class User {
       'email': email,
       'password_hash': passwordHash,
       'role': role.name,
+      'permissions': permissions.map((p) => p.name).join(','),
       'is_active': isActive ? 1 : 0,
       'last_login': lastLogin?.toIso8601String(),
       'employee_id': employeeId,
@@ -63,12 +73,25 @@ class User {
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
+    final role = UserRole.fromString(map['role'] ?? 'user');
+    final permissionsStr = map['permissions'] as String?;
+    List<Permission>? permissions;
+    if (permissionsStr != null && permissionsStr.isNotEmpty) {
+      permissions = permissionsStr.split(',').map((p) {
+        return Permission.values.firstWhere(
+          (perm) => perm.name == p.trim(),
+          orElse: () => Permission.viewEquipment,
+        );
+      }).toList();
+    }
+    
     return User(
       id: map['id']?.toString() ?? '',
       username: map['username'] ?? '',
       email: map['email'],
-      passwordHash: map['password_hash'] ?? map['passwordHash'] ?? '',
-      role: UserRole.fromString(map['role'] ?? 'user'),
+      passwordHash: map['password_hash'] ?? map['passwordHash'],
+      role: role,
+      permissions: permissions,
       isActive: map['is_active'] == 1 || map['is_active'] == true,
       lastLogin: map['last_login'] != null
           ? DateTime.tryParse(map['last_login'])
@@ -86,6 +109,7 @@ class User {
     String? email,
     String? passwordHash,
     UserRole? role,
+    List<Permission>? permissions,
     bool? isActive,
     DateTime? lastLogin,
     String? employeeId,
@@ -99,6 +123,7 @@ class User {
       email: email ?? this.email,
       passwordHash: passwordHash ?? this.passwordHash,
       role: role ?? this.role,
+      permissions: permissions ?? this.permissions,
       isActive: isActive ?? this.isActive,
       lastLogin: lastLogin ?? this.lastLogin,
       employeeId: employeeId ?? this.employeeId,
@@ -110,6 +135,22 @@ class User {
 
   bool get isAdmin => role == UserRole.admin;
   bool get isManager => role == UserRole.manager || role == UserRole.admin;
+  
+  // Проверка прав
+  bool hasPermission(Permission permission) {
+    if (isAdmin) return true; // Админ имеет все права
+    return permissions.contains(permission);
+  }
+  
+  bool hasPermissions(List<Permission> permissions) {
+    if (isAdmin) return true;
+    return permissions.every((p) => this.permissions.contains(p));
+  }
+  
+  bool hasAnyPermission(List<Permission> permissions) {
+    if (isAdmin) return true;
+    return permissions.any((p) => this.permissions.contains(p));
+  }
 }
 
 class UserSession {

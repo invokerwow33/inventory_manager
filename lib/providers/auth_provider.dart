@@ -91,14 +91,14 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final userData = await _dbHelper.getUserByUsername(username);
-      
+
       if (userData == null) {
         _setError('Пользователь не найден');
         return false;
       }
 
       final user = User.fromMap(userData);
-      
+
       if (!user.isActive) {
         _setError('Пользователь заблокирован');
         return false;
@@ -124,13 +124,55 @@ class AuthProvider extends ChangeNotifier {
       await _dbHelper.updateLastLogin(user.id);
       await _saveSession();
       await _auditService.logLogin(user.id, user.username);
-      
+
       _startSessionTimer();
       notifyListeners();
       return true;
     } catch (e) {
       _setError('Ошибка входа: $e');
       return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Вход без пароля (по ID пользователя)
+  Future<void> loginWithoutPassword(String userId) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      final userData = await _dbHelper.getUserById(userId);
+
+      if (userData == null) {
+        _setError('Пользователь не найден');
+        return;
+      }
+
+      final user = User.fromMap(userData);
+
+      if (!user.isActive) {
+        _setError('Пользователь заблокирован');
+        return;
+      }
+
+      _currentUser = user;
+      _currentSession = UserSession(
+        id: 'sess_${DateTime.now().millisecondsSinceEpoch}',
+        userId: user.id,
+        token: _generateToken(),
+        createdAt: DateTime.now(),
+        expiresAt: DateTime.now().add(Duration(minutes: _sessionTimeoutMinutes)),
+      );
+
+      await _dbHelper.updateLastLogin(user.id);
+      await _saveSession();
+      await _auditService.logLogin(user.id, user.username);
+
+      _startSessionTimer();
+      notifyListeners();
+    } catch (e) {
+      _setError('Ошибка входа: $e');
     } finally {
       _setLoading(false);
     }

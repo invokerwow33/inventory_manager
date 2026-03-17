@@ -146,6 +146,24 @@ class MigrationV6 extends Migration {
   }
 }
 
+class MigrationV7 extends Migration {
+  MigrationV7() : super(7, 'Add permissions column to users table');
+
+  @override
+  Future<void> up(Database db) async {
+    try {
+      await db.execute('ALTER TABLE users ADD COLUMN permissions TEXT');
+    } catch (_) {
+      // Column might already exist
+    }
+  }
+
+  @override
+  Future<void> down(Database db) async {
+    // SQLite doesn't support DROP COLUMN, so we just do nothing
+  }
+}
+
 class DatabaseMigrationManager {
   static final List<Migration> migrations = [
     MigrationV2(),
@@ -153,6 +171,7 @@ class DatabaseMigrationManager {
     MigrationV4(),
     MigrationV5(),
     MigrationV6(),
+    MigrationV7(),
   ];
   
   static Migration? getMigration(int version) {
