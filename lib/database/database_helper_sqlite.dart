@@ -865,27 +865,6 @@ class DatabaseHelper {
     return results.isNotEmpty ? results.first : null;
   }
 
-  Future<Map<String, dynamic>?> getUserById(String id) async {
-    final db = await database;
-    final results = await db.query(
-      'users',
-      where: 'id = ? AND is_active = ?',
-      whereArgs: [id, 1],
-    );
-    return results.isNotEmpty ? results.first : null;
-  }
-
-  Future<List<Map<String, dynamic>>> getUsers() async {
-    final db = await database;
-    final results = await db.query(
-      'users',
-      where: 'is_active = ?',
-      whereArgs: [1],
-      orderBy: 'username ASC',
-    );
-    return results.map((r) => Map<String, dynamic>.from(r)).toList();
-  }
-
   Future<String> insertUser(Map<String, dynamic> user) async {
     final db = await database;
     if (!user.containsKey('id') || user['id'] == null) {

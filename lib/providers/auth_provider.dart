@@ -106,7 +106,7 @@ class AuthProvider extends ChangeNotifier {
 
       // In production, use bcrypt for proper password hashing
       // For now, using simple SHA256 for demonstration
-      if (!_verifyPassword(password, user.passwordHash)) {
+      if (user.passwordHash == null || !_verifyPassword(password, user.passwordHash!)) {
         _setError('Неверный пароль');
         await _auditService.logLoginAttempt(username, false);
         return false;
