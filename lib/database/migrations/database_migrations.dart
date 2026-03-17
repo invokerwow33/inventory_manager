@@ -164,6 +164,24 @@ class MigrationV7 extends Migration {
   }
 }
 
+class MigrationV8 extends Migration {
+  MigrationV8() : super(8, 'Add updated_at column to tasks table');
+
+  @override
+  Future<void> up(Database db) async {
+    try {
+      await db.execute('ALTER TABLE tasks ADD COLUMN updated_at TEXT');
+    } catch (_) {
+      // Column might already exist
+    }
+  }
+
+  @override
+  Future<void> down(Database db) async {
+    // SQLite doesn't support DROP COLUMN, so we just do nothing
+  }
+}
+
 class DatabaseMigrationManager {
   static final List<Migration> migrations = [
     MigrationV2(),
@@ -172,6 +190,7 @@ class DatabaseMigrationManager {
     MigrationV5(),
     MigrationV6(),
     MigrationV7(),
+    MigrationV8(),
   ];
   
   static Migration? getMigration(int version) {

@@ -36,7 +36,7 @@ class DatabaseHelper {
     
     return await openDatabase(
       dbPath,
-      version: 7,
+      version: 8,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -1776,15 +1776,17 @@ class DatabaseHelper {
     final db = await database;
     final updates = <String, dynamic>{
       'status': status,
-      'updated_at': DateTime.now().toIso8601String(),
     };
-    
+
     if (status == 'inProgress') {
       updates['started_at'] = DateTime.now().toIso8601String();
     } else if (status == 'completed') {
       updates['completed_at'] = DateTime.now().toIso8601String();
     }
-    
+
+    // Добавляем updated_at (колонка добавлена в миграции V8)
+    updates['updated_at'] = DateTime.now().toIso8601String();
+
     return await db.update(
       'tasks',
       updates,

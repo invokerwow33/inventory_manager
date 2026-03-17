@@ -47,10 +47,8 @@ class TaskProvider extends ChangeNotifier {
     String? createdBy,
     bool forceRefresh = false,
   }) async {
-    if (forceRefresh) {
-      _tasks.clear();
-      _filteredTasks.clear();
-    } else if (_tasks.isNotEmpty) {
+    // Всегда загружаем если forceRefresh или если список пуст
+    if (!forceRefresh && _tasks.isNotEmpty) {
       return;
     }
 

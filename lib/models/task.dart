@@ -12,6 +12,7 @@ class Task {
   TaskStatus status;
   TaskPriority priority;
   DateTime createdAt;
+  DateTime? updatedAt; // Последнее обновление
   DateTime? dueDate; // Дедлайн
   DateTime? startedAt; // Начал выполнение
   DateTime? completedAt; // Завершил
@@ -28,6 +29,7 @@ class Task {
     this.status = TaskStatus.pending,
     this.priority = TaskPriority.normal,
     required this.createdAt,
+    this.updatedAt,
     this.dueDate,
     this.startedAt,
     this.completedAt,
@@ -53,6 +55,7 @@ class Task {
       'status': status.toString().split('.').last,
       'priority': priority.toString().split('.').last,
       'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
       'due_date': dueDate?.toIso8601String(),
       'started_at': startedAt?.toIso8601String(),
       'completed_at': completedAt?.toIso8601String(),
@@ -78,6 +81,7 @@ class Task {
         orElse: () => TaskPriority.normal,
       ),
       createdAt: DateTime.tryParse(map['created_at'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(map['updated_at'] ?? ''),
       dueDate: DateTime.tryParse(map['due_date'] ?? ''),
       startedAt: DateTime.tryParse(map['started_at'] ?? ''),
       completedAt: DateTime.tryParse(map['completed_at'] ?? ''),
@@ -96,6 +100,7 @@ class Task {
     TaskStatus? status,
     TaskPriority? priority,
     DateTime? createdAt,
+    DateTime? updatedAt,
     DateTime? dueDate,
     DateTime? startedAt,
     DateTime? completedAt,
@@ -112,6 +117,7 @@ class Task {
       status: status ?? this.status,
       priority: priority ?? this.priority,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       dueDate: dueDate ?? this.dueDate,
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
