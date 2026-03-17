@@ -162,6 +162,39 @@ class DatabaseHelper {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', [adminId, 'admin', 'admin@company.com', adminHash, 'admin', '', 1, now, now]);
 
+    // Tasks table (Migration V6)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS tasks(
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        created_by TEXT NOT NULL,
+        created_by_name TEXT NOT NULL,
+        assigned_to TEXT,
+        assigned_to_name TEXT,
+        status TEXT DEFAULT 'pending',
+        priority TEXT DEFAULT 'normal',
+        created_at TEXT NOT NULL,
+        due_date TEXT,
+        started_at TEXT,
+        completed_at TEXT,
+        notes TEXT
+      )
+    ''');
+
+    // Task comments table (Migration V6)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS task_comments(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id TEXT NOT NULL,
+        author_id TEXT NOT NULL,
+        author_name TEXT NOT NULL,
+        message TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        is_system INTEGER DEFAULT 0
+      )
+    ''');
+
     // Audit logs table
     await db.execute('''
       CREATE TABLE audit_logs(
