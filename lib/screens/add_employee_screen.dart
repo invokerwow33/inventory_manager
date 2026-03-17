@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/employee.dart';
+import '../models/permission.dart';
 import '../providers/employee_provider.dart';
+import '../providers/auth_provider.dart';
 import '../utils/validators.dart';
 import '../widgets/common/common_widgets.dart';
 
 class AddEmployeeScreen extends StatefulWidget {
   final Employee? employee;
-  
+
   const AddEmployeeScreen({super.key, this.employee});
-  
+
   @override
   State<AddEmployeeScreen> createState() => _AddEmployeeScreenState();
 }
@@ -25,7 +27,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   late final TextEditingController _phoneController;
   late final TextEditingController _employeeNumberController;
   late final TextEditingController _notesController;
-  
+
   bool get _isEditMode => widget.employee != null;
   String? _editingId;
 
@@ -33,6 +35,31 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   void initState() {
     super.initState();
     
+    // Проверяем права доступа
+    final auth = context.read<AuthProvider>();
+    if (!_isEditMode && !auth.hasPermission(Permission.createEmployee)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Нет прав для создания сотрудников')),
+          );
+          Navigator.pop(context);
+        }
+      });
+      return;
+    }
+    if (_isEditMode && !auth.hasPermission(Permission.editEmployee)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Нет прав для редактирования сотрудников')),
+          );
+          Navigator.pop(context);
+        }
+      });
+      return;
+    }
+
     // Initialize controllers
     _fullNameController = TextEditingController();
     _departmentController = TextEditingController();

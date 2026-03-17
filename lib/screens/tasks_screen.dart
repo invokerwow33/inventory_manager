@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/task.dart';
+import '../models/permission.dart';
 import '../providers/task_provider.dart';
 import '../providers/auth_provider.dart';
 import 'task_detail_screen.dart';
@@ -102,20 +103,26 @@ class _TasksScreenState extends State<TasksScreen> {
           ),
         ],
       ),
-      floatingActionButton: isAdmin
-          ? FloatingActionButton(
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CreateTaskScreen(),
-                  ),
-                );
-                _loadTasks();
-              },
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton: Consumer<AuthProvider>(
+        builder: (context, auth, _) {
+          // Показываем кнопку только если есть права на создание задач
+          if (!auth.hasPermission(Permission.createTask)) {
+            return const SizedBox.shrink();
+          }
+          return FloatingActionButton(
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateTaskScreen(),
+                ),
+              );
+              _loadTasks();
+            },
+            child: const Icon(Icons.add),
+          );
+        },
+      ),
     );
   }
 
