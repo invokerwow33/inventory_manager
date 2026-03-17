@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bcrypt/bcrypt.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import '../database/database_helper.dart';
 import '../providers/auth_provider.dart';
@@ -20,6 +21,12 @@ class _SetupTestUsersScreenState extends State<SetupTestUsersScreen> {
   bool _isCompleted = false;
   String? _error;
 
+  String _hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
   Future<void> _createTestUsers() async {
     setState(() {
       _isLoading = true;
@@ -31,8 +38,8 @@ class _SetupTestUsersScreenState extends State<SetupTestUsersScreen> {
 
       // Создаем админа
       final adminId = 'admin_${DateTime.now().millisecondsSinceEpoch}';
-      final adminHash = BCrypt.hashpw('admin123', BCrypt.gensalt(logRounds: 4));
-      
+      final adminHash = _hashPassword('admin123');
+
       await db.insert(
         'users',
         {
@@ -41,6 +48,7 @@ class _SetupTestUsersScreenState extends State<SetupTestUsersScreen> {
           'email': 'admin@company.com',
           'password_hash': adminHash,
           'role': 'admin',
+          'permissions': '', // Все права по умолчанию
           'is_active': 1,
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
@@ -50,8 +58,8 @@ class _SetupTestUsersScreenState extends State<SetupTestUsersScreen> {
 
       // Создаем сотрудника
       final employeeId = 'emp_${DateTime.now().millisecondsSinceEpoch}';
-      final employeeHash = BCrypt.hashpw('user123', BCrypt.gensalt(logRounds: 4));
-      
+      final employeeHash = _hashPassword('user123');
+
       await db.insert(
         'users',
         {
@@ -59,7 +67,8 @@ class _SetupTestUsersScreenState extends State<SetupTestUsersScreen> {
           'username': 'employee',
           'email': 'employee@company.com',
           'password_hash': employeeHash,
-          'role': 'user',
+          'role': 'employee',
+          'permissions': '',
           'is_active': 1,
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
