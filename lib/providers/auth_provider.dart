@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import '../database/database_helper.dart';
 import '../models/user.dart';
+import '../models/permission.dart';
 import '../services/audit_service.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -364,21 +365,30 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  bool hasPermission(String action) {
+  bool hasPermission(dynamic permission) {
     if (!isAuthenticated) return false;
+    if (isAdmin) return true; // Админ имеет все права
     
-    switch (action) {
-      case 'admin':
-        return isAdmin;
-      case 'manage':
-        return isManager;
-      case 'write':
-        return _currentUser!.role != UserRole.user || isManager;
-      case 'read':
-        return true;
-      default:
-        return false;
+    if (permission is String) {
+      // Старый API для обратной совместимости
+      switch (permission) {
+        case 'admin':
+          return isAdmin;
+        case 'manage':
+          return isManager;
+        case 'write':
+          return _currentUser!.role != UserRole.user || isManager;
+        case 'read':
+          return true;
+        default:
+          return false;
+      }
+    } else if (permission is Permission) {
+      // Новый API с Permission enum
+      return _currentUser!.hasPermission(permission);
     }
+    
+    return false;
   }
 
   String _generateToken() {
