@@ -25,6 +25,7 @@ import 'package:inventory_manager/screens/audit_log_screen.dart';
 import 'package:inventory_manager/screens/users_screen.dart';
 import 'package:inventory_manager/screens/tasks_screen.dart';
 import 'package:inventory_manager/screens/select_user_screen.dart';
+import 'package:inventory_manager/screens/user_management_screen.dart';
 
 // Database
 import 'package:inventory_manager/database/database_init.dart';
@@ -449,13 +450,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   if (auth.isAdmin) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const UsersScreen()),
+                      MaterialPageRoute(builder: (_) => const UserManagementScreen()),
                     );
                   }
                   break;
                 case 'logout':
                   auth.logout();
-                  Navigator.pushReplacementNamed(context, '/login');
+                  Navigator.pushReplacementNamed(context, '/select-user');
                   break;
               }
             },

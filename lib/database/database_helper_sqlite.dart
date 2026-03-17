@@ -143,6 +143,7 @@ class DatabaseHelper {
         email TEXT,
         password_hash TEXT NOT NULL,
         role TEXT DEFAULT 'user',
+        permissions TEXT,
         is_active INTEGER DEFAULT 1,
         last_login TEXT,
         employee_id TEXT,
@@ -151,6 +152,15 @@ class DatabaseHelper {
         updated_at TEXT NOT NULL
       )
     ''');
+
+    // Создаем начального администратора
+    final adminId = 'admin_initial';
+    final adminHash = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // SHA256 от 'admin'
+    final now = DateTime.now().toIso8601String();
+    await db.execute('''
+      INSERT OR IGNORE INTO users (id, username, email, password_hash, role, permissions, is_active, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', [adminId, 'admin', 'admin@company.com', adminHash, 'admin', '', 1, now, now]);
 
     // Audit logs table
     await db.execute('''
