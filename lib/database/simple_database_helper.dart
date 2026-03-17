@@ -308,7 +308,7 @@ class SimpleDatabaseHelper {
 
     // Если последний ID - строка с префиксом, продолжаем эту нумерацию
     if (lastId is String && lastId.startsWith(AppConstants.equipmentIdPrefix)) {
-      final prefixLength = AppConstants.equipmentIdPrefix.length;
+      const prefixLength = AppConstants.equipmentIdPrefix.length;
       final number = int.tryParse(lastId.substring(prefixLength)) ?? 0;
       return '${AppConstants.equipmentIdPrefix}${number + 1}';
     }

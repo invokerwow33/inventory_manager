@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/consumable.dart';
+import '../services/logger_service.dart';
 
 class ConsumableProvider extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final LoggerService _logger = LoggerService();
   
   List<Consumable> _consumables = [];
   List<Consumable> _filteredConsumables = [];
@@ -64,14 +66,14 @@ class ConsumableProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      print('Добавление расходника: ${consumable.toMap()}');
+      _logger.info('Добавление расходника: ${consumable.toMap()}');
       final id = await _dbHelper.insertConsumable(consumable.toMap());
-      print('Расходник добавлен с ID: $id');
+      _logger.info('Расходник добавлен с ID: $id');
       _consumables.add(consumable);
       _lastFetch = DateTime.now();
       notifyListeners();
     } catch (e) {
-      print('Ошибка добавления расходника: $e');
+      _logger.warning('Ошибка добавления расходника: $e');
       _setError('Ошибка добавления расходника: $e');
       rethrow;
     } finally {

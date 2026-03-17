@@ -10,7 +10,7 @@ class SyncProvider extends ChangeNotifier {
   final Connectivity _connectivity = Connectivity();
   
   List<SyncQueueItem> _pendingItems = [];
-  List<SyncConflict> _conflicts = [];
+  final List<SyncConflict> _conflicts = [];
   bool _isLoading = false;
   bool _isSyncing = false;
   String? _error;
@@ -157,7 +157,7 @@ class SyncProvider extends ChangeNotifier {
       await _dbHelper.updateSyncItemStatus(item.id, 'syncing');
       
       // Simulate sync operation - in production, this would call your API
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
       
       // Mark as completed
       await _dbHelper.updateSyncItemStatus(item.id, 'completed');
@@ -280,7 +280,7 @@ class SyncProvider extends ChangeNotifier {
     try {
       // Implementation for cloud sync
       // This would use Dio to communicate with your cloud API
-      await Future.delayed(Duration(seconds: 2)); // Placeholder
+      await Future.delayed(const Duration(seconds: 2)); // Placeholder
       
       _lastSync = DateTime.now();
     } catch (e) {

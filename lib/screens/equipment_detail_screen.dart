@@ -6,7 +6,7 @@ import 'add_equipment_screen.dart';
 class EquipmentDetailScreen extends StatefulWidget {
   final String equipmentId;
   
-  const EquipmentDetailScreen({Key? key, required this.equipmentId}) : super(key: key);
+  const EquipmentDetailScreen({super.key, required this.equipmentId});
   
   @override
   State<EquipmentDetailScreen> createState() => _EquipmentDetailScreenState();

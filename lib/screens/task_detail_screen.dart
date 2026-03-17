@@ -79,7 +79,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Изменить статус'),
+        title: const Text('Изменить статус'),
         content: Text('Вы уверены, что хотите изменить статус на "${status.label}"?'),
         actions: [
           TextButton(
@@ -247,12 +247,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                             color: Colors.red.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.warning, size: 14, color: Colors.red),
-                              const SizedBox(width: 4),
-                              const Text(
+                              Icon(Icons.warning, size: 14, color: Colors.red),
+                              SizedBox(width: 4),
+                              Text(
                                 'Просрочено',
                                 style: TextStyle(
                                   color: Colors.red,
@@ -319,11 +319,11 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
+                            const Row(
                               children: [
-                                const Icon(Icons.lightbulb, color: Colors.amber),
-                                const SizedBox(width: 8),
-                                const Text(
+                                Icon(Icons.lightbulb, color: Colors.amber),
+                                SizedBox(width: 8),
+                                Text(
                                   'Заметка от директора',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,

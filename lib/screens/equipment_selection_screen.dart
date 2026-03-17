@@ -6,10 +6,10 @@ class EquipmentSelectionScreen extends StatefulWidget {
   final bool multipleSelection; // Разрешить множественный выбор
   
   const EquipmentSelectionScreen({
-    Key? key,
+    super.key,
     this.selectedEquipmentIds = const [],
     this.multipleSelection = true,
-  }) : super(key: key);
+  });
 
   @override
   _EquipmentSelectionScreenState createState() => _EquipmentSelectionScreenState();

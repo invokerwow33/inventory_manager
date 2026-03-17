@@ -6,7 +6,7 @@ import 'package:inventory_manager/database/simple_database_helper.dart';
 import '../widgets/filter_panel.dart';
 
 class ReportsScreen extends StatefulWidget {
-  const ReportsScreen({Key? key}) : super(key: key);
+  const ReportsScreen({super.key});
 
   @override
   _ReportsScreenState createState() => _ReportsScreenState();
@@ -455,8 +455,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildCategoryStats() {
     if (_categoryStats.isEmpty) {
-      return Card(
-        child: const Padding(
+      return const Card(
+        child: Padding(
           padding: EdgeInsets.all(16),
           child: Text('Нет данных по категориям'),
         ),

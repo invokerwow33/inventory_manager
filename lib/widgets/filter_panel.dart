@@ -283,7 +283,7 @@ class _FilterPanelState extends State<FilterPanel> {
 
   Widget _buildCategoryDropdown() {
     return DropdownButtonFormField<String?>(
-      value: _selectedCategory,
+      initialValue: _selectedCategory,
       decoration: const InputDecoration(
         labelText: 'Категория',
         prefixIcon: Icon(Icons.category),

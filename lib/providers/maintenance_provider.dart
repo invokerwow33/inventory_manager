@@ -6,7 +6,7 @@ class MaintenanceProvider extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   
   List<MaintenanceRecord> _records = [];
-  List<MaintenanceSchedule> _schedules = [];
+  final List<MaintenanceSchedule> _schedules = [];
   List<MaintenanceRecord> _overdue = [];
   List<MaintenanceRecord> _upcoming = [];
   MaintenanceRecord? _selectedRecord;

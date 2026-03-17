@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:convert';
@@ -209,7 +208,7 @@ class _EditUserScreenState extends State<EditUserScreen> {
                             ),
                             const SizedBox(height: 16),
                             DropdownButtonFormField<UserRole>(
-                              value: _selectedRole,
+                              initialValue: _selectedRole,
                               decoration: const InputDecoration(
                                 labelText: 'Роль',
                                 prefixIcon: Icon(Icons.badge),

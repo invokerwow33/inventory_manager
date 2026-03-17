@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'migrations/database_migrations.dart';
 
 class DatabaseHelper {
@@ -21,9 +23,19 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'inventory.db');
+    // Используем постоянный путь для базы данных
+    // Для Windows: %APPDATA%/inventory_manager/inventory.db
+    String dbPath;
+    
+    if (Platform.isWindows) {
+      final appData = await getApplicationSupportDirectory();
+      dbPath = join(appData.path, 'inventory.db');
+    } else {
+      dbPath = join(await getDatabasesPath(), 'inventory.db');
+    }
+    
     return await openDatabase(
-      path,
+      dbPath,
       version: 7,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
@@ -154,8 +166,8 @@ class DatabaseHelper {
     ''');
 
     // Создаем начального администратора
-    final adminId = 'admin_initial';
-    final adminHash = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // SHA256 от 'admin'
+    const adminId = 'admin_initial';
+    const adminHash = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // SHA256 от 'admin'
     final now = DateTime.now().toIso8601String();
     await db.execute('''
       INSERT OR IGNORE INTO users (id, username, email, password_hash, role, permissions, is_active, created_at, updated_at)
@@ -1704,7 +1716,7 @@ class DatabaseHelper {
       // Задачи конкретного сотрудника
       maps = await db.query(
         'tasks',
-        where: 'assigned_to = ?' + (status != null ? ' AND status = ?' : ''),
+        where: 'assigned_to = ?${status != null ? ' AND status = ?' : ''}',
         whereArgs: [assignedTo, if (status != null) status],
         orderBy: 'created_at DESC',
       );
@@ -1712,7 +1724,7 @@ class DatabaseHelper {
       // Задачи созданные директором
       maps = await db.query(
         'tasks',
-        where: 'created_by = ?' + (status != null ? ' AND status = ?' : ''),
+        where: 'created_by = ?${status != null ? ' AND status = ?' : ''}',
         whereArgs: [createdBy, if (status != null) status],
         orderBy: 'created_at DESC',
       );
@@ -1820,12 +1832,12 @@ class DatabaseHelper {
     final db = await database;
     
     final totalResult = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM tasks' + (assignedTo != null ? ' WHERE assigned_to = ?' : ''),
+      'SELECT COUNT(*) as count FROM tasks${assignedTo != null ? ' WHERE assigned_to = ?' : ''}',
       assignedTo != null ? [assignedTo] : null,
     );
     
     final statusResult = await db.rawQuery(
-      'SELECT status, COUNT(*) as count FROM tasks' + (assignedTo != null ? ' WHERE assigned_to = ?' : '') + ' GROUP BY status',
+      'SELECT status, COUNT(*) as count FROM tasks${assignedTo != null ? ' WHERE assigned_to = ?' : ''} GROUP BY status',
       assignedTo != null ? [assignedTo] : null,
     );
     

@@ -71,7 +71,7 @@ class _EquipmentAutocompleteFieldState extends State<EquipmentAutocompleteField>
   bool _isUpdating = false;
   Map<String, dynamic>? _selectedEquipment;
 
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   @override
   void initState() {

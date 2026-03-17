@@ -22,7 +22,6 @@ import 'package:inventory_manager/screens/vehicles_screen.dart';
 import 'package:inventory_manager/screens/keys_screen.dart';
 import 'package:inventory_manager/screens/telephony_screen.dart';
 import 'package:inventory_manager/screens/audit_log_screen.dart';
-import 'package:inventory_manager/screens/users_screen.dart';
 import 'package:inventory_manager/screens/tasks_screen.dart';
 import 'package:inventory_manager/screens/select_user_screen.dart';
 import 'package:inventory_manager/screens/user_management_screen.dart';

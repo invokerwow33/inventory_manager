@@ -392,7 +392,7 @@ class VehicleUsageRecord {
     if (dur == null) return 'В поездке';
     final hours = dur.inHours;
     final minutes = dur.inMinutes % 60;
-    return '${hours}ч ${minutes}мин';
+    return '$hoursч $minutesмин';
   }
 }
 

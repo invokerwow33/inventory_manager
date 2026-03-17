@@ -8,10 +8,10 @@ class MovementHistoryScreen extends StatefulWidget {
   final String? equipmentName;
   
   const MovementHistoryScreen({
-    Key? key,
+    super.key,
     this.equipmentId,
     this.equipmentName,
-  }) : super(key: key);
+  });
 
   @override
   _MovementHistoryScreenState createState() => _MovementHistoryScreenState();
@@ -180,7 +180,7 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => EquipmentListScreen(),
+                    builder: (context) => const EquipmentListScreen(),
                   ),
                 );
               },

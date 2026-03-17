@@ -206,7 +206,7 @@ class AnalyticsScreen extends StatelessWidget {
                   maxY: maxY,
                   barGroups: data,
                   titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
+                    leftTitles: const AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 40,
@@ -228,8 +228,8 @@ class AnalyticsScreen extends StatelessWidget {
                         },
                       ),
                     ),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
                   gridData: const FlGridData(show: true),
                   borderData: FlBorderData(show: true),

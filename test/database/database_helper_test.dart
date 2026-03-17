@@ -67,7 +67,7 @@ void main() {
     });
 
     test('insertEquipment with explicit id returns that id', () async {
-      final explicitId = 'explicit_test_id';
+      const explicitId = 'explicit_test_id';
       final id = await dbHelper.insertEquipment({
         'id': explicitId,
         'name': 'Test Equipment',

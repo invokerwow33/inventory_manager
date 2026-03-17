@@ -270,7 +270,7 @@ class _TasksScreenState extends State<TasksScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              if (!isAdmin && task.createdByName != null)
+              if (!isAdmin)
                 Text(
                   'От: ${task.createdByName}',
                   style: TextStyle(
@@ -331,7 +331,7 @@ class _TasksScreenState extends State<TasksScreen> {
     } else if (days == 1) {
       text = 'Завтра';
     } else {
-      text = '${days} дн. : ${DateFormat('dd.MM.yyyy').format(date)}';
+      text = '$days дн. : ${DateFormat('dd.MM.yyyy').format(date)}';
     }
 
     return Container(

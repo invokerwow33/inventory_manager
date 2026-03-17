@@ -380,8 +380,8 @@ class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
             _refreshData();
           }
         },
-        child: const Icon(Icons.add),
         tooltip: 'Добавить расходник',
+        child: const Icon(Icons.add),
       ),
     );
   }

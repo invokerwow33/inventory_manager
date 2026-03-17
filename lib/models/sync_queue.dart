@@ -137,7 +137,7 @@ class SyncQueueItem {
   }
 
   Duration get backoffDelay {
-    final baseDelay = Duration(seconds: 5);
+    const baseDelay = Duration(seconds: 5);
     final multiplier = retryCount * retryCount;
     return baseDelay * multiplier;
   }

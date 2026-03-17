@@ -242,7 +242,7 @@ class TaskProvider extends ChangeNotifier {
         return task.title.toLowerCase().contains(query) ||
                task.description.toLowerCase().contains(query) ||
                (task.assignedToName?.toLowerCase().contains(query) ?? false) ||
-               (task.createdByName?.toLowerCase().contains(query) ?? false);
+               task.createdByName.toLowerCase().contains(query);
       }
       
       return true;

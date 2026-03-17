@@ -3,7 +3,7 @@ import 'package:inventory_manager/database/simple_database_helper.dart';
 import 'package:intl/intl.dart';
 
 class AdvancedSearchScreen extends StatefulWidget {
-  const AdvancedSearchScreen({Key? key}) : super(key: key);
+  const AdvancedSearchScreen({super.key});
 
   @override
   _AdvancedSearchScreenState createState() => _AdvancedSearchScreenState();
@@ -262,7 +262,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _categoryController.text.isEmpty 
+                          initialValue: _categoryController.text.isEmpty 
                               ? 'Любая' 
                               : _categoryController.text,
                           decoration: const InputDecoration(
@@ -285,7 +285,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _selectedStatus,
+                          initialValue: _selectedStatus,
                           decoration: const InputDecoration(
                             labelText: 'Статус',
                             border: OutlineInputBorder(),
@@ -516,7 +516,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
               final equipment = _searchResults[index];
               final status = equipment['status']?.toString() ?? 'Не указан';
               
-              Color _getStatusColor(String status) {
+              Color getStatusColor(String status) {
                 switch (status) {
                   case 'В использовании': return Colors.green;
                   case 'На складе': return Colors.blue;
@@ -531,10 +531,10 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: _getStatusColor(status).withOpacity(0.1),
+                    backgroundColor: getStatusColor(status).withOpacity(0.1),
                     child: Icon(
                       Icons.devices,
-                      color: _getStatusColor(status),
+                      color: getStatusColor(status),
                     ),
                   ),
                   title: Text(

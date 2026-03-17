@@ -154,7 +154,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
           children: [
             DropdownButtonFormField<AuditEntityType>(
               decoration: const InputDecoration(labelText: 'Тип объекта'),
-              value: _selectedEntityType,
+              initialValue: _selectedEntityType,
               items: AuditEntityType.values.map((type) =>
                 DropdownMenuItem(
                   value: type,
@@ -166,7 +166,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
             const SizedBox(height: 16),
             DropdownButtonFormField<AuditActionType>(
               decoration: const InputDecoration(labelText: 'Действие'),
-              value: _selectedActionType,
+              initialValue: _selectedActionType,
               items: AuditActionType.values.map((type) =>
                 DropdownMenuItem(
                   value: type,

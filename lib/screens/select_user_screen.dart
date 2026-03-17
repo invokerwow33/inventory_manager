@@ -261,16 +261,16 @@ class _SelectUserScreenState extends State<SelectUserScreen> {
                               color: Colors.red.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.admin_panel_settings,
                                   size: 12,
                                   color: Colors.red,
                                 ),
-                                const SizedBox(width: 4),
-                                const Text(
+                                SizedBox(width: 4),
+                                Text(
                                   'Админ',
                                   style: TextStyle(
                                     color: Colors.red,

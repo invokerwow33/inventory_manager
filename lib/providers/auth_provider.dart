@@ -7,17 +7,19 @@ import '../database/database_helper.dart';
 import '../models/user.dart';
 import '../models/permission.dart';
 import '../services/audit_service.dart';
+import '../services/logger_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final AuditService _auditService = AuditService();
+  final LoggerService _logger = LoggerService();
   
   User? _currentUser;
   UserSession? _currentSession;
   bool _isLoading = false;
   String? _error;
   Timer? _sessionTimer;
-  int _sessionTimeoutMinutes = 30;
+  final int _sessionTimeoutMinutes = 30;
 
   // Getters
   User? get currentUser => _currentUser;
@@ -91,19 +93,19 @@ class AuthProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      print('Попытка входа пользователя: $username');
+      _logger.info('Попытка входа пользователя: $username');
       final userData = await _dbHelper.getUserByUsername(username);
-      print('Результат поиска в БД: ${userData == null ? "null" : "найдено"}');
+      _logger.info('Результат поиска в БД: ${userData == null ? "null" : "найдено"}');
       if (userData != null) {
-        print('Данные пользователя: $userData');
+        _logger.info('Данные пользователя: $userData');
       }
 
       if (userData == null) {
         // Получаем всех пользователей для отладки
         final allUsers = await _dbHelper.getUsers();
-        print('Все пользователи в БД: ${allUsers.length}');
+        _logger.info('Все пользователи в БД: ${allUsers.length}');
         for (var user in allUsers) {
-          print('  - ${user['username']} (${user['role']})');
+          _logger.info('  - ${user['username']} (${user['role']})');
         }
         _setError('Пользователь не найден. В базе ${allUsers.length} пользователей.');
         return false;
@@ -368,7 +370,7 @@ class AuthProvider extends ChangeNotifier {
   bool hasPermission(dynamic permission) {
     if (!isAuthenticated) return false;
     if (isAdmin) return true; // Админ имеет все права
-    
+
     if (permission is String) {
       // Старый API для обратной совместимости
       switch (permission) {
@@ -387,8 +389,22 @@ class AuthProvider extends ChangeNotifier {
       // Новый API с Permission enum
       return _currentUser!.hasPermission(permission);
     }
-    
+
     return false;
+  }
+
+  bool hasAnyPermission(List<Permission> permissions) {
+    if (!isAuthenticated) return false;
+    if (isAdmin) return true; // Админ имеет все права
+
+    return permissions.any((permission) => _currentUser!.hasPermission(permission));
+  }
+
+  bool hasAllPermissions(List<Permission> permissions) {
+    if (!isAuthenticated) return false;
+    if (isAdmin) return true; // Админ имеет все права
+
+    return permissions.every((permission) => _currentUser!.hasPermission(permission));
   }
 
   String _generateToken() {

@@ -141,7 +141,7 @@ class FormDropdown<T> extends StatelessWidget {
           border: const OutlineInputBorder(),
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         ),
-        value: value,
+        initialValue: value,
         hint: hint != null ? Text(hint!) : null,
         items: items.map((item) {
           final displayText = displayMapper?.call(item) ?? item.toString();

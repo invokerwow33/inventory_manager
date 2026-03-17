@@ -7,7 +7,7 @@ class CreateMovementScreen extends StatefulWidget {
   final Map<String, dynamic>? equipment;
   final String? preselectedResponsible;
   
-  const CreateMovementScreen({Key? key, this.equipment, this.preselectedResponsible}) : super(key: key);
+  const CreateMovementScreen({super.key, this.equipment, this.preselectedResponsible});
 
   @override
   _CreateMovementScreenState createState() => _CreateMovementScreenState();
@@ -258,7 +258,7 @@ class _CreateMovementScreenState extends State<CreateMovementScreen> {
 
             // Тип перемещения
             DropdownButtonFormField<String>(
-              value: _movementType,
+              initialValue: _movementType,
               decoration: const InputDecoration(
                 labelText: 'Тип перемещения *',
                 border: OutlineInputBorder(),

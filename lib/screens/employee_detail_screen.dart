@@ -356,13 +356,13 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen>
     }
 
     if (_movements.isEmpty) {
-      return Center(
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.history, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
+            Icon(Icons.history, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
               'Нет истории операций',
               style: TextStyle(fontSize: 18, color: Colors.grey),
             ),
