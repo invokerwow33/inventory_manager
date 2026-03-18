@@ -1567,7 +1567,7 @@ class DatabaseHelper {
       maps = await db.query(
         'tasks',
         where: '(assigned_to = ? OR assigned_to IS NULL)${status != null ? ' AND status = ?' : ''}',
-        whereArgs: [assignedTo, if (status != null) status],
+        whereArgs: status != null ? [assignedTo, status] : [assignedTo],
         orderBy: 'created_at DESC',
       );
     } else if (createdBy != null) {
@@ -1575,17 +1575,24 @@ class DatabaseHelper {
       maps = await db.query(
         'tasks',
         where: 'created_by = ?${status != null ? ' AND status = ?' : ''}',
-        whereArgs: [createdBy, if (status != null) status],
+        whereArgs: status != null ? [createdBy, status] : [createdBy],
         orderBy: 'created_at DESC',
       );
     } else {
       // Все задачи
-      maps = await db.query(
-        'tasks',
-        where: status != null ? 'status = ?' : '',
-        whereArgs: status != null ? [status] : null,
-        orderBy: 'created_at DESC',
-      );
+      if (status != null) {
+        maps = await db.query(
+          'tasks',
+          where: 'status = ?',
+          whereArgs: [status],
+          orderBy: 'created_at DESC',
+        );
+      } else {
+        maps = await db.query(
+          'tasks',
+          orderBy: 'created_at DESC',
+        );
+      }
     }
 
     return maps.map((map) => Map<String, dynamic>.from(map)).toList();

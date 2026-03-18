@@ -110,7 +110,7 @@ class AnalyticsScreen extends StatelessWidget {
           title: 'Критический запас',
           value: '${consumableStats['lowStock'] ?? 0}',
           icon: Icons.warning,
-          color: consumableStats['lowStock'] > 0 ? Colors.red : Colors.grey,
+          color: (consumableStats['lowStock'] ?? 0) > 0 ? Colors.red : Colors.grey,
         ),
       ],
     );
