@@ -504,7 +504,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         );
                       }
 
-                      return ConstrainedBox(
+                      return Container(
                         constraints: const BoxConstraints(maxHeight: 400),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade300),
