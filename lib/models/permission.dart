@@ -62,16 +62,19 @@ enum Role {
           Permission.viewEquipment,
           Permission.createEquipment,
           Permission.editEquipment,
+          Permission.deleteEquipment,
           // Расходники
           Permission.viewConsumables,
           Permission.createConsumable,
           Permission.editConsumable,
+          Permission.deleteConsumable,
           // Сотрудники
           Permission.viewEmployees,
           // Задачи
           Permission.viewTasks,
           Permission.createTask,
           Permission.editTask,
+          Permission.deleteTask,
           Permission.assignTask,
           // Отчеты
           Permission.viewReports,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/task.dart';
+import '../../models/permission.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/auth_provider.dart';
 
@@ -98,7 +99,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       try {
         final taskProvider = context.read<TaskProvider>();
         final auth = context.read<AuthProvider>();
-        
+
         await taskProvider.updateTaskStatus(widget.task.id, status);
 
         // Добавляем системное сообщение
@@ -108,16 +109,55 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         );
 
         // Обновляем список задач чтобы отобразить изменения
-        if (auth.isAdmin) {
+        if (auth.isAdmin || auth.currentUser?.isManager == true) {
           await taskProvider.loadTasks(createdBy: auth.currentUser!.id, forceRefresh: true);
         } else {
           await taskProvider.loadTasks(assignedTo: auth.currentUser!.id, forceRefresh: true);
         }
 
         await _loadComments();
-        
+
         if (mounted) {
           Navigator.pop(context); // Закрываем экран детали
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Удалить задачу?'),
+        content: const Text('Это действие нельзя отменить.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Удалить'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await context.read<TaskProvider>().deleteTask(widget.task.id);
+        if (mounted) {
+          Navigator.pop(context); // Возвращаемся к списку задач
         }
       } catch (e) {
         if (mounted) {
@@ -133,13 +173,16 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final isAdmin = auth.isAdmin;
+    final isManager = auth.currentUser?.isManager ?? false;
     final isMyTask = widget.task.assignedTo == auth.currentUser?.id;
+    final canDelete = auth.hasPermission(Permission.deleteTask);
+    final canChangeStatus = isAdmin || isManager || canDelete;
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Задача #${widget.task.id.substring(0, 8)}'),
         actions: [
-          if (isAdmin)
+          if (canChangeStatus)
             PopupMenuButton<TaskStatus>(
               icon: const Icon(Icons.more_vert),
               onSelected: _changeStatus,
@@ -195,6 +238,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   ),
                 ),
               ],
+            ),
+          if (canDelete)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => _confirmDelete(),
+              tooltip: 'Удалить задачу',
             ),
         ],
       ),
@@ -478,8 +527,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         vertical: 8,
                       ),
                     ),
-                    maxLines: 4,
-                    minLines: 1,
+                    maxLines: null,
+                    textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _addComment(),
                   ),
                 ),

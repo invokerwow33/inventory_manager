@@ -22,7 +22,9 @@ class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadConsumables();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadConsumables();
+    });
     _searchController.addListener(_onSearchChanged);
   }
 

@@ -143,8 +143,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       sync.startAutoSync(intervalMinutes: settings.appSettings.syncInterval);
     }
 
-    // Initialize providers
-    _initializeProviders();
+    // Initialize providers after build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeProviders();
+    });
   }
 
   void _initializeProviders() {
@@ -324,15 +326,143 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             extended: isExtended,
             minExtendedWidth: 200,
             destinations: destinations,
-            leading: _buildLeadingHeader(isExtended: isExtended),
-            trailing: _buildTrailingControls(auth),
+            leading: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildLeadingHeader(isExtended: isExtended),
+                // Expand/collapse button moved to leading
+                IconButton(
+                  icon: Icon(_extendedNavigation ? Icons.chevron_left : Icons.chevron_right),
+                  onPressed: () => setState(() => _extendedNavigation = !_extendedNavigation),
+                  tooltip: _extendedNavigation ? 'Свернуть' : 'Развернуть',
+                ),
+              ],
+            ),
           ),
 
           const VerticalDivider(thickness: 1, width: 1),
 
           // Main content
           Expanded(
-            child: screens[_selectedIndex],
+            child: Stack(
+              children: [
+                screens[_selectedIndex],
+                // Sync indicator in top-right corner
+                Positioned(
+                  right: 16,
+                  top: 16,
+                  child: Consumer<SyncProvider>(
+                    builder: (context, sync, _) {
+                      if (sync.pendingCount == 0) return const SizedBox.shrink();
+                      return Tooltip(
+                        message: '${sync.pendingCount} ожидает синхронизации',
+                        child: Badge(
+                          label: Text('${sync.pendingCount}'),
+                          child: IconButton(
+                            icon: Icon(
+                              sync.isSyncing ? Icons.sync : Icons.sync_outlined,
+                              color: sync.isOnline ? null : Colors.grey,
+                            ),
+                            onPressed: sync.isSyncing ? null : () => sync.sync(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                // User menu in top-right corner
+                if (auth.isAuthenticated)
+                  Positioned(
+                    right: 16,
+                    top: 70,
+                    child: PopupMenuButton<String>(
+                      icon: CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: Text(
+                          auth.currentUser?.username.substring(0, 1).toUpperCase() ?? '?',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'profile':
+                            // Navigate to profile
+                            break;
+                          case 'audit':
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AuditLogScreen()),
+                            );
+                            break;
+                          case 'users':
+                            if (auth.isAdmin) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const UserManagementScreen()),
+                              );
+                            }
+                            break;
+                          case 'logout':
+                            auth.logout();
+                            Navigator.pushReplacementNamed(context, '/select-user');
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          enabled: false,
+                          child: Text(
+                            auth.currentUser?.username ?? 'Пользователь',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'profile',
+                          child: Row(
+                            children: [
+                              Icon(Icons.person),
+                              SizedBox(width: 8),
+                              Text('Профиль'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'audit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.history),
+                              SizedBox(width: 8),
+                              Text('Журнал действий'),
+                            ],
+                          ),
+                        ),
+                        if (auth.isAdmin)
+                          const PopupMenuItem(
+                            value: 'users',
+                            child: Row(
+                              children: [
+                                Icon(Icons.manage_accounts),
+                                SizedBox(width: 8),
+                                Text('Пользователи'),
+                              ],
+                            ),
+                          ),
+                        const PopupMenuDivider(),
+                        const PopupMenuItem(
+                          value: 'logout',
+                          child: Row(
+                            children: [
+                              Icon(Icons.logout, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text('Выйти', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
@@ -385,133 +515,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               color: Theme.of(context).colorScheme.primary,
               size: 28,
             ),
-    );
-  }
-
-  Widget _buildTrailingControls(AuthProvider auth) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Sync indicator
-        Consumer<SyncProvider>(
-          builder: (context, sync, _) {
-            if (sync.pendingCount == 0) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.all(8),
-              child: Tooltip(
-                message: '${sync.pendingCount} ожидает синхронизации',
-                child: Badge(
-                  label: Text('${sync.pendingCount}'),
-                  child: IconButton(
-                    icon: Icon(
-                      sync.isSyncing ? Icons.sync : Icons.sync_outlined,
-                      color: sync.isOnline ? null : Colors.grey,
-                    ),
-                    onPressed: sync.isSyncing ? null : () => sync.sync(),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        
-        // Expand/collapse
-        IconButton(
-          icon: Icon(_extendedNavigation ? Icons.chevron_left : Icons.chevron_right),
-          onPressed: () => setState(() => _extendedNavigation = !_extendedNavigation),
-          tooltip: _extendedNavigation ? 'Свернуть' : 'Развернуть',
-        ),
-        
-        const SizedBox(height: 8),
-        
-        // User menu
-        if (auth.isAuthenticated)
-          PopupMenuButton<String>(
-            icon: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: Text(
-                auth.currentUser?.username.substring(0, 1).toUpperCase() ?? '?',
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-            onSelected: (value) {
-              switch (value) {
-                case 'profile':
-                  // Navigate to profile
-                  break;
-                case 'audit':
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AuditLogScreen()),
-                  );
-                  break;
-                case 'users':
-                  if (auth.isAdmin) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const UserManagementScreen()),
-                    );
-                  }
-                  break;
-                case 'logout':
-                  auth.logout();
-                  Navigator.pushReplacementNamed(context, '/select-user');
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                enabled: false,
-                child: Text(
-                  auth.currentUser?.username ?? 'Пользователь',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'profile',
-                child: Row(
-                  children: [
-                    Icon(Icons.person),
-                    SizedBox(width: 8),
-                    Text('Профиль'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'audit',
-                child: Row(
-                  children: [
-                    Icon(Icons.history),
-                    SizedBox(width: 8),
-                    Text('Журнал действий'),
-                  ],
-                ),
-              ),
-              if (auth.isAdmin)
-                const PopupMenuItem(
-                  value: 'users',
-                  child: Row(
-                    children: [
-                      Icon(Icons.manage_accounts),
-                      SizedBox(width: 8),
-                      Text('Пользователи'),
-                    ],
-                  ),
-                ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Выйти', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-      ],
     );
   }
 }
