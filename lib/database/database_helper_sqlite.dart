@@ -33,10 +33,10 @@ class DatabaseHelper {
     } else {
       dbPath = join(await getDatabasesPath(), 'inventory.db');
     }
-    
+
     return await openDatabase(
       dbPath,
-      version: 8,
+      version: 9,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );

@@ -135,7 +135,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Удалить задачу?'),
-        content: const Text('Это действие нельзя отменить.'),
+        content: const Text('Это действие можно отменить в течение 5 секунд.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -155,9 +155,36 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
     if (confirmed == true) {
       try {
-        await context.read<TaskProvider>().deleteTask(widget.task.id);
+        final taskProvider = context.read<TaskProvider>();
+        final task = widget.task;
+        
+        // Сохраняем задачу для возможного восстановления
+        final taskMap = task.toMap();
+        
+        // Удаляем задачу
+        await taskProvider.deleteTask(task.id);
+        
         if (mounted) {
           Navigator.pop(context); // Возвращаемся к списку задач
+          
+          // Показываем SnackBar с кнопкой отмены
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Задача удалена'),
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: 'Отменить',
+                onPressed: () async {
+                  // Восстанавливаем задачу
+                  final restoredTask = Task.fromMap(taskMap);
+                  await taskProvider.createTask(restoredTask);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Задача восстановлена')),
+                  );
+                },
+              ),
+            ),
+          );
         }
       } catch (e) {
         if (mounted) {
@@ -172,10 +199,11 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final user = auth.currentUser;
     final isAdmin = auth.isAdmin;
-    final isManager = auth.currentUser?.isManager ?? false;
+    final isManager = user?.isManager ?? false;
     final isMyTask = widget.task.assignedTo == auth.currentUser?.id;
-    final canDelete = auth.hasPermission(Permission.deleteTask);
+    final canDelete = user?.canDeleteTask ?? false;
     final canChangeStatus = isAdmin || isManager || canDelete;
 
     return Scaffold(

@@ -182,6 +182,46 @@ class MigrationV8 extends Migration {
   }
 }
 
+class MigrationV9 extends Migration {
+  MigrationV9() : super(9, 'Add database indexes for performance');
+
+  @override
+  Future<void> up(Database db) async {
+    // Tasks table indexes
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tasks_created_by ON tasks(created_by)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to_status ON tasks(assigned_to, status)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at DESC)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date)');
+    
+    // Equipment table indexes
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_equipment_category ON equipment(category)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_equipment_status ON equipment(status)');
+    
+    // Consumables table indexes
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_consumables_category ON consumables(category)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_consumables_low_stock ON consumables(min_quantity, quantity)');
+    
+    // Users table indexes
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_users_active ON users(is_active)');
+  }
+
+  @override
+  Future<void> down(Database db) async {
+    // Drop indexes
+    await db.execute('DROP INDEX IF EXISTS idx_tasks_created_by');
+    await db.execute('DROP INDEX IF EXISTS idx_tasks_assigned_to_status');
+    await db.execute('DROP INDEX IF EXISTS idx_tasks_created_at');
+    await db.execute('DROP INDEX IF EXISTS idx_tasks_due_date');
+    await db.execute('DROP INDEX IF EXISTS idx_equipment_category');
+    await db.execute('DROP INDEX IF EXISTS idx_equipment_status');
+    await db.execute('DROP INDEX IF EXISTS idx_consumables_category');
+    await db.execute('DROP INDEX IF EXISTS idx_consumables_low_stock');
+    await db.execute('DROP INDEX IF EXISTS idx_users_role');
+    await db.execute('DROP INDEX IF EXISTS idx_users_active');
+  }
+}
+
 class DatabaseMigrationManager {
   static final List<Migration> migrations = [
     MigrationV2(),
@@ -191,6 +231,7 @@ class DatabaseMigrationManager {
     MigrationV6(),
     MigrationV7(),
     MigrationV8(),
+    MigrationV9(),
   ];
   
   static Migration? getMigration(int version) {

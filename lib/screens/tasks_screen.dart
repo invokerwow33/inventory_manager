@@ -196,26 +196,101 @@ class _TasksScreenState extends State<TasksScreen> {
       builder: (context, provider, _) {
         return Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
+          child: Column(
             children: [
-              Expanded(
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Поиск задач...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        provider.setSearchQuery(null);
+              // Поиск
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Поиск задач...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      provider.setSearchQuery(null);
+                    },
+                  ),
+                ),
+                onChanged: (value) {
+                  provider.setSearchQuery(value.isEmpty ? null : value);
+                },
+              ),
+              const SizedBox(height: 12),
+              // Фильтры по статусу и приоритету
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    // Фильтр по статусу
+                    FilterChip(
+                      label: const Text('Все статусы'),
+                      selected: provider.tasks.any((t) => true) && 
+                                provider.allTasks.where((t) => t.status == TaskStatus.pending).length +
+                                provider.allTasks.where((t) => t.status == TaskStatus.inProgress).length +
+                                provider.allTasks.where((t) => t.status == TaskStatus.completed).length == 
+                                provider.allTasks.length,
+                      onSelected: (selected) {
+                        provider.setFilterStatus(null);
                       },
                     ),
-                  ),
-                  onChanged: (value) {
-                    provider.setSearchQuery(value.isEmpty ? null : value);
-                  },
+                    const SizedBox(width: 8),
+                    ...TaskStatus.values.map((status) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: FilterChip(
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(status.icon, size: 16, color: status.color),
+                              const SizedBox(width: 4),
+                              Text(status.label),
+                            ],
+                          ),
+                          selected: provider.tasks.where((t) => t.status == status).isNotEmpty &&
+                                    provider.allTasks.where((t) => t.status == status).length == 
+                                    provider.allTasks.length,
+                          onSelected: (selected) {
+                            provider.setFilterStatus(selected ? status : null);
+                          },
+                        ),
+                      );
+                    }),
+                    
+                    const SizedBox(width: 16),
+                    
+                    // Фильтр по приоритету
+                    FilterChip(
+                      label: const Text('Все приоритеты'),
+                      selected: true,
+                      onSelected: (selected) {
+                        provider.setFilterPriority(null);
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    ...TaskPriority.values.map((priority) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: FilterChip(
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.flag, size: 16, color: priority.color),
+                              const SizedBox(width: 4),
+                              Text(priority.label),
+                            ],
+                          ),
+                          selected: provider.tasks.where((t) => t.priority == priority).isNotEmpty &&
+                                    provider.allTasks.where((t) => t.priority == priority).length == 
+                                    provider.allTasks.length,
+                          onSelected: (selected) {
+                            provider.setFilterPriority(selected ? priority : null);
+                          },
+                        ),
+                      );
+                    }),
+                  ],
                 ),
               ),
             ],

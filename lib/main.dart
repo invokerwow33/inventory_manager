@@ -29,6 +29,7 @@ import 'package:inventory_manager/screens/user_management_screen.dart';
 // Database
 import 'package:inventory_manager/database/database_init.dart';
 import 'package:inventory_manager/services/logger_service.dart';
+import 'package:inventory_manager/services/task_notification_service.dart';
 
 // Providers
 import 'package:inventory_manager/providers/equipment_provider.dart';
@@ -142,6 +143,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     if (settings.appSettings.autoSync) {
       sync.startAutoSync(intervalMinutes: settings.appSettings.syncInterval);
     }
+
+    // Initialize notifications
+    await TaskNotificationService().init();
+    await TaskNotificationService().checkOverdueTasks();
 
     // Initialize providers after build is complete
     WidgetsBinding.instance.addPostFrameCallback((_) {
