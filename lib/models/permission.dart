@@ -1,3 +1,5 @@
+import 'user.dart';
+
 /// Права доступа пользователя
 enum Permission {
   // Оборудование

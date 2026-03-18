@@ -108,10 +108,11 @@ class TaskNotificationService {
       task.id.hashCode, // Уникальный ID для каждой задачи
       '📋 Задача: ${task.title}',
       'Срок выполнения: ${_formatDate(task.dueDate!)}',
-      scheduledDate,
+      tz.TZDateTime.from(scheduledDate, tz.local),
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiAllowScheduleUpdate: true,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      payload: task.id,
     );
   }
 
@@ -126,7 +127,7 @@ class TaskNotificationService {
       importance: Importance.high,
       priority: Priority.high,
       icon: '@mipmap/ic_launcher',
-      color: Colors.red.value,
+      color: Colors.red,
     );
 
     const iosDetails = DarwinNotificationDetails(

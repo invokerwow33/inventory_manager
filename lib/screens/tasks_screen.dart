@@ -226,10 +226,10 @@ class _TasksScreenState extends State<TasksScreen> {
                     // Фильтр по статусу
                     FilterChip(
                       label: const Text('Все статусы'),
-                      selected: provider.tasks.any((t) => true) && 
+                      selected: provider.tasks.any((t) => true) &&
                                 provider.allTasks.where((t) => t.status == TaskStatus.pending).length +
                                 provider.allTasks.where((t) => t.status == TaskStatus.inProgress).length +
-                                provider.allTasks.where((t) => t.status == TaskStatus.completed).length == 
+                                provider.allTasks.where((t) => t.status == TaskStatus.completed).length ==
                                 provider.allTasks.length,
                       onSelected: (selected) {
                         provider.setFilterStatus(null);
@@ -243,13 +243,16 @@ class _TasksScreenState extends State<TasksScreen> {
                           label: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(status.icon, size: 16, color: status.color),
-                              const SizedBox(width: 4),
+                              CircleAvatar(
+                                radius: 6,
+                                backgroundColor: status.color,
+                              ),
+                              const SizedBox(width: 6),
                               Text(status.label),
                             ],
                           ),
                           selected: provider.tasks.where((t) => t.status == status).isNotEmpty &&
-                                    provider.allTasks.where((t) => t.status == status).length == 
+                                    provider.allTasks.where((t) => t.status == status).length ==
                                     provider.allTasks.length,
                           onSelected: (selected) {
                             provider.setFilterStatus(selected ? status : null);

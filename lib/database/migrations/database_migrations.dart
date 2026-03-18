@@ -193,10 +193,6 @@ class MigrationV9 extends Migration {
     await db.execute('CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at DESC)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date)');
     
-    // Equipment table indexes
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_equipment_category ON equipment(category)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_equipment_status ON equipment(status)');
-    
     // Consumables table indexes
     await db.execute('CREATE INDEX IF NOT EXISTS idx_consumables_category ON consumables(category)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_consumables_low_stock ON consumables(min_quantity, quantity)');
@@ -204,6 +200,9 @@ class MigrationV9 extends Migration {
     // Users table indexes
     await db.execute('CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_users_active ON users(is_active)');
+    
+    // Note: equipment table doesn't have category column, skipping those indexes
+    // Note: equipment table doesn't have status column, skipping those indexes
   }
 
   @override
@@ -213,8 +212,6 @@ class MigrationV9 extends Migration {
     await db.execute('DROP INDEX IF EXISTS idx_tasks_assigned_to_status');
     await db.execute('DROP INDEX IF EXISTS idx_tasks_created_at');
     await db.execute('DROP INDEX IF EXISTS idx_tasks_due_date');
-    await db.execute('DROP INDEX IF EXISTS idx_equipment_category');
-    await db.execute('DROP INDEX IF EXISTS idx_equipment_status');
     await db.execute('DROP INDEX IF EXISTS idx_consumables_category');
     await db.execute('DROP INDEX IF EXISTS idx_consumables_low_stock');
     await db.execute('DROP INDEX IF EXISTS idx_users_role');
