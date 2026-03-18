@@ -727,171 +727,21 @@ class DatabaseHelper {
       'settings_json': '{}',
       'updated_at': DateTime.now().toIso8601String(),
     });
+
+    // Create indexes for performance
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_equipment_room ON equipment(room_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_equipment_status ON equipment(status)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_consumables_category ON consumables(category)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_movements_equipment ON movements(equipment_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_consumable_movements_consumable ON consumable_movements(consumable_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON tasks(assigned_to)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_task_comments_task ON task_comments(task_id)');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // Use the migration manager to run all migrations
     await DatabaseMigrationManager.runMigrations(db, oldVersion, newVersion);
-  }
-
-  Future<void> _createNewTables(Database db) async {
-    // Add new tables that were added in version 3
-    // This is a simplified version - in production would check if tables exist first
-    
-    try {
-      // Users table
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS users(
-          id TEXT PRIMARY KEY,
-          username TEXT NOT NULL UNIQUE,
-          email TEXT,
-          password_hash TEXT NOT NULL,
-          role TEXT DEFAULT 'user',
-          is_active INTEGER DEFAULT 1,
-          last_login TEXT,
-          employee_id TEXT,
-          use_biometric INTEGER DEFAULT 0,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        )
-      ''');
-
-      // Audit logs table
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS audit_logs(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id TEXT,
-          username TEXT,
-          action_type TEXT,
-          entity_type TEXT,
-          entity_id TEXT,
-          entity_name TEXT,
-          old_values TEXT,
-          new_values TEXT,
-          description TEXT,
-          timestamp TEXT NOT NULL,
-          ip_address TEXT,
-          user_agent TEXT,
-          session_id TEXT
-        )
-      ''');
-
-      // Maintenance records table
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS maintenance_records(
-          id TEXT PRIMARY KEY,
-          equipment_id TEXT,
-          equipment_name TEXT,
-          type TEXT,
-          status TEXT,
-          description TEXT,
-          scheduled_date TEXT,
-          completed_date TEXT,
-          performed_by TEXT,
-          cost REAL,
-          notes TEXT,
-          photos TEXT,
-          reminder_days INTEGER,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        )
-      ''');
-
-      // Rooms table
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS rooms(
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          number TEXT,
-          type TEXT,
-          floor TEXT,
-          building TEXT,
-          description TEXT,
-          floor_plan_url TEXT,
-          area REAL,
-          capacity INTEGER,
-          responsible_person TEXT,
-          equipment_ids TEXT,
-          parent_room_id TEXT,
-          is_active INTEGER DEFAULT 1,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        )
-      ''');
-
-      // Keys table
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS keys(
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          key_number TEXT NOT NULL,
-          type TEXT,
-          status TEXT,
-          room_id TEXT,
-          room_name TEXT,
-          description TEXT,
-          access_level TEXT,
-          copies_count INTEGER,
-          restrictions TEXT,
-          is_active INTEGER DEFAULT 1,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        )
-      ''');
-
-      // Vehicles table
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS vehicles(
-          id TEXT PRIMARY KEY,
-          make TEXT NOT NULL,
-          model TEXT NOT NULL,
-          year INTEGER,
-          vin TEXT,
-          license_plate TEXT NOT NULL,
-          type TEXT,
-          status TEXT,
-          fuel_type TEXT,
-          color TEXT,
-          mileage REAL,
-          last_service TEXT,
-          next_service TEXT,
-          employee_id TEXT,
-          employee_name TEXT,
-          department TEXT,
-          parking_location TEXT,
-          fuel_capacity REAL,
-          average_consumption REAL,
-          insurance_expiry TEXT,
-          inspection_expiry TEXT,
-          documents TEXT,
-          notes TEXT,
-          is_active INTEGER DEFAULT 1,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        )
-      ''');
-
-      // Sync queue table
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS sync_queue(
-          id TEXT PRIMARY KEY,
-          operation TEXT,
-          entity_type TEXT,
-          entity_id TEXT,
-          data TEXT,
-          status TEXT,
-          priority INTEGER,
-          error_message TEXT,
-          retry_count INTEGER DEFAULT 0,
-          last_attempt TEXT,
-          created_at TEXT NOT NULL,
-          device_id TEXT,
-          user_id TEXT
-        )
-      ''');
-    } catch (e) {
-      print('Error creating new tables: $e');
-    }
   }
 
   // ========== USER METHODS ==========

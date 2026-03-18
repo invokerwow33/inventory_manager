@@ -83,7 +83,7 @@ class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
   Future<void> _showWriteOffDialog(Consumable consumable) async {
     final quantityController = TextEditingController();
     final notesController = TextEditingController();
-    
+
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -141,6 +141,10 @@ class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
       ),
     );
 
+    // Освобождаем контроллеры
+    quantityController.dispose();
+    notesController.dispose();
+
     if (result == true) {
       final quantity = double.parse(quantityController.text.replaceAll(',', '.'));
       await _performWriteOff(consumable, quantity, notesController.text);
@@ -183,7 +187,7 @@ class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
     final quantityController = TextEditingController();
     final supplierController = TextEditingController(text: consumable.supplier ?? '');
     final notesController = TextEditingController();
-    
+
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -242,6 +246,11 @@ class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
         ],
       ),
     );
+
+    // Освобождаем контроллеры
+    quantityController.dispose();
+    supplierController.dispose();
+    notesController.dispose();
 
     if (result == true) {
       final quantity = double.parse(quantityController.text.replaceAll(',', '.'));

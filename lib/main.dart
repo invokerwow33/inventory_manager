@@ -124,6 +124,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   bool _extendedNavigation = true;
 
   @override
+  void dispose() {
+    // Cleanup if needed
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     // Используем addPostFrameCallback для избежания вызова setState во время сборки
