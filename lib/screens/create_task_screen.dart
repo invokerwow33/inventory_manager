@@ -156,8 +156,9 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     try {
       await taskProvider.createTask(task);
       if (mounted) {
-        // Принудительно обновляем список задач
-        await taskProvider.loadTasks(forceRefresh: true);
+        // Принудительно обновляем список задач с теми же параметрами
+        // Директор видит только созданные им задачи
+        await taskProvider.loadTasks(createdBy: auth.currentUser!.id, forceRefresh: true);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Задача создана')),
         );

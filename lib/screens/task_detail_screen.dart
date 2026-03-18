@@ -96,15 +96,29 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
     if (confirmed == true) {
       try {
-        await context.read<TaskProvider>().updateTaskStatus(widget.task.id, status);
+        final taskProvider = context.read<TaskProvider>();
+        final auth = context.read<AuthProvider>();
         
+        await taskProvider.updateTaskStatus(widget.task.id, status);
+
         // Добавляем системное сообщение
-        await context.read<TaskProvider>().addSystemComment(
+        await taskProvider.addSystemComment(
           widget.task.id,
           'Статус изменен на "${status.label}"',
         );
-        
+
+        // Обновляем список задач чтобы отобразить изменения
+        if (auth.isAdmin) {
+          await taskProvider.loadTasks(createdBy: auth.currentUser!.id, forceRefresh: true);
+        } else {
+          await taskProvider.loadTasks(assignedTo: auth.currentUser!.id, forceRefresh: true);
+        }
+
         await _loadComments();
+        
+        if (mounted) {
+          Navigator.pop(context); // Закрываем экран детали
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
