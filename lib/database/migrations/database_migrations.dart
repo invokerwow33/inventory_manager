@@ -219,6 +219,26 @@ class MigrationV9 extends Migration {
   }
 }
 
+class MigrationV10 extends Migration {
+  MigrationV10() : super(10, 'Add updated_at column to tasks table (fix)');
+
+  @override
+  Future<void> up(Database db) async {
+    // Проверяем, существует ли колонка updated_at
+    final tableInfo = await db.rawQuery('PRAGMA table_info(tasks)');
+    final hasUpdatedAt = tableInfo.any((row) => row['name'] == 'updated_at');
+    
+    if (!hasUpdatedAt) {
+      await db.execute('ALTER TABLE tasks ADD COLUMN updated_at TEXT');
+    }
+  }
+
+  @override
+  Future<void> down(Database db) async {
+    // SQLite doesn't support DROP COLUMN, so we just do nothing
+  }
+}
+
 class DatabaseMigrationManager {
   static final List<Migration> migrations = [
     MigrationV2(),
@@ -229,6 +249,7 @@ class DatabaseMigrationManager {
     MigrationV7(),
     MigrationV8(),
     MigrationV9(),
+    MigrationV10(),
   ];
   
   static Migration? getMigration(int version) {
