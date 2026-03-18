@@ -155,6 +155,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         dueDate: _dueDate,
         notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
         createdAt: DateTime.now(),
+        // updatedAt исключено
       );
 
       await taskProvider.createTask(task);

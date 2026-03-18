@@ -55,11 +55,11 @@ class Task {
       'status': status.toString().split('.').last,
       'priority': priority.toString().split('.').last,
       'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
       'due_date': dueDate?.toIso8601String(),
       'started_at': startedAt?.toIso8601String(),
       'completed_at': completedAt?.toIso8601String(),
       'notes': notes,
+      // updated_at исключено из-за проблем с миграцией
     };
   }
 
