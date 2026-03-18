@@ -139,21 +139,24 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     final auth = context.read<AuthProvider>();
     final taskProvider = context.read<TaskProvider>();
 
-    final task = Task(
-      id: 'task_${DateTime.now().millisecondsSinceEpoch}',
-      title: _titleController.text.trim(),
-      description: _descriptionController.text.trim(),
-      createdBy: auth.currentUser!.id,
-      createdByName: auth.currentUser!.username,
-      assignedTo: _selectedEmployeeId,
-      assignedToName: _selectedEmployeeName,
-      priority: _priority,
-      dueDate: _dueDate,
-      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-      createdAt: DateTime.now(),
-    );
-
+    // Проверяем, выбран ли исполнитель (опционально)
+    // Если не выбран, задача будет создана без исполнителя (общая задача)
+    
     try {
+      final task = Task(
+        id: 'task_${DateTime.now().millisecondsSinceEpoch}',
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        createdBy: auth.currentUser!.id,
+        createdByName: auth.currentUser!.username,
+        assignedTo: _selectedEmployeeId, // может быть null
+        assignedToName: _selectedEmployeeName, // может быть null
+        priority: _priority,
+        dueDate: _dueDate,
+        notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        createdAt: DateTime.now(),
+      );
+
       await taskProvider.createTask(task);
       if (mounted) {
         // Принудительно обновляем список задач с теми же параметрами
@@ -165,6 +168,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
+      print('[CreateTask] Ошибка создания задачи: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Ошибка: $e')),
