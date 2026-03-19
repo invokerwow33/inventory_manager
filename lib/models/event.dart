@@ -242,9 +242,7 @@ class Screening {
 class Ticket {
   String id;
   String screeningId;
-  String? screeningInfo;
   String seatId;
-  String? seatLabel;
   double price;
   String status; // available, reserved, sold, returned
   String? barcode;
@@ -255,9 +253,7 @@ class Ticket {
   Ticket({
     required this.id,
     required this.screeningId,
-    this.screeningInfo,
     required this.seatId,
-    this.seatLabel,
     required this.price,
     this.status = 'available',
     this.barcode,
@@ -270,9 +266,7 @@ class Ticket {
     return {
       'id': id,
       'screening_id': screeningId,
-      'screening_info': screeningInfo,
       'seat_id': seatId,
-      'seat_label': seatLabel,
       'price': price,
       'status': status,
       'barcode': barcode,
@@ -286,9 +280,7 @@ class Ticket {
     return Ticket(
       id: map['id']?.toString() ?? '',
       screeningId: map['screening_id']?.toString() ?? '',
-      screeningInfo: map['screening_info'],
       seatId: map['seat_id']?.toString() ?? '',
-      seatLabel: map['seat_label'],
       price: map['price'] ?? 0.0,
       status: map['status'] ?? 'available',
       barcode: map['barcode'],

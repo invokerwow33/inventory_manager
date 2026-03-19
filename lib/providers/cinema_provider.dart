@@ -313,15 +313,13 @@ class CinemaProvider extends ChangeNotifier {
   // Create tickets for screening
   Future<void> _createTicketsForScreening(Screening screening) async {
     final seats = await _dbHelper.getSeats(hallId: screening.hallId);
-    
+
     for (final seatMap in seats) {
       final seat = Seat.fromMap(seatMap);
       final ticket = Ticket(
         id: 'tkt_${screening.id}_${seat.id}',
         screeningId: screening.id,
-        screeningInfo: '${screening.eventTitle} - ${screening.startTimeLabel}',
         seatId: seat.id,
-        seatLabel: seat.label,
         price: screening.basePrice * seat.priceModifier,
         status: 'available',
         createdAt: DateTime.now(),
