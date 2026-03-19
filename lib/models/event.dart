@@ -293,9 +293,7 @@ class Ticket {
   Ticket copyWith({
     String? id,
     String? screeningId,
-    String? screeningInfo,
     String? seatId,
-    String? seatLabel,
     double? price,
     String? status,
     String? barcode,
@@ -306,9 +304,7 @@ class Ticket {
     return Ticket(
       id: id ?? this.id,
       screeningId: screeningId ?? this.screeningId,
-      screeningInfo: screeningInfo ?? this.screeningInfo,
       seatId: seatId ?? this.seatId,
-      seatLabel: seatLabel ?? this.seatLabel,
       price: price ?? this.price,
       status: status ?? this.status,
       barcode: barcode ?? this.barcode,
