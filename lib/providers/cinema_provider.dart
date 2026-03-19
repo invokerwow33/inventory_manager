@@ -281,18 +281,28 @@ class CinemaProvider extends ChangeNotifier {
 
   // Create screening
   Future<void> createScreening(Screening screening) async {
+    print('[CinemaProvider] createScreening: начало для ${screening.eventTitle}');
+    
     _setLoading(true);
     _clearError();
 
     try {
+      print('[CinemaProvider] Вставка в БД...');
       await _dbHelper.insertScreening(screening.toMap());
+      print('[CinemaProvider] Успешно вставлено в БД');
+      
       _screenings.add(screening);
       
       // Создаём билеты для всех мест в зале
+      print('[CinemaProvider] Создание билетов для сеанса...');
       await _createTicketsForScreening(screening);
+      print('[CinemaProvider] Билеты созданы');
       
       notifyListeners();
-    } catch (e) {
+      print('[CinemaProvider] createScreening: завершено успешно');
+    } catch (e, stackTrace) {
+      print('[CinemaProvider] ОШИБКА createScreening: $e');
+      print('[CinemaProvider] Stack trace: $stackTrace');
       _setError('Ошибка создания сеанса: $e');
       rethrow;
     } finally {

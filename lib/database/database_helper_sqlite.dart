@@ -1988,6 +1988,9 @@ class DatabaseHelper {
   }
 
   Future<String> insertScreening(Map<String, dynamic> screening) async {
+    print('[DatabaseHelper] insertScreening: вставка сеанса ${screening['id']}');
+    print('[DatabaseHelper] Данные: $screening');
+    
     final db = await database;
     if (!screening.containsKey('id') || screening['id'] == null) {
       screening['id'] = 'scr_${DateTime.now().millisecondsSinceEpoch}';
@@ -1995,8 +1998,17 @@ class DatabaseHelper {
     final now = DateTime.now().toIso8601String();
     screening['created_at'] ??= now;
     screening['updated_at'] ??= now;
-    await db.insert('screenings', screening, conflictAlgorithm: ConflictAlgorithm.replace);
-    return screening['id'];
+    
+    try {
+      print('[DatabaseHelper] Выполнение INSERT...');
+      await db.insert('screenings', screening, conflictAlgorithm: ConflictAlgorithm.replace);
+      print('[DatabaseHelper] INSERT завершён успешно');
+      return screening['id'];
+    } catch (e, stackTrace) {
+      print('[DatabaseHelper] ОШИБКА insertScreening: $e');
+      print('[DatabaseHelper] Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
   Future<void> updateScreening(Map<String, dynamic> screening) async {

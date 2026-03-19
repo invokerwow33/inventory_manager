@@ -293,7 +293,10 @@ class _CreateScreeningScreenState extends State<CreateScreeningScreen> {
   }
 
   Future<void> _createScreening() async {
+    print('[CreateScreening] Начинаем создание сеанса...');
+    
     if (_selectedEvent == null) {
+      print('[CreateScreening] Ошибка: мероприятие не выбрано');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Выберите мероприятие')),
       );
@@ -301,6 +304,7 @@ class _CreateScreeningScreenState extends State<CreateScreeningScreen> {
     }
 
     if (_selectedHall == null) {
+      print('[CreateScreening] Ошибка: зал не выбран');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Выберите зал')),
       );
@@ -309,11 +313,18 @@ class _CreateScreeningScreenState extends State<CreateScreeningScreen> {
 
     final basePrice = double.tryParse(_basePriceController.text);
     if (basePrice == null || basePrice <= 0) {
+      print('[CreateScreening] Ошибка: некорректная цена: ${_basePriceController.text}');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Введите корректную цену')),
       );
       return;
     }
+    
+    print('[CreateScreening] Данные валидны:');
+    print('  - Event: ${_selectedEvent!.title} (${_selectedEvent!.id})');
+    print('  - Hall: ${_selectedHall!.name} (${_selectedHall!.id})');
+    print('  - Price: $basePrice');
+    print('  - Start: $_selectedDate $_selectedTime');
 
     final startTime = DateTime(
       _selectedDate.year,
@@ -340,9 +351,14 @@ class _CreateScreeningScreenState extends State<CreateScreeningScreen> {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
+    
+    print('[CreateScreening] Создание объекта Screening завершено');
 
     try {
+      print('[CreateScreening] Вызов createScreening в provider...');
       await context.read<CinemaProvider>().createScreening(screening);
+      print('[CreateScreening] Сеанс успешно создан!');
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -352,10 +368,16 @@ class _CreateScreeningScreenState extends State<CreateScreeningScreen> {
         );
         Navigator.pop(context);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('[CreateScreening] ОШИБКА при создании сеанса: $e');
+      print('[CreateScreening] Stack trace: $stackTrace');
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка: $e')),
+          SnackBar(
+            content: Text('Ошибка: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
