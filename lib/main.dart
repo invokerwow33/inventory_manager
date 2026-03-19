@@ -433,8 +433,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             }
                             break;
                           case 'logout':
-                            auth.logout();
-                            Navigator.pushReplacementNamed(context, '/select-user');
+                            try {
+                              // Сначала навигация, потом logout
+                              Navigator.pushReplacementNamed(context, '/select-user');
+                              // Logout в фоне
+                              auth.logout().catchError((e) {
+                                print('[Logout] Ошибка: $e');
+                              });
+                            } catch (e) {
+                              print('[Logout] Ошибка навигации: $e');
+                            }
                             break;
                         }
                       },
