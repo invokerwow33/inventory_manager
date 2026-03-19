@@ -350,20 +350,24 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             extended: isExtended,
             minExtendedWidth: 200,
             destinations: destinations,
-            leading: _extendedNavigation
-                ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildLeadingHeader(isExtended: isExtended),
-                      // Expand/collapse button moved to leading
-                      IconButton(
-                        icon: Icon(_extendedNavigation ? Icons.chevron_left : Icons.chevron_right),
-                        onPressed: () => setState(() => _extendedNavigation = !_extendedNavigation),
-                        tooltip: _extendedNavigation ? 'Свернуть' : 'Развернуть',
-                      ),
-                    ],
-                  )
-                : _buildLeadingHeader(isExtended: isExtended),
+            leading: const SizedBox.shrink(),
+            trailing: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isExtended) ...[
+                    _buildLeadingHeader(isExtended: isExtended),
+                    const SizedBox(height: 8),
+                  ],
+                  // Expand/collapse button
+                  IconButton(
+                    icon: Icon(_extendedNavigation ? Icons.chevron_left : Icons.chevron_right),
+                    onPressed: () => setState(() => _extendedNavigation = !_extendedNavigation),
+                    tooltip: _extendedNavigation ? 'Свернуть' : 'Развернуть',
+                  ),
+                ],
+              ),
+            ),
           ),
 
           const VerticalDivider(thickness: 1, width: 1),
