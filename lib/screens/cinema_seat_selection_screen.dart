@@ -6,6 +6,8 @@ import '../../providers/auth_provider.dart';
 import '../../models/event.dart';
 import '../../models/cinema_hall.dart';
 import '../models/ticket.dart';
+import '../models/ticket_sale.dart';
+import '../../services/ticket_print_service.dart';
 
 class CinemaSeatSelectionScreen extends StatefulWidget {
   final Screening screening;
@@ -364,10 +366,19 @@ class _CinemaSeatSelectionScreenState extends State<CinemaSeatSelectionScreen> {
     if (confirmed != true) return;
 
     try {
+      final soldTickets = <Map<String, dynamic>>[];
+      final screening = widget.screening;
+      
+      // Загружаем данные
+      final hall = provider.cinemaHalls.firstWhere((h) => h.id == screening.hallId);
+      final event = provider.events.firstWhere((e) => e.id == screening.eventId);
+
       // Продаём каждое место
       for (final seatId in _selectedSeatIds) {
-        final ticket = provider.getTicketBySeat(widget.screening.id, seatId);
+        final ticket = provider.getTicketBySeat(screening.id, seatId);
         if (ticket == null) continue;
+
+        final seat = provider.seats.firstWhere((s) => s.id == seatId);
 
         final sale = TicketSale(
           id: 'sale_${DateTime.now().millisecondsSinceEpoch}_$seatId',
@@ -389,6 +400,15 @@ class _CinemaSeatSelectionScreenState extends State<CinemaSeatSelectionScreen> {
         );
 
         await provider.sellTicket(ticket, sale);
+        
+        soldTickets.add({
+          'ticket': ticket,
+          'sale': sale,
+          'screening': screening,
+          'event': event,
+          'hall': hall,
+          'seat': seat,
+        });
       }
 
       if (mounted) {
@@ -396,6 +416,13 @@ class _CinemaSeatSelectionScreenState extends State<CinemaSeatSelectionScreen> {
           SnackBar(
             content: Text('Продано ${_selectedSeatIds.length} бил.(а/ов)'),
             backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: 'Печать',
+              textColor: Colors.white,
+              onPressed: () {
+                TicketPrintService.printTickets(tickets: soldTickets);
+              },
+            ),
           ),
         );
         Navigator.pop(context);
