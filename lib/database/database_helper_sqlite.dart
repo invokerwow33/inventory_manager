@@ -36,7 +36,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       dbPath,
-      version: 10,
+      version: 11,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -1689,25 +1689,347 @@ class DatabaseHelper {
   // Get statistics
   Future<Map<String, int>> getTaskStats({String? assignedTo}) async {
     final db = await database;
-    
+
     final totalResult = await db.rawQuery(
       'SELECT COUNT(*) as count FROM tasks${assignedTo != null ? ' WHERE assigned_to = ?' : ''}',
       assignedTo != null ? [assignedTo] : null,
     );
-    
+
     final statusResult = await db.rawQuery(
       'SELECT status, COUNT(*) as count FROM tasks${assignedTo != null ? ' WHERE assigned_to = ?' : ''} GROUP BY status',
       assignedTo != null ? [assignedTo] : null,
     );
-    
+
     final stats = <String, int>{
       'total': (totalResult.first['count'] as int?) ?? 0,
     };
-    
+
     for (var row in statusResult) {
       stats[row['status'] as String] = (row['count'] as int?) ?? 0;
     }
-    
+
     return stats;
+  }
+
+  // ========== CINEMA METHODS ==========
+
+  // Cinema Halls
+  Future<List<Map<String, dynamic>>> getCinemaHalls() async {
+    final db = await database;
+    return await db.query('cinema_halls', orderBy: 'name');
+  }
+
+  Future<Map<String, dynamic>?> getCinemaHallById(String id) async {
+    final db = await database;
+    final results = await db.query('cinema_halls', where: 'id = ?', whereArgs: [id]);
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  Future<String> insertCinemaHall(Map<String, dynamic> hall) async {
+    final db = await database;
+    if (!hall.containsKey('id') || hall['id'] == null) {
+      hall['id'] = 'hall_${DateTime.now().millisecondsSinceEpoch}';
+    }
+    final now = DateTime.now().toIso8601String();
+    hall['created_at'] ??= now;
+    hall['updated_at'] ??= now;
+    await db.insert('cinema_halls', hall, conflictAlgorithm: ConflictAlgorithm.replace);
+    return hall['id'];
+  }
+
+  Future<void> updateCinemaHall(Map<String, dynamic> hall) async {
+    final db = await database;
+    hall['updated_at'] = DateTime.now().toIso8601String();
+    await db.update('cinema_halls', hall, where: 'id = ?', whereArgs: [hall['id']]);
+  }
+
+  Future<void> deleteCinemaHall(String id) async {
+    final db = await database;
+    await db.delete('cinema_halls', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Seats
+  Future<List<Map<String, dynamic>>> getSeats({String? hallId}) async {
+    final db = await database;
+    if (hallId != null) {
+      return await db.query('seats', where: 'hall_id = ?', whereArgs: [hallId], orderBy: 'row, seat_number');
+    }
+    return await db.query('seats', orderBy: 'hall_id, row, seat_number');
+  }
+
+  Future<Map<String, dynamic>?> getSeatById(String id) async {
+    final db = await database;
+    final results = await db.query('seats', where: 'id = ?', whereArgs: [id]);
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  Future<String> insertSeat(Map<String, dynamic> seat) async {
+    final db = await database;
+    if (!seat.containsKey('id') || seat['id'] == null) {
+      seat['id'] = 'seat_${DateTime.now().millisecondsSinceEpoch}';
+    }
+    final now = DateTime.now().toIso8601String();
+    seat['created_at'] ??= now;
+    seat['updated_at'] ??= now;
+    await db.insert('seats', seat, conflictAlgorithm: ConflictAlgorithm.replace);
+    return seat['id'];
+  }
+
+  Future<void> updateSeat(Map<String, dynamic> seat) async {
+    final db = await database;
+    seat['updated_at'] = DateTime.now().toIso8601String();
+    await db.update('seats', seat, where: 'id = ?', whereArgs: [seat['id']]);
+  }
+
+  Future<void> deleteSeat(String id) async {
+    final db = await database;
+    await db.delete('seats', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Events
+  Future<List<Map<String, dynamic>>> getEvents({bool? isActive}) async {
+    final db = await database;
+    String? where;
+    List<dynamic>? whereArgs;
+    if (isActive != null) {
+      where = 'is_active = ?';
+      whereArgs = [isActive ? 1 : 0];
+    }
+    return await db.query('events', where: where, whereArgs: whereArgs, orderBy: 'title');
+  }
+
+  Future<Map<String, dynamic>?> getEventById(String id) async {
+    final db = await database;
+    final results = await db.query('events', where: 'id = ?', whereArgs: [id]);
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  Future<String> insertEvent(Map<String, dynamic> event) async {
+    final db = await database;
+    if (!event.containsKey('id') || event['id'] == null) {
+      event['id'] = 'evt_${DateTime.now().millisecondsSinceEpoch}';
+    }
+    final now = DateTime.now().toIso8601String();
+    event['created_at'] ??= now;
+    event['updated_at'] ??= now;
+    await db.insert('events', event, conflictAlgorithm: ConflictAlgorithm.replace);
+    return event['id'];
+  }
+
+  Future<void> updateEvent(Map<String, dynamic> event) async {
+    final db = await database;
+    event['updated_at'] = DateTime.now().toIso8601String();
+    await db.update('events', event, where: 'id = ?', whereArgs: [event['id']]);
+  }
+
+  Future<void> deleteEvent(String id) async {
+    final db = await database;
+    await db.delete('events', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Screenings
+  Future<List<Map<String, dynamic>>> getScreenings({String? eventId, String? hallId, DateTime? date}) async {
+    final db = await database;
+    String? where;
+    List<dynamic>? whereArgs;
+    
+    if (eventId != null) {
+      where = 'event_id = ?';
+      whereArgs = [eventId];
+    } else if (hallId != null) {
+      where = 'hall_id = ?';
+      whereArgs = [hallId];
+    }
+    
+    if (date != null) {
+      final dateStart = DateTime(date.year, date.month, date.day);
+      final dateEnd = dateStart.add(const Duration(days: 1));
+      if (where != null) {
+        where += ' AND start_time >= ? AND start_time < ?';
+        whereArgs!.addAll([dateStart.toIso8601String(), dateEnd.toIso8601String()]);
+      } else {
+        where = 'start_time >= ? AND start_time < ?';
+        whereArgs = [dateStart.toIso8601String(), dateEnd.toIso8601String()];
+      }
+    }
+    
+    return await db.query('screenings', where: where, whereArgs: whereArgs, orderBy: 'start_time');
+  }
+
+  Future<Map<String, dynamic>?> getScreeningById(String id) async {
+    final db = await database;
+    final results = await db.query('screenings', where: 'id = ?', whereArgs: [id]);
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  Future<String> insertScreening(Map<String, dynamic> screening) async {
+    final db = await database;
+    if (!screening.containsKey('id') || screening['id'] == null) {
+      screening['id'] = 'scr_${DateTime.now().millisecondsSinceEpoch}';
+    }
+    final now = DateTime.now().toIso8601String();
+    screening['created_at'] ??= now;
+    screening['updated_at'] ??= now;
+    await db.insert('screenings', screening, conflictAlgorithm: ConflictAlgorithm.replace);
+    return screening['id'];
+  }
+
+  Future<void> updateScreening(Map<String, dynamic> screening) async {
+    final db = await database;
+    screening['updated_at'] = DateTime.now().toIso8601String();
+    await db.update('screenings', screening, where: 'id = ?', whereArgs: [screening['id']]);
+  }
+
+  Future<void> deleteScreening(String id) async {
+    final db = await database;
+    await db.delete('screenings', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Tickets
+  Future<List<Map<String, dynamic>>> getTickets({String? screeningId, String? status}) async {
+    final db = await database;
+    String? where;
+    List<dynamic>? whereArgs;
+    
+    if (screeningId != null) {
+      where = 'screening_id = ?';
+      whereArgs = [screeningId];
+    }
+    
+    if (status != null) {
+      if (where != null) {
+        where += ' AND status = ?';
+        whereArgs!.add(status);
+      } else {
+        where = 'status = ?';
+        whereArgs = [status];
+      }
+    }
+    
+    return await db.query('tickets', where: where, whereArgs: whereArgs);
+  }
+
+  Future<Map<String, dynamic>?> getTicketById(String id) async {
+    final db = await database;
+    final results = await db.query('tickets', where: 'id = ?', whereArgs: [id]);
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  Future<String> insertTicket(Map<String, dynamic> ticket) async {
+    final db = await database;
+    if (!ticket.containsKey('id') || ticket['id'] == null) {
+      ticket['id'] = 'tkt_${DateTime.now().millisecondsSinceEpoch}';
+    }
+    final now = DateTime.now().toIso8601String();
+    ticket['created_at'] ??= now;
+    ticket['updated_at'] ??= now;
+    await db.insert('tickets', ticket, conflictAlgorithm: ConflictAlgorithm.replace);
+    return ticket['id'];
+  }
+
+  Future<void> updateTicket(Map<String, dynamic> ticket) async {
+    final db = await database;
+    ticket['updated_at'] = DateTime.now().toIso8601String();
+    await db.update('tickets', ticket, where: 'id = ?', whereArgs: [ticket['id']]);
+  }
+
+  Future<void> deleteTicket(String id) async {
+    final db = await database;
+    await db.delete('tickets', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Ticket Sales
+  Future<List<Map<String, dynamic>>> getTicketSales({String? cashierId, DateTime? date}) async {
+    final db = await database;
+    String? where;
+    List<dynamic>? whereArgs;
+    
+    if (cashierId != null) {
+      where = 'cashier_id = ?';
+      whereArgs = [cashierId];
+    }
+    
+    if (date != null) {
+      final dateStart = DateTime(date.year, date.month, date.day);
+      final dateEnd = dateStart.add(const Duration(days: 1));
+      if (where != null) {
+        where += ' AND sale_date >= ? AND sale_date < ?';
+        whereArgs!.addAll([dateStart.toIso8601String(), dateEnd.toIso8601String()]);
+      } else {
+        where = 'sale_date >= ? AND sale_date < ?';
+        whereArgs = [dateStart.toIso8601String(), dateEnd.toIso8601String()];
+      }
+    }
+    
+    return await db.query('ticket_sales', where: where, whereArgs: whereArgs, orderBy: 'sale_date DESC');
+  }
+
+  Future<Map<String, dynamic>?> getTicketSaleById(String id) async {
+    final db = await database;
+    final results = await db.query('ticket_sales', where: 'id = ?', whereArgs: [id]);
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  Future<String> insertTicketSale(Map<String, dynamic> sale) async {
+    final db = await database;
+    if (!sale.containsKey('id') || sale['id'] == null) {
+      sale['id'] = 'sale_${DateTime.now().millisecondsSinceEpoch}';
+    }
+    final now = DateTime.now().toIso8601String();
+    sale['created_at'] ??= now;
+    sale['updated_at'] ??= now;
+    await db.insert('ticket_sales', sale, conflictAlgorithm: ConflictAlgorithm.replace);
+    return sale['id'];
+  }
+
+  Future<void> updateTicketSale(Map<String, dynamic> sale) async {
+    final db = await database;
+    sale['updated_at'] = DateTime.now().toIso8601String();
+    await db.update('ticket_sales', sale, where: 'id = ?', whereArgs: [sale['id']]);
+  }
+
+  Future<void> deleteTicketSale(String id) async {
+    final db = await database;
+    await db.delete('ticket_sales', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Cinema Statistics
+  Future<Map<String, int>> getCinemaStats() async {
+    final db = await database;
+    
+    final hallsResult = await db.rawQuery('SELECT COUNT(*) as count FROM cinema_halls WHERE is_active = 1');
+    final eventsResult = await db.rawQuery('SELECT COUNT(*) as count FROM events WHERE is_active = 1');
+    final screeningsResult = await db.rawQuery('SELECT COUNT(*) as count FROM screenings WHERE status = "scheduled"');
+    final ticketsSoldResult = await db.rawQuery('SELECT COUNT(*) as count FROM ticket_sales WHERE status = "sold"');
+    
+    return {
+      'halls': (hallsResult.first['count'] as int?) ?? 0,
+      'events': (eventsResult.first['count'] as int?) ?? 0,
+      'screenings': (screeningsResult.first['count'] as int?) ?? 0,
+      'tickets_sold': (ticketsSoldResult.first['count'] as int?) ?? 0,
+    };
+  }
+
+  Future<Map<String, double>> getRevenueStats({DateTime? startDate, DateTime? endDate}) async {
+    final db = await database;
+    
+    String? where;
+    List<dynamic>? whereArgs;
+    
+    if (startDate != null && endDate != null) {
+      where = 'sale_date >= ? AND sale_date <= ?';
+      whereArgs = [startDate.toIso8601String(), endDate.toIso8601String()];
+    }
+    
+    final result = await db.rawQuery(
+      'SELECT SUM(sale_price) as total FROM ticket_sales WHERE status = "sold"${where != null ? ' AND $where' : ''}',
+      whereArgs,
+    );
+    
+    final totalRevenue = (result.first['total'] as num?)?.toDouble() ?? 0.0;
+    
+    return {
+      'total_revenue': totalRevenue,
+    };
   }
 }

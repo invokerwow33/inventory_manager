@@ -239,6 +239,151 @@ class MigrationV10 extends Migration {
   }
 }
 
+class MigrationV11 extends Migration {
+  MigrationV11() : super(11, 'Add cinema, events and tickets tables');
+
+  @override
+  Future<void> up(Database db) async {
+    // Cinema halls table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cinema_halls(
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        total_seats INTEGER DEFAULT 0,
+        screen_width REAL,
+        screen_height REAL,
+        projector_type TEXT,
+        sound_system TEXT,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
+    // Seats table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS seats(
+        id TEXT PRIMARY KEY,
+        hall_id TEXT NOT NULL,
+        row INTEGER NOT NULL,
+        seat_number INTEGER NOT NULL,
+        seat_type TEXT DEFAULT 'standard',
+        price_modifier REAL DEFAULT 1.0,
+        is_accessible INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'available',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (hall_id) REFERENCES cinema_halls(id)
+      )
+    ''');
+
+    // Events table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS events(
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        event_type TEXT,
+        genre TEXT,
+        duration_minutes INTEGER,
+        age_rating TEXT,
+        director TEXT,
+        cast TEXT,
+        country TEXT,
+        year INTEGER,
+        poster_url TEXT,
+        trailer_url TEXT,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
+    // Screenings table (сеансы)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS screenings(
+        id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        hall_id TEXT NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT,
+        base_price REAL DEFAULT 0,
+        currency TEXT DEFAULT 'RUB',
+        status TEXT DEFAULT 'scheduled',
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (event_id) REFERENCES events(id),
+        FOREIGN KEY (hall_id) REFERENCES cinema_halls(id)
+      )
+    ''');
+
+    // Tickets table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS tickets(
+        id TEXT PRIMARY KEY,
+        screening_id TEXT NOT NULL,
+        seat_id TEXT NOT NULL,
+        price REAL NOT NULL,
+        status TEXT DEFAULT 'available',
+        barcode TEXT,
+        qr_code TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (screening_id) REFERENCES screenings(id),
+        FOREIGN KEY (seat_id) REFERENCES seats(id)
+      )
+    ''');
+
+    // Ticket sales table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ticket_sales(
+        id TEXT PRIMARY KEY,
+        ticket_id TEXT NOT NULL,
+        cashier_id TEXT NOT NULL,
+        cashier_name TEXT NOT NULL,
+        customer_name TEXT,
+        customer_phone TEXT,
+        customer_email TEXT,
+        sale_price REAL NOT NULL,
+        payment_method TEXT DEFAULT 'cash',
+        receipt_number TEXT,
+        sale_date TEXT NOT NULL,
+        refund_date TEXT,
+        refund_reason TEXT,
+        status TEXT DEFAULT 'sold',
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (ticket_id) REFERENCES tickets(id),
+        FOREIGN KEY (cashier_id) REFERENCES users(id)
+      )
+    ''');
+
+    // Indexes
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_seats_hall ON seats(hall_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_screenings_event ON screenings(event_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_screenings_hall ON screenings(hall_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_screenings_start_time ON screenings(start_time)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tickets_screening ON tickets(screening_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tickets_seat ON tickets(seat_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ticket_sales_ticket ON ticket_sales(ticket_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ticket_sales_cashier ON ticket_sales(cashier_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ticket_sales_sale_date ON ticket_sales(sale_date)');
+  }
+
+  @override
+  Future<void> down(Database db) async {
+    await db.execute('DROP TABLE IF EXISTS ticket_sales');
+    await db.execute('DROP TABLE IF EXISTS tickets');
+    await db.execute('DROP TABLE IF EXISTS screenings');
+    await db.execute('DROP TABLE IF EXISTS events');
+    await db.execute('DROP TABLE IF EXISTS seats');
+    await db.execute('DROP TABLE IF EXISTS cinema_halls');
+  }
+}
+
 class DatabaseMigrationManager {
   static final List<Migration> migrations = [
     MigrationV2(),
@@ -250,6 +395,7 @@ class DatabaseMigrationManager {
     MigrationV8(),
     MigrationV9(),
     MigrationV10(),
+    MigrationV11(),
   ];
   
   static Migration? getMigration(int version) {
