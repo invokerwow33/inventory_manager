@@ -37,9 +37,12 @@ class _CinemaScreenState extends State<CinemaScreen> {
 
   Future<void> _loadData() async {
     final cinemaProvider = context.read<CinemaProvider>();
-    await cinemaProvider.loadEvents(isActive: true, forceRefresh: true);
-    await cinemaProvider.loadCinemaHalls(forceRefresh: true);
-    await cinemaProvider.loadScreenings(date: _selectedDate, forceRefresh: true);
+    // Загружаем всё параллельно, чтобы избежать множественных rebuild
+    await Future.wait([
+      cinemaProvider.loadEvents(isActive: true, forceRefresh: true),
+      cinemaProvider.loadCinemaHalls(forceRefresh: true),
+      cinemaProvider.loadScreenings(date: _selectedDate, forceRefresh: true),
+    ]);
   }
 
   @override

@@ -488,12 +488,12 @@ class CinemaProvider extends ChangeNotifier {
   // Helper methods
   void _setLoading(bool value) {
     _isLoading = value;
-    notifyListeners();
+    // Не вызываем notifyListeners() здесь, чтобы избежать уведомлений во время сборки
   }
 
   void _setError(String message) {
     _error = message;
-    notifyListeners();
+    // Не вызываем notifyListeners() здесь
   }
 
   void _clearError() {
