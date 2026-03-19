@@ -42,6 +42,7 @@ import 'package:inventory_manager/providers/maintenance_provider.dart';
 import 'package:inventory_manager/providers/analytics_provider.dart';
 import 'package:inventory_manager/providers/sync_provider.dart';
 import 'package:inventory_manager/providers/task_provider.dart';
+import 'package:inventory_manager/providers/cinema_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -80,6 +81,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
         ChangeNotifierProvider(create: (_) => SyncProvider()),
         ChangeNotifierProvider(create: (_) => TaskProvider()),
+        ChangeNotifierProvider(create: (_) => CinemaProvider()),
       ],
       child: Consumer2<SettingsProvider, AuthProvider>(
         builder: (context, settings, auth, child) {

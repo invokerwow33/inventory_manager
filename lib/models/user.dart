@@ -6,7 +6,8 @@ enum UserRole {
   manager('Менеджер', Colors.orange, Icons.manage_accounts),
   user('Пользователь', Colors.blue, Icons.person),
   employee('Сотрудник', Colors.green, Icons.badge),
-  viewer('Наблюдатель', Colors.grey, Icons.visibility);
+  viewer('Наблюдатель', Colors.grey, Icons.visibility),
+  cashier('Кассир', Colors.teal, Icons.point_of_sale);
 
   final String label;
   final Color color;
@@ -20,7 +21,7 @@ enum UserRole {
       orElse: () => UserRole.user,
     );
   }
-  
+
   List<Permission> get defaultPermissions => Role.values
       .firstWhere((r) => r.name == name, orElse: () => Role.employee)
       .permissions;

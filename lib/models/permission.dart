@@ -40,7 +40,16 @@ enum Permission {
   createUser('Создание пользователей'),
   editUser('Редактирование пользователей'),
   deleteUser('Удаление пользователей'),
-  editUserPermissions('Изменение прав пользователей');
+  editUserPermissions('Изменение прав пользователей'),
+
+  // Кинотеатр / Касса
+  viewCinema('Просмотр кинотеатра'),
+  manageEvents('Управление мероприятиями'),
+  manageScreenings('Управление сеансами'),
+  sellTickets('Продажа билетов'),
+  returnTickets('Возврат билетов'),
+  manageCinemaHalls('Управление залами'),
+  viewCashierReport('Просмотр отчётов кассира');
 
   final String label;
   const Permission(this.label);
@@ -51,13 +60,14 @@ enum Role {
   admin,      // Полный доступ
   manager,    // Управление оборудованием и задачами
   employee,   // Базовый доступ
-  viewer;     // Только просмотр
+  viewer,     // Только просмотр
+  cashier;    // Кассир (продажа билетов)
 
   List<Permission> get permissions {
     switch (this) {
       case admin:
         return Permission.values;
-      
+
       case manager:
         return [
           // Оборудование
@@ -85,8 +95,13 @@ enum Role {
           Permission.viewSettings,
           // Пользователи
           Permission.viewUsers,
+          // Кинотеатр
+          Permission.viewCinema,
+          Permission.manageEvents,
+          Permission.manageScreenings,
+          Permission.manageCinemaHalls,
         ];
-      
+
       case employee:
         return [
           // Оборудование
@@ -103,7 +118,7 @@ enum Role {
           // Настройки
           Permission.viewSettings,
         ];
-      
+
       case viewer:
         return [
           Permission.viewEquipment,
@@ -112,6 +127,18 @@ enum Role {
           Permission.viewTasks,
           Permission.viewReports,
           Permission.viewSettings,
+        ];
+
+      case cashier:
+        return [
+          // Кинотеатр / Касса
+          Permission.viewCinema,
+          Permission.sellTickets,
+          Permission.returnTickets,
+          Permission.viewCashierReport,
+          // Просмотр мероприятий и сеансов
+          Permission.manageEvents,
+          Permission.manageScreenings,
         ];
     }
   }
@@ -171,4 +198,15 @@ extension UserPermissions on User {
   bool get canEditUser => hasPermission(Permission.editUser);
   bool get canDeleteUser => hasPermission(Permission.deleteUser);
   bool get canEditUserPermissions => hasPermission(Permission.editUserPermissions);
+
+  // Кинотеатр / Касса
+  bool get canViewCinema => hasPermission(Permission.viewCinema);
+  bool get canManageEvents => hasPermission(Permission.manageEvents);
+  bool get canManageScreenings => hasPermission(Permission.manageScreenings);
+  bool get canSellTickets => hasPermission(Permission.sellTickets);
+  bool get canReturnTickets => hasPermission(Permission.returnTickets);
+  bool get canManageCinemaHalls => hasPermission(Permission.manageCinemaHalls);
+  bool get canViewCashierReport => hasPermission(Permission.viewCashierReport);
+
+  bool get isCashier => role == UserRole.cashier || role == UserRole.admin;
 }
