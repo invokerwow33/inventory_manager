@@ -25,6 +25,7 @@ import 'package:inventory_manager/screens/audit_log_screen.dart';
 import 'package:inventory_manager/screens/tasks_screen.dart';
 import 'package:inventory_manager/screens/select_user_screen.dart';
 import 'package:inventory_manager/screens/user_management_screen.dart';
+import 'package:inventory_manager/screens/cinema_screen.dart';
 
 // Database
 import 'package:inventory_manager/database/database_init.dart';
@@ -242,6 +243,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ));
     }
 
+    // Кинотеатр - всегда доступен
+    destinations.add(const NavigationRailDestination(
+      icon: Icon(Icons.movie_outlined),
+      selectedIcon: Icon(Icons.movie),
+      label: Text('Кинотеатр'),
+    ));
+
     if (settings.enableVehicleTracking) {
       destinations.add(const NavigationRailDestination(
         icon: Icon(Icons.directions_car_outlined),
@@ -297,6 +305,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     if (settings.enableTelephony) {
       screens.add(const TelephonyScreen());
     }
+
+    // Кинотеатр
+    screens.add(const CinemaScreen());
 
     if (settings.enableVehicleTracking) {
       screens.add(const VehiclesScreen());

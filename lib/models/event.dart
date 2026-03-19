@@ -123,7 +123,7 @@ class Event {
     final hours = durationMinutes! ~/ 60;
     final minutes = durationMinutes! % 60;
     if (hours > 0) {
-      return '$hours ч $мин мин';
+      return '$hours ч $minutes мин';
     }
     return '$minutes мин';
   }
