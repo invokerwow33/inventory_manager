@@ -22,7 +22,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _loadComments();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadComments();
+    });
   }
 
   @override
