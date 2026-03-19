@@ -7,6 +7,8 @@ import '../../models/event.dart';
 import '../../models/cinema_hall.dart';
 import '../../models/permission.dart';
 import 'cinema_seat_selection_screen.dart';
+import 'manage_events_screen.dart';
+import 'create_screening_screen.dart';
 
 class CinemaScreen extends StatefulWidget {
   const CinemaScreen({super.key});
@@ -41,10 +43,46 @@ class _CinemaScreenState extends State<CinemaScreen> {
         title: const Text('Кинотеатр'),
         actions: [
           if (canManage)
-            IconButton(
+            PopupMenuButton<String>(
               icon: const Icon(Icons.add),
-              onPressed: () => _showCreateMenu(),
-              tooltip: 'Создать',
+              onSelected: (value) {
+                switch (value) {
+                  case 'event':
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ManageEventsScreen()),
+                    );
+                    break;
+                  case 'screening':
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CreateScreeningScreen()),
+                    );
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'event',
+                  child: Row(
+                    children: [
+                      Icon(Icons.movie),
+                      SizedBox(width: 8),
+                      Text('Мероприятие'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'screening',
+                  child: Row(
+                    children: [
+                      Icon(Icons.schedule),
+                      SizedBox(width: 8),
+                      Text('Сеанс'),
+                    ],
+                  ),
+                ),
+              ],
             ),
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -316,50 +354,6 @@ class _CinemaScreenState extends State<CinemaScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  void _showCreateMenu() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.movie),
-              title: const Text('Мероприятие'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Navigate to create event screen
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.schedule),
-              title: const Text('Сеанс'),
-              onTap: () {
-                Navigator.pop(context);
-                _showCreateScreening();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.meeting_room),
-              title: const Text('Кинозал'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Navigate to create hall screen
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showCreateScreening() {
-    // TODO: Show create screening dialog/screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Создание сеанса будет реализовано в следующем обновлении')),
     );
   }
 }
