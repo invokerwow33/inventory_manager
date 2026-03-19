@@ -305,7 +305,9 @@ class MigrationV11 extends Migration {
       CREATE TABLE IF NOT EXISTS screenings(
         id TEXT PRIMARY KEY,
         event_id TEXT NOT NULL,
+        event_title TEXT,
         hall_id TEXT NOT NULL,
+        hall_name TEXT,
         start_time TEXT NOT NULL,
         end_time TEXT,
         base_price REAL DEFAULT 0,
@@ -384,6 +386,30 @@ class MigrationV11 extends Migration {
   }
 }
 
+class MigrationV12 extends Migration {
+  MigrationV12() : super(12, 'Add event_title and hall_name to screenings');
+
+  @override
+  Future<void> up(Database db) async {
+    // Проверяем и добавляем колонки если их нет
+    final tableInfo = await db.rawQuery('PRAGMA table_info(screenings)');
+    final hasEventTitle = tableInfo.any((row) => row['name'] == 'event_title');
+    final hasHallName = tableInfo.any((row) => row['name'] == 'hall_name');
+    
+    if (!hasEventTitle) {
+      await db.execute('ALTER TABLE screenings ADD COLUMN event_title TEXT');
+    }
+    if (!hasHallName) {
+      await db.execute('ALTER TABLE screenings ADD COLUMN hall_name TEXT');
+    }
+  }
+
+  @override
+  Future<void> down(Database db) async {
+    // SQLite doesn't support DROP COLUMN, so we just do nothing
+  }
+}
+
 class DatabaseMigrationManager {
   static final List<Migration> migrations = [
     MigrationV2(),
@@ -396,6 +422,7 @@ class DatabaseMigrationManager {
     MigrationV9(),
     MigrationV10(),
     MigrationV11(),
+    MigrationV12(),
   ];
   
   static Migration? getMigration(int version) {
