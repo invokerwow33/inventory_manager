@@ -30,11 +30,15 @@ class _CinemaScreenState extends State<CinemaScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
+      if (mounted) {
+        _loadData();
+      }
     });
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
+    
     final cinemaProvider = context.read<CinemaProvider>();
     // Загружаем всё параллельно, чтобы избежать множественных rebuild
     await Future.wait([

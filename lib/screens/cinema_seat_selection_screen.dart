@@ -24,13 +24,20 @@ class _CinemaSeatSelectionScreenState extends State<CinemaSeatSelectionScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadTickets();
+      if (mounted) {
+        _loadTickets();
+      }
     });
   }
 
   Future<void> _loadTickets() async {
-    final provider = context.read<CinemaProvider>();
-    await provider.loadTickets(widget.screening.id, forceRefresh: true);
+    try {
+      final provider = context.read<CinemaProvider>();
+      await provider.loadTickets(widget.screening.id, forceRefresh: true);
+    } catch (e) {
+      // Игнорируем ошибки если виджет уже не активен
+      if (!mounted) return;
+    }
   }
 
   @override
