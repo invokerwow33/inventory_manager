@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../../providers/cinema_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/event.dart';
-import '../../models/cinema_hall.dart';
 import '../../models/permission.dart';
 import 'cinema_seat_selection_screen.dart';
 import 'manage_events_screen.dart';

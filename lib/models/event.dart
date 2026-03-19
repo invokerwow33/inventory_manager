@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// Мероприятие (фильм, концерт и т.д.)
 class Event {
   String id;

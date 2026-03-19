@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui' as ui;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -200,7 +199,6 @@ class TicketPrintService {
 
     for (final ticketData in tickets) {
       final ticket = ticketData['ticket'] as Ticket;
-      final sale = ticketData['sale'] as TicketSale;
       final screening = ticketData['screening'] as Screening;
       final event = ticketData['event'] as Event;
       final hall = ticketData['hall'] as CinemaHall;
