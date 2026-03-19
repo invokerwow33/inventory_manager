@@ -9,6 +9,7 @@ import '../../models/permission.dart';
 import 'cinema_seat_selection_screen.dart';
 import 'manage_events_screen.dart';
 import 'create_screening_screen.dart';
+import 'manage_cinema_halls_screen.dart';
 
 class CinemaScreen extends StatefulWidget {
   const CinemaScreen({super.key});
@@ -82,7 +83,40 @@ class _CinemaScreenState extends State<CinemaScreen> {
                     ],
                   ),
                 ),
+                const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: 'halls',
+                  child: Row(
+                    children: [
+                      Icon(Icons.meeting_room),
+                      SizedBox(width: 8),
+                      Text('Управление залами'),
+                    ],
+                  ),
+                ),
               ],
+              onSelected: (value) {
+                switch (value) {
+                  case 'event':
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ManageEventsScreen()),
+                    );
+                    break;
+                  case 'screening':
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CreateScreeningScreen()),
+                    );
+                    break;
+                  case 'halls':
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ManageCinemaHallsScreen()),
+                    );
+                    break;
+                }
+              },
             ),
           IconButton(
             icon: const Icon(Icons.refresh),
