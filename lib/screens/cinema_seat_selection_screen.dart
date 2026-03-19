@@ -5,8 +5,6 @@ import '../../providers/cinema_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/event.dart';
 import '../../models/cinema_hall.dart';
-import '../models/ticket.dart';
-import '../models/ticket_sale.dart';
 import '../../services/ticket_print_service.dart';
 
 class CinemaSeatSelectionScreen extends StatefulWidget {

@@ -448,7 +448,7 @@ class _ManageCinemaHallSeatsScreenState extends State<ManageCinemaHallSeatsScree
             ),
             const SizedBox(height: 8),
             Text(
-              'Будет создано ${int.tryParse(rowsController.text) ?? 0 * int.tryParse(seatsPerRowController.text) ?? 0} мест',
+              'Будет создано ${(int.tryParse(rowsController.text) ?? 0) * (int.tryParse(seatsPerRowController.text) ?? 0)} мест',
               style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
             ),
           ],

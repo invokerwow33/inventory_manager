@@ -11,6 +11,12 @@ import 'manage_events_screen.dart';
 import 'create_screening_screen.dart';
 import 'manage_cinema_halls_screen.dart';
 
+extension AuthProviderCinema on AuthProvider {
+  bool get canManageEvents => currentUser?.hasPermission(Permission.manageEvents) ?? false;
+  bool get canManageScreenings => currentUser?.hasPermission(Permission.manageScreenings) ?? false;
+  bool get canSellTickets => currentUser?.hasPermission(Permission.sellTickets) ?? false;
+}
+
 class CinemaScreen extends StatefulWidget {
   const CinemaScreen({super.key});
 
@@ -46,22 +52,6 @@ class _CinemaScreenState extends State<CinemaScreen> {
           if (canManage)
             PopupMenuButton<String>(
               icon: const Icon(Icons.add),
-              onSelected: (value) {
-                switch (value) {
-                  case 'event':
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ManageEventsScreen()),
-                    );
-                    break;
-                  case 'screening':
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const CreateScreeningScreen()),
-                    );
-                    break;
-                }
-              },
               itemBuilder: (context) => [
                 const PopupMenuItem(
                   value: 'event',
@@ -155,7 +145,12 @@ class _CinemaScreenState extends State<CinemaScreen> {
                         if (canManage) ...[
                           const SizedBox(height: 8),
                           ElevatedButton.icon(
-                            onPressed: () => _showCreateScreening(),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const CreateScreeningScreen()),
+                              );
+                            },
                             icon: const Icon(Icons.add),
                             label: const Text('Создать сеанс'),
                           ),

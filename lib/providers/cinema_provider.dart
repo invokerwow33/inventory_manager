@@ -172,6 +172,23 @@ class CinemaProvider extends ChangeNotifier {
     }
   }
 
+  // Delete seat
+  Future<void> deleteSeat(String id) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _dbHelper.deleteSeat(id);
+      _seats.removeWhere((s) => s.id == id);
+      notifyListeners();
+    } catch (e) {
+      _setError('Ошибка удаления места: $e');
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Load events
   Future<void> loadEvents({bool? isActive, bool forceRefresh = false}) async {
     if (!forceRefresh && _events.isNotEmpty) return;

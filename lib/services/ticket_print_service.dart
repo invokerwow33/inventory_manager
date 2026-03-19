@@ -6,8 +6,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 import '../models/event.dart';
 import '../models/cinema_hall.dart';
-import '../models/ticket.dart';
-import '../models/ticket_sale.dart';
 
 class TicketPrintService {
   /// Генерация PDF билета
@@ -144,21 +142,10 @@ class TicketPrintService {
                 ),
                 pw.SizedBox(height: 10),
                 
-                // QR код (заглушка - в реальности нужно генерировать QR)
-                pw.Text(
-                  ticket.barcode ?? ticket.id,
-                  style: pw.TextStyle(
-                    fontSize: 10,
-                    fontFamily: 'Courier',
-                  ),
-                  textAlign: pw.TextAlign.center,
-                ),
-                pw.SizedBox(height: 5),
-                
                 // Номер билета
                 pw.Text(
                   'Билет № ${ticket.id.substring(0, 8)}',
-                  style: pw.TextStyle(fontSize: 8),
+                  style: const pw.TextStyle(fontSize: 8),
                   textAlign: pw.TextAlign.center,
                 ),
                 pw.SizedBox(height: 5),
@@ -312,10 +299,7 @@ class TicketPrintService {
                   pw.SizedBox(height: 5),
                   pw.Text(
                     ticket.barcode ?? ticket.id,
-                    style: pw.TextStyle(
-                      fontSize: 10,
-                      fontFamily: 'Courier',
-                    ),
+                    style: const pw.TextStyle(fontSize: 10),
                     textAlign: pw.TextAlign.center,
                   ),
                   pw.SizedBox(height: 10),
@@ -397,7 +381,7 @@ class TicketPrintService {
                   pw.SizedBox(height: 10),
                   pw.Container(width: double.infinity, height: 1, color: PdfColors.grey),
                   pw.SizedBox(height: 5),
-                  pw.Text(ticket.id, style: pw.TextStyle(fontSize: 10, fontFamily: 'Courier')),
+                  pw.Text(ticket.id, style: const pw.TextStyle(fontSize: 10)),
                   pw.SizedBox(height: 10),
                   pw.Text('Приятного просмотра!', style: pw.TextStyle(fontSize: 10, fontStyle: pw.FontStyle.italic)),
                 ],
