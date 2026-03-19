@@ -15,7 +15,9 @@ class _ManageCinemaHallsScreenState extends State<ManageCinemaHallsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadHalls();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadHalls();
+    });
   }
 
   Future<void> _loadHalls() async {

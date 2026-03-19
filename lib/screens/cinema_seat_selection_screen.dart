@@ -24,7 +24,9 @@ class _CinemaSeatSelectionScreenState extends State<CinemaSeatSelectionScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTickets();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTickets();
+    });
   }
 
   Future<void> _loadTickets() async {
