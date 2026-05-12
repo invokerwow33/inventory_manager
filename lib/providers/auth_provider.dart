@@ -1,16 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import '../database/database_helper.dart';
+import '../database/simple_database_helper.dart';
 import '../models/user.dart';
 import '../models/permission.dart';
 import '../services/audit_service.dart';
 import '../services/logger_service.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  dynamic get _dbHelper => kIsWeb 
+      ? SimpleDatabaseHelper() 
+      : DatabaseHelper.instance;
   final AuditService _auditService = AuditService();
   final LoggerService _logger = LoggerService();
   
