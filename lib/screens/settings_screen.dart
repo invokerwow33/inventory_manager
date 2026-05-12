@@ -1,10 +1,154 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:inventory_manager/screens/backup_screen.dart';
 import 'package:inventory_manager/screens/import_screen.dart';
 import 'package:inventory_manager/screens/logs_screen.dart';
+import 'package:inventory_manager/providers/settings_provider.dart';
+import 'package:inventory_manager/services/sync_service.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  String? _syncServerUrl;
+  bool _isCheckingConnection = false;
+  bool? _isServerConnected;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSyncUrl();
+  }
+
+  Future<void> _loadSyncUrl() async {
+    final url = await SyncService().getServerUrl();
+    setState(() {
+      _syncServerUrl = url;
+    });
+  }
+
+  Future<void> _checkServerConnection() async {
+    setState(() {
+      _isCheckingConnection = true;
+    });
+    final isConnected = await SyncService().checkServerConnection();
+    setState(() {
+      _isServerConnected = isConnected;
+      _isCheckingConnection = false;
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isConnected ? 'Сервер доступен' : 'Сервер недоступен'),
+          backgroundColor: isConnected ? Colors.green : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showSyncServerDialog() async {
+    final controller = TextEditingController(text: _syncServerUrl ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Настройки сервера синхронизации'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'URL сервера',
+                hintText: 'http://localhost:8080/api',
+                helperText: 'Введите адрес сервера синхронизации',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.url,
+            ),
+            const SizedBox(height: 8),
+            if (_isServerConnected != null)
+              Row(
+                children: [
+                  Icon(
+                    _isServerConnected! ? Icons.check_circle : Icons.error,
+                    color: _isServerConnected! ? Colors.green : Colors.red,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _isServerConnected! ? 'Сервер доступен' : 'Сервер недоступен',
+                    style: TextStyle(
+                      color: _isServerConnected! ? Colors.green : Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: _isCheckingConnection ? null : _checkServerConnection,
+            child: _isCheckingConnection
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Проверить'),
+          ),
+          TextButton(
+            onPressed: () {
+              final url = controller.text.trim();
+              if (url.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('URL не может быть пустым'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('URL должен начинаться с http:// или https://'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              Navigator.pop(context, url);
+            },
+            child: const Text('Сохранить'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      await SyncService().setServerUrl(result);
+      final settings = context.read<SettingsProvider>();
+      await settings.saveAppSettings(
+        settings.appSettings.copyWith(syncServerUrl: result),
+      );
+      setState(() {
+        _syncServerUrl = result;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('URL сервера сохранён')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,6 +168,15 @@ class SettingsScreen extends StatelessWidget {
                 color: Colors.grey,
               ),
             ),
+          ),
+          
+          // Синхронизация - Сервер
+          ListTile(
+            leading: const Icon(Icons.sync),
+            title: const Text('Сервер синхронизации'),
+            subtitle: Text(_syncServerUrl ?? 'Не настроен'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _showSyncServerDialog,
           ),
           
           // Уведомления

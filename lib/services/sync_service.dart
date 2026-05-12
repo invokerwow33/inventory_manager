@@ -11,8 +11,39 @@ class SyncService {
   SyncService._internal();
 
   final Dio _dio = Dio();
-  static const String _baseUrl = 'http://your-server.com/api'; // Замените на ваш URL
+  static const String _defaultUrl = 'http://localhost:8080/api';
   static const String _lastSyncKey = 'last_sync_timestamp';
+  static const String _syncUrlKey = 'sync_server_url';
+
+  /// Получает URL сервера синхронизации из настроек
+  Future<String> getServerUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_syncUrlKey) ?? _defaultUrl;
+  }
+
+  /// Сохраняет URL сервера синхронизации
+  Future<void> setServerUrl(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_syncUrlKey, url);
+  }
+
+  /// Проверяет доступность сервера
+  Future<bool> checkServerConnection([String? url]) async {
+    try {
+      final serverUrl = url ?? await getServerUrl();
+      final response = await _dio.get(
+        '$serverUrl/health',
+        options: Options(
+          connectTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+        ),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      LoggerService().warning('Сервер синхронизации недоступен: $e');
+      return false;
+    }
+  }
 
   Future<void> syncWithServer() async {
     final connectivityResult = await Connectivity().checkConnectivity();
@@ -22,13 +53,20 @@ class SyncService {
 
     final prefs = await SharedPreferences.getInstance();
     final lastSync = prefs.getInt(_lastSyncKey) ?? 0;
+    final baseUrl = await getServerUrl();
+
+    // Проверяем доступность сервера
+    final isServerAvailable = await checkServerConnection(baseUrl);
+    if (!isServerAvailable) {
+      throw Exception('Сервер синхронизации недоступен: $baseUrl');
+    }
 
     try {
       // Отправка измененных данных на сервер
-      await _sendLocalChanges();
+      await _sendLocalChanges(baseUrl);
 
       // Получение обновлений с сервера
-      await _fetchUpdates(lastSync);
+      await _fetchUpdates(baseUrl, lastSync);
 
       // Обновление времени последней синхронизации
       await prefs.setInt(_lastSyncKey, DateTime.now().millisecondsSinceEpoch);
@@ -37,7 +75,7 @@ class SyncService {
     }
   }
 
-  Future<void> _sendLocalChanges() async {
+  Future<void> _sendLocalChanges(String baseUrl) async {
     final dbHelper = DatabaseHelper.instance;
     final localEquipmentData = await dbHelper.getEquipment();
     final localEquipment = localEquipmentData.map((m) => Equipment.fromMap(m)).toList();
@@ -50,7 +88,7 @@ class SyncService {
     for (final equipment in changedEquipment) {
       try {
         await _dio.post(
-          '$_baseUrl/equipment',
+          '$baseUrl/equipment',
           data: equipment.toMap(),
           options: Options(headers: {'Content-Type': 'application/json'}),
         );
@@ -61,11 +99,11 @@ class SyncService {
     }
   }
 
-  Future<void> _fetchUpdates(int lastSync) async {
+  Future<void> _fetchUpdates(String baseUrl, int lastSync) async {
     try {
       final dbHelper = DatabaseHelper.instance;
       final response = await _dio.get(
-        '$_baseUrl/equipment/updates',
+        '$baseUrl/equipment/updates',
         queryParameters: {'since': lastSync},
       );
 

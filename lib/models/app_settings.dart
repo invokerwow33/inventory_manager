@@ -89,6 +89,7 @@ class AppSettings {
   int syncInterval;
   bool syncOnStartup;
   bool offlineMode;
+  String? syncServerUrl;
 
   // Features
   bool enableAuditLog;
@@ -135,6 +136,7 @@ class AppSettings {
     this.syncInterval = 15,
     this.syncOnStartup = true,
     this.offlineMode = false,
+    this.syncServerUrl,
     this.enableAuditLog = true,
     this.enableBarcodeScanning = true,
     this.enableGeolocation = false,
@@ -176,6 +178,7 @@ class AppSettings {
       'sync_interval': syncInterval,
       'sync_on_startup': syncOnStartup,
       'offline_mode': offlineMode,
+      'sync_server_url': syncServerUrl,
       'enable_audit_log': enableAuditLog,
       'enable_barcode_scanning': enableBarcodeScanning,
       'enable_geolocation': enableGeolocation,
@@ -221,6 +224,7 @@ class AppSettings {
       syncInterval: map['sync_interval'] ?? 15,
       syncOnStartup: map['sync_on_startup'] ?? true,
       offlineMode: map['offline_mode'] ?? false,
+      syncServerUrl: map['sync_server_url'],
       enableAuditLog: map['enable_audit_log'] ?? true,
       enableBarcodeScanning: map['enable_barcode_scanning'] ?? true,
       enableGeolocation: map['enable_geolocation'] ?? false,
@@ -278,6 +282,7 @@ class AppSettings {
     int? syncInterval,
     bool? syncOnStartup,
     bool? offlineMode,
+    String? syncServerUrl,
     bool? enableAuditLog,
     bool? enableBarcodeScanning,
     bool? enableGeolocation,
@@ -317,6 +322,7 @@ class AppSettings {
       syncInterval: syncInterval ?? this.syncInterval,
       syncOnStartup: syncOnStartup ?? this.syncOnStartup,
       offlineMode: offlineMode ?? this.offlineMode,
+      syncServerUrl: syncServerUrl ?? this.syncServerUrl,
       enableAuditLog: enableAuditLog ?? this.enableAuditLog,
       enableBarcodeScanning: enableBarcodeScanning ?? this.enableBarcodeScanning,
       enableGeolocation: enableGeolocation ?? this.enableGeolocation,
