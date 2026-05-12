@@ -46,8 +46,9 @@ class SyncService {
   }
 
   Future<void> syncWithServer() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
+    final connectivityResults = await Connectivity().checkConnectivity();
+    // In v7+, checkConnectivity returns List<ConnectivityResult>
+    if (connectivityResults.isEmpty || connectivityResults.contains(ConnectivityResult.none)) {
       throw Exception('Нет подключения к интернету');
     }
 

@@ -15,7 +15,7 @@ class SyncProvider extends ChangeNotifier {
   bool _isSyncing = false;
   String? _error;
   bool _isOnline = true;
-  StreamSubscription<ConnectivityResult>? _connectivitySubscription;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   Timer? _autoSyncTimer;
   
   DateTime? _lastSync;
@@ -43,8 +43,9 @@ class SyncProvider extends ChangeNotifier {
   }
 
   void _initConnectivity() {
-    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((result) {
-      _isOnline = result != ConnectivityResult.none;
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((results) {
+      // In v7+, results is a List<ConnectivityResult>
+      _isOnline = results.isNotEmpty && !results.contains(ConnectivityResult.none);
       notifyListeners();
       
       if (_isOnline && hasPendingItems) {
@@ -68,8 +69,9 @@ class SyncProvider extends ChangeNotifier {
   }
 
   Future<void> checkConnectivity() async {
-    final result = await _connectivity.checkConnectivity();
-    _isOnline = result != ConnectivityResult.none;
+    final results = await _connectivity.checkConnectivity();
+    // In v7+, results is a List<ConnectivityResult>
+    _isOnline = results.isNotEmpty && !results.contains(ConnectivityResult.none);
     notifyListeners();
   }
 
