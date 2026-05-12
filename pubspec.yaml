@@ -23,25 +23,25 @@ dependencies:
   mysql1: ^0.20.0
 
   # Сеть и синхронизация
-  dio: ^5.4.0
+  dio: ^5.9.2
   shared_preferences: ^2.2.2
   connectivity_plus: ^5.0.2
 
   # QR коды и штрихкоды
   qr_flutter: ^4.0.0
   barcode_widget: ^2.0.4
-  mobile_scanner: ^3.5.0
+  mobile_scanner: ^7.2.0
 
   # Печать отчетов и PDF
-  printing: ^5.11.1
-  pdf: ^3.10.7
+  printing: ^5.14.3
+  pdf: ^3.12.0
 
   # Уведомления
   flutter_local_notifications: ^16.1.0
   timezone: ^0.9.2
 
   # Работа с файлами
-  file_picker: ^5.3.3
+  file_picker: ^10.3.10
   path_provider: ^2.1.0
   excel: ^4.0.2
   csv: ^6.0.0
