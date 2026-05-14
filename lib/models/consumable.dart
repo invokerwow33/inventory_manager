@@ -93,8 +93,8 @@ class Consumable {
 
 enum ConsumableCategory {
   stationery('Канцелярия', Icons.edit, Colors.blue),
-  cartridges('Картриджи и чернила', Icons.print, Colors.black),
-  paper('Бумага', Icons.description, Colors.white),
+  cartridges('Картриджи и чернила', Icons.print, Colors.black87),
+  paper('Бумага', Icons.description, Colors.lightBlueAccent),
   office('Офисные принадлежности', Icons.work, Colors.orange),
   cleaning('Хозяйственные товары', Icons.cleaning_services, Colors.green),
   it('IT-расходники', Icons.computer, Colors.purple),
