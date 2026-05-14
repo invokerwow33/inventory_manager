@@ -1,48 +1,31 @@
 ```
-# Dependencies
-.pub/
-.buildlog
+# Flutter/Dart
+.dart_tool/
+.build/
 .flutter-plugins
-.flutter-plugins-dependencies
+.flutter-plugin-dependencies
 .packages
+pubspec.lock
 
-# Generated plugin build files
-**/android/**/gradle-wrapper.properties
-**/ios/Flutter/.last_build_id
+# Build directories
+build/
+bin/
 
-# Android
-**/android/**/connectivity.pb.h
-**/android/**/connectivity.pb.cc
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
 
-# iOS
-**/ios/**/Flutter/ephemeral/**
-**/ios/.symlinks/**
-**/ios/Flutter/flutter_assets/shaders/ink_sparkle.frag
-**/ios/Flutter/App.framework/flutter_assets/shaders/ink_sparkle.frag
-
-# Build outputs
-**/build/
-
-# Coverage
-coverage/
-
-# Temporary files
-*.tmp
-*.temp
+# Logs
 *.log
+*.tmp
 
-# Environment variables
+# Environment
 .env
 .env.local
 *.env.*
 
-# IDE specific
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS generated
-.DS_Store
-Thumbs.db
+# Dependencies
+node_modules/
 ```
