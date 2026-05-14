@@ -5,6 +5,7 @@ import 'dart:convert';
 import '../database/database_helper.dart';
 import '../models/user.dart';
 import '../models/permission.dart';
+import '../services/logger_service.dart';
 
 /// Экран создания/редактирования пользователя
 class EditUserScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class EditUserScreen extends StatefulWidget {
 }
 
 class _EditUserScreenState extends State<EditUserScreen> {
+  final LoggerService _logger = LoggerService();
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -111,11 +113,11 @@ class _EditUserScreenState extends State<EditUserScreen> {
           whereArgs: [userId],
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        print('Пользователь обновлен: ${userData['username']}');
+        _logger.info('Пользователь обновлен: ${userData['username']}');
       } else {
         userData['created_at'] = now;
         final result = await db.insert('users', userData, conflictAlgorithm: ConflictAlgorithm.replace);
-        print('Пользователь создан: ${userData['username']}, ID=$result');
+        _logger.info('Пользователь создан: ${userData['username']}, ID=$result');
       }
 
       // Проверяем что пользователь действительно сохранился
@@ -124,7 +126,7 @@ class _EditUserScreenState extends State<EditUserScreen> {
         where: 'id = ?',
         whereArgs: [userId],
       );
-      print('Проверка: найдено записей=${checkResult.length}');
+      _logger.info('Проверка: найдено записей=${checkResult.length}');;
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

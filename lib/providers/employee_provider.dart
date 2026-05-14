@@ -1,8 +1,10 @@
+import '../services/logger_service.dart';
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/employee.dart';
 
 class EmployeeProvider extends ChangeNotifier {
+  final LoggerService _logger = LoggerService();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   
   List<Employee> _employees = [];
@@ -51,7 +53,8 @@ class EmployeeProvider extends ChangeNotifier {
       _filteredEmployees = [];
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки сотрудников: $e');
     } finally {
       _setLoading(false);
@@ -67,7 +70,8 @@ class EmployeeProvider extends ChangeNotifier {
       _employees.add(employee);
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка добавления сотрудника: $e');
       rethrow;
     } finally {
@@ -90,7 +94,8 @@ class EmployeeProvider extends ChangeNotifier {
       }
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка обновления сотрудника: $e');
       rethrow;
     } finally {
@@ -114,7 +119,8 @@ class EmployeeProvider extends ChangeNotifier {
       }
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка удаления сотрудника: $e');
       rethrow;
     } finally {
@@ -148,7 +154,8 @@ class EmployeeProvider extends ChangeNotifier {
         return _selectedEmployee;
       }
       return null;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка получения сотрудника: $e');
       return null;
     }
@@ -205,7 +212,8 @@ class EmployeeProvider extends ChangeNotifier {
   Future<List<String>> getDepartments() async {
     try {
       return await _dbHelper.getDepartments();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки отделов: $e');
       return [];
     }

@@ -5,6 +5,7 @@ import '../models/user.dart';
 import '../models/permission.dart';
 import '../providers/auth_provider.dart';
 import 'edit_user_screen.dart';
+import '../services/logger_service.dart';
 
 /// Экран управления пользователями (только для администраторов)
 class UserManagementScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class UserManagementScreen extends StatefulWidget {
 }
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
+  final LoggerService _logger = LoggerService();
   List<User> _users = [];
   bool _isLoading = true;
 
@@ -39,7 +41,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Ошибка загрузки пользователей: $e');
+      _logger.warning('Ошибка загрузки пользователей: $e');;
       setState(() => _isLoading = false);
     }
   }

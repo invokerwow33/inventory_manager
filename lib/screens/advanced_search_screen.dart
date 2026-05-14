@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_manager/database/simple_database_helper.dart';
 import 'package:intl/intl.dart';
+import '../services/logger_service.dart';
 
 class AdvancedSearchScreen extends StatefulWidget {
   const AdvancedSearchScreen({super.key});
@@ -10,6 +11,7 @@ class AdvancedSearchScreen extends StatefulWidget {
 }
 
 class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
+  final LoggerService _logger = LoggerService();
   final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
   
   // Поля поиска
@@ -147,7 +149,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
       });
       
     } catch (e) {
-      print('Ошибка поиска: $e');
+      _logger.warning('Ошибка поиска: $e');;
     } finally {
       setState(() => _isLoading = false);
     }

@@ -4,8 +4,10 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'migrations/database_migrations.dart';
+import '../services/logger_service.dart';
 
 class DatabaseHelper {
+  final LoggerService _logger = LoggerService();
   static final DatabaseHelper instance = DatabaseHelper._internal();
   factory DatabaseHelper() => instance;
   DatabaseHelper._internal();
@@ -1172,7 +1174,7 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getConsumables() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('consumables');
-    print('Загружено расходников из БД: ${maps.length}');
+    _logger.info('Загружено расходников из БД: ${maps.length}');;
     return maps.map((map) => Map<String, dynamic>.from(map)).toList();
   }
 
@@ -1196,9 +1198,9 @@ class DatabaseHelper {
     consumable['created_at'] ??= now;
     consumable['updated_at'] ??= now;
 
-    print('Вставка расходника в БД: ${consumable['name']} (ID: ${consumable['id']})');
+    _logger.info('Вставка расходника в БД: \${consumable['name']} (ID: \${consumable['id']})');
     final result = await db.insert('consumables', consumable, conflictAlgorithm: ConflictAlgorithm.replace);
-    print('Результат вставки: $result');
+    _logger.info('Результат вставки: $result');;
     return consumable['id'];
   }
 
@@ -1317,9 +1319,9 @@ class DatabaseHelper {
   Future<int> addConsumableMovement(Map<String, dynamic> movement) async {
     final db = await database;
     movement['created_at'] = DateTime.now().toIso8601String();
-    print('Вставка движения расходника: ${movement['operation_type']} ${movement['quantity']} ${movement['consumable_name']}');
+    _logger.info('Вставка движения расходника: \${movement['operation_type']} \${movement['quantity']} \${movement['consumable_name']}');
     final id = await db.insert('consumable_movements', movement);
-    print('Движение добавлено с ID: $id');
+    _logger.info('Движение добавлено с ID: $id');;
 
     // Update consumable quantity
     final consumableId = movement['consumable_id']?.toString();
@@ -1350,14 +1352,14 @@ class DatabaseHelper {
     final db = await database;
     List<Map<String, dynamic>> maps;
     if (consumableId != null && consumableId.isNotEmpty) {
-      print('Загрузка движений для расходника: $consumableId');
+      _logger.info('Загрузка движений для расходника: $consumableId');;
       maps = await db.query(
         'consumable_movements',
         where: 'consumable_id = ?',
         whereArgs: [consumableId],
         orderBy: 'operation_date DESC',
       );
-      print('Загружено движений: ${maps.length}');
+      _logger.info('Загружено движений: ${maps.length}');;
     } else {
       maps = await db.query('consumable_movements', orderBy: 'operation_date DESC');
     }
@@ -1988,8 +1990,8 @@ class DatabaseHelper {
   }
 
   Future<String> insertScreening(Map<String, dynamic> screening) async {
-    print('[DatabaseHelper] insertScreening: вставка сеанса ${screening['id']}');
-    print('[DatabaseHelper] Данные: $screening');
+    _logger.info('[DatabaseHelper] insertScreening: вставка сеанса \${screening['id']}');
+    _logger.info('[DatabaseHelper] Данные: $screening');;
     
     final db = await database;
     if (!screening.containsKey('id') || screening['id'] == null) {
@@ -2000,13 +2002,13 @@ class DatabaseHelper {
     screening['updated_at'] ??= now;
     
     try {
-      print('[DatabaseHelper] Выполнение INSERT...');
+      _logger.info('[DatabaseHelper] Выполнение INSERT...');;
       await db.insert('screenings', screening, conflictAlgorithm: ConflictAlgorithm.replace);
-      print('[DatabaseHelper] INSERT завершён успешно');
+      _logger.info('[DatabaseHelper] INSERT завершён успешно');;
       return screening['id'];
     } catch (e, stackTrace) {
-      print('[DatabaseHelper] ОШИБКА insertScreening: $e');
-      print('[DatabaseHelper] Stack trace: $stackTrace');
+      _logger.info('[DatabaseHelper] ОШИБКА insertScreening: $e');;
+      _logger.info('[DatabaseHelper] Stack trace: $stackTrace');;
       rethrow;
     }
   }

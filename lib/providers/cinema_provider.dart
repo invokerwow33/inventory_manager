@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/cinema_hall.dart';
 import '../models/event.dart';
+import '../services/logger_service.dart';
 
 class CinemaProvider extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final LoggerService _logger = LoggerService();
 
   List<CinemaHall> _cinemaHalls = [];
   List<Seat> _seats = [];
@@ -56,7 +58,8 @@ class CinemaProvider extends ChangeNotifier {
       final data = await _dbHelper.getCinemaHalls();
       _cinemaHalls = data.map((map) => CinemaHall.fromMap(map)).toList();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки кинозалов: $e');
     } finally {
       _setLoading(false);
@@ -72,7 +75,8 @@ class CinemaProvider extends ChangeNotifier {
       await _dbHelper.insertCinemaHall(hall.toMap());
       _cinemaHalls.add(hall);
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка создания кинозала: $e');
       rethrow;
     } finally {
@@ -92,7 +96,8 @@ class CinemaProvider extends ChangeNotifier {
         _cinemaHalls[index] = hall;
       }
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка обновления кинозала: $e');
       rethrow;
     } finally {
@@ -109,7 +114,8 @@ class CinemaProvider extends ChangeNotifier {
       await _dbHelper.deleteCinemaHall(id);
       _cinemaHalls.removeWhere((h) => h.id == id);
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка удаления кинозала: $e');
       rethrow;
     } finally {
@@ -128,7 +134,8 @@ class CinemaProvider extends ChangeNotifier {
       final data = await _dbHelper.getSeats(hallId: hallId);
       _seats = data.map((map) => Seat.fromMap(map)).toList();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки мест: $e');
     } finally {
       _setLoading(false);
@@ -144,7 +151,8 @@ class CinemaProvider extends ChangeNotifier {
       await _dbHelper.insertSeat(seat.toMap());
       _seats.add(seat);
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка создания места: $e');
       rethrow;
     } finally {
@@ -164,7 +172,8 @@ class CinemaProvider extends ChangeNotifier {
         _seats[index] = seat;
       }
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка обновления места: $e');
       rethrow;
     } finally {
@@ -181,7 +190,8 @@ class CinemaProvider extends ChangeNotifier {
       await _dbHelper.deleteSeat(id);
       _seats.removeWhere((s) => s.id == id);
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка удаления места: $e');
       rethrow;
     } finally {
@@ -200,7 +210,8 @@ class CinemaProvider extends ChangeNotifier {
       final data = await _dbHelper.getEvents(isActive: isActive);
       _events = data.map((map) => Event.fromMap(map)).toList();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки мероприятий: $e');
     } finally {
       _setLoading(false);
@@ -216,7 +227,8 @@ class CinemaProvider extends ChangeNotifier {
       await _dbHelper.insertEvent(event.toMap());
       _events.add(event);
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка создания мероприятия: $e');
       rethrow;
     } finally {
@@ -236,7 +248,8 @@ class CinemaProvider extends ChangeNotifier {
         _events[index] = event;
       }
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка обновления мероприятия: $e');
       rethrow;
     } finally {
@@ -253,7 +266,8 @@ class CinemaProvider extends ChangeNotifier {
       await _dbHelper.deleteEvent(id);
       _events.removeWhere((e) => e.id == id);
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка удаления мероприятия: $e');
       rethrow;
     } finally {
@@ -272,7 +286,8 @@ class CinemaProvider extends ChangeNotifier {
       final data = await _dbHelper.getScreenings(eventId: eventId, hallId: hallId, date: date);
       _screenings = data.map((map) => Screening.fromMap(map)).toList();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки сеансов: $e');
     } finally {
       _setLoading(false);
@@ -281,28 +296,27 @@ class CinemaProvider extends ChangeNotifier {
 
   // Create screening
   Future<void> createScreening(Screening screening) async {
-    print('[CinemaProvider] createScreening: начало для ${screening.eventTitle}');
+    _logger.info('[CinemaProvider] createScreening: начало для ${screening.eventTitle}');
     
     _setLoading(true);
     _clearError();
 
     try {
-      print('[CinemaProvider] Вставка в БД...');
+      _logger.debug('[CinemaProvider] Вставка в БД...');
       await _dbHelper.insertScreening(screening.toMap());
-      print('[CinemaProvider] Успешно вставлено в БД');
+      _logger.debug('[CinemaProvider] Успешно вставлено в БД');
       
       _screenings.add(screening);
       
       // Создаём билеты для всех мест в зале
-      print('[CinemaProvider] Создание билетов для сеанса...');
+      _logger.debug('[CinemaProvider] Создание билетов для сеанса...');
       await _createTicketsForScreening(screening);
-      print('[CinemaProvider] Билеты созданы');
+      _logger.debug('[CinemaProvider] Билеты созданы');
       
       notifyListeners();
-      print('[CinemaProvider] createScreening: завершено успешно');
+      _logger.info('[CinemaProvider] createScreening: завершено успешно');
     } catch (e, stackTrace) {
-      print('[CinemaProvider] ОШИБКА createScreening: $e');
-      print('[CinemaProvider] Stack trace: $stackTrace');
+      _logger.logError(e, stackTrace);
       _setError('Ошибка создания сеанса: $e');
       rethrow;
     } finally {
@@ -341,7 +355,8 @@ class CinemaProvider extends ChangeNotifier {
         _screenings[index] = screening;
       }
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка обновления сеанса: $e');
       rethrow;
     } finally {
@@ -358,7 +373,8 @@ class CinemaProvider extends ChangeNotifier {
       await _dbHelper.deleteScreening(id);
       _screenings.removeWhere((s) => s.id == id);
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка удаления сеанса: $e');
       rethrow;
     } finally {
@@ -377,7 +393,8 @@ class CinemaProvider extends ChangeNotifier {
       final data = await _dbHelper.getTickets(screeningId: screeningId);
       _tickets = data.map((map) => Ticket.fromMap(map)).toList();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки билетов: $e');
     } finally {
       _setLoading(false);
@@ -405,7 +422,8 @@ class CinemaProvider extends ChangeNotifier {
       _ticketSales.add(sale);
       
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка продажи билета: $e');
       rethrow;
     } finally {
@@ -440,7 +458,8 @@ class CinemaProvider extends ChangeNotifier {
       }
       
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка возврата билета: $e');
       rethrow;
     } finally {

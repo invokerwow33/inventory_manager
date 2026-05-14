@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:inventory_manager/database/simple_database_helper.dart';
 import 'package:inventory_manager/screens/equipment_list_screen.dart';
 import 'package:intl/intl.dart';
+import '../services/logger_service.dart';
 
 class MovementHistoryScreen extends StatefulWidget {
   final int? equipmentId;
@@ -18,6 +19,7 @@ class MovementHistoryScreen extends StatefulWidget {
 }
 
 class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
+  final LoggerService _logger = LoggerService();
   final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
   List<Map<String, dynamic>> _movements = [];
   bool _isLoading = true;
@@ -52,7 +54,7 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
       
       _applyFilter();
     } catch (e) {
-      print('Ошибка загрузки перемещений: $e');
+      _logger.warning('Ошибка загрузки перемещений: $e');;
     } finally {
       setState(() => _isLoading = false);
     }
@@ -355,7 +357,7 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
         ),
       );
       
-      print('CSV данные:\n$csvData');
+      _logger.info('CSV данные:\n$csvData');;
       
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

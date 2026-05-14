@@ -1,9 +1,11 @@
+import '../services/logger_service.dart';
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/equipment.dart';
 import '../utils/constants.dart';
 
 class EquipmentProvider extends ChangeNotifier {
+  final LoggerService _logger = LoggerService();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   List<Equipment> _equipment = [];
@@ -52,7 +54,8 @@ class EquipmentProvider extends ChangeNotifier {
       _filteredEquipment = [];
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки оборудования: $e');
     } finally {
       _setLoading(false);
@@ -68,7 +71,8 @@ class EquipmentProvider extends ChangeNotifier {
       _equipment.add(equipment);
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка добавления оборудования: $e');
       rethrow;
     } finally {
@@ -91,7 +95,8 @@ class EquipmentProvider extends ChangeNotifier {
       }
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка обновления оборудования: $e');
       rethrow;
     } finally {
@@ -111,7 +116,8 @@ class EquipmentProvider extends ChangeNotifier {
       }
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка удаления оборудования: $e');
       rethrow;
     } finally {
@@ -138,7 +144,8 @@ class EquipmentProvider extends ChangeNotifier {
         return _selectedEquipment;
       }
       return null;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка получения оборудования: $e');
       return null;
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:inventory_manager/models/consumable.dart';
 import 'package:inventory_manager/providers/consumable_provider.dart';
+import '../services/logger_service.dart';
 
 class ConsumableHistoryScreen extends StatefulWidget {
   final Consumable consumable;
@@ -13,6 +14,7 @@ class ConsumableHistoryScreen extends StatefulWidget {
 }
 
 class _ConsumableHistoryScreenState extends State<ConsumableHistoryScreen> {
+  final LoggerService _logger = LoggerService();
   List<ConsumableMovement> _movements = [];
   bool _isLoading = true;
   String? _filterType;
@@ -35,7 +37,7 @@ class _ConsumableHistoryScreenState extends State<ConsumableHistoryScreen> {
         });
       }
     } catch (e) {
-      print('Ошибка загрузки истории: $e');
+      _logger.warning('Ошибка загрузки истории: $e');;
       if (mounted) {
         setState(() => _isLoading = false);
       }

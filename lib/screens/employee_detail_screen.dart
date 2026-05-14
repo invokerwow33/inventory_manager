@@ -4,6 +4,7 @@ import 'package:inventory_manager/models/employee.dart';
 import 'package:inventory_manager/screens/add_employee_screen.dart';
 import 'package:inventory_manager/screens/create_movement_screen.dart';
 import 'package:intl/intl.dart';
+import '../services/logger_service.dart';
 
 class EmployeeDetailScreen extends StatefulWidget {
   final Employee employee;
@@ -15,6 +16,7 @@ class EmployeeDetailScreen extends StatefulWidget {
 }
 
 class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> 
+  final LoggerService _logger = LoggerService();
     with SingleTickerProviderStateMixin {
   final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
   late TabController _tabController;
@@ -38,7 +40,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen>
         _isLoadingMovements = false;
       });
     } catch (e) {
-      print('Ошибка загрузки движений: $e');
+      _logger.warning('Ошибка загрузки движений: $e');;
       setState(() => _isLoadingMovements = false);
     }
   }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'logger_service.dart';
 
 class ShortcutService {
+  static final LoggerService _logger = LoggerService();
   static Map<LogicalKeySet, Intent> get globalShortcuts {
     return {
       LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyN):
@@ -22,34 +24,34 @@ class ShortcutService {
       _AddEquipmentIntent: CallbackAction<_AddEquipmentIntent>(
         onInvoke: (intent) {
           
-          print('Ctrl+N pressed');
+          _logger.info('Ctrl+N pressed');;
           return null;
         },
       ),
       _SearchIntent: CallbackAction<_SearchIntent>(
         onInvoke: (intent) {
          
-          print('Ctrl+F pressed');
+          _logger.info('Ctrl+F pressed');;
           return null;
         },
       ),
       _ScanQRIntent: CallbackAction<_ScanQRIntent>(
         onInvoke: (intent) {
 
-          print('Ctrl+Q pressed');
+          _logger.info('Ctrl+Q pressed');;
           return null;
         },
       ),
       _ExportIntent: CallbackAction<_ExportIntent>(
         onInvoke: (intent) {
           
-          print('Ctrl+E pressed');
+          _logger.info('Ctrl+E pressed');;
           return null;
         },
       ),
       _SaveIntent: CallbackAction<_SaveIntent>(
         onInvoke: (intent) {
-          print('Ctrl+S pressed');
+          _logger.info('Ctrl+S pressed');;
           return null;
         },
       ),

@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
+import '../services/logger_service.dart';
 
 class SimpleDatabaseHelper {
+  final LoggerService _logger = LoggerService();
   static final SimpleDatabaseHelper _instance = SimpleDatabaseHelper._internal();
   factory SimpleDatabaseHelper() => _instance;
   SimpleDatabaseHelper._internal();
@@ -111,9 +113,9 @@ class SimpleDatabaseHelper {
       }
       
       _isInitialized = true;
-      print('База данных инициализирована. Оборудование: ${_equipment.length}, Перемещений: ${_movements.length}, Расходников: ${_consumables.length}, Сотрудников: ${_employees.length}');
+      _logger.info('База данных инициализирована. Оборудование: ${_equipment.length}, Перемещений: ${_movements.length}, Расходников: ${_consumables.length}, Сотрудников: ${_employees.length}');;
     } catch (e) {
-      print('Ошибка инициализации базы данных: $e');
+      _logger.warning('Ошибка инициализации базы данных: $e');;
       _equipment = [];
       _movements = [];
       _consumables = [];
@@ -195,7 +197,7 @@ class SimpleDatabaseHelper {
 
     if (changed) {
       await _saveToFile();
-      print('Типы данных автоматически исправлены');
+      _logger.info('Типы данных автоматически исправлены');;
     }
   }
 
@@ -213,18 +215,18 @@ class SimpleDatabaseHelper {
       // Очищаем кэш при сохранении
       _equipmentCache = null;
       _cacheTimestamp = null;
-      print('Данные сохранены. Всего записей: ${_equipment.length}');
+      _logger.info('Данные сохранены. Всего записей: ${_equipment.length}');;
     } catch (e) {
-      print('Ошибка сохранения в файл: $e');
+      _logger.warning('Ошибка сохранения в файл: $e');;
     }
   }
 
   Future<void> _saveMovementsToFile() async {
     try {
       await _movementsFile.writeAsString(jsonEncode(_movements));
-      print('Перемещения сохранены. Всего: ${_movements.length}');
+      _logger.info('Перемещения сохранены. Всего: ${_movements.length}');;
     } catch (e) {
-      print('Ошибка сохранения перемещений: $e');
+      _logger.warning('Ошибка сохранения перемещений: $e');;
     }
   }
 
@@ -237,14 +239,14 @@ class SimpleDatabaseHelper {
         _equipmentCache != null && 
         _cacheTimestamp != null &&
         DateTime.now().difference(_cacheTimestamp!) < _cacheDuration) {
-      print('Используем кэшированные данные');
+      _logger.info('Используем кэшированные данные');;
       return List.from(_equipmentCache!);
     }
     
     // Обновляем кэш
     _equipmentCache = List.from(_equipment);
     _cacheTimestamp = DateTime.now();
-    print('Данные загружены и закэшированы');
+    _logger.info('Данные загружены и закэшированы');;
 
     return List.from(_equipment);
   }
@@ -286,7 +288,7 @@ class SimpleDatabaseHelper {
 
       _equipment[index] = updated;
       await _saveToFile();
-      print('Оборудование безопасно обновлено. ID: ${equipment['id']}');
+      _logger.info('Оборудование безопасно обновлено. ID: \${equipment['id']}');
       return 1;
     }
     return 0;
@@ -358,7 +360,7 @@ class SimpleDatabaseHelper {
 
     _equipment.add(newEquipment);
     await _saveToFile();
-    print('Оборудование добавлено. ID: ${newEquipment['id']}');
+    _logger.info('Оборудование добавлено. ID: \${newEquipment['id']}');
     return newEquipment['id'];
   }
 
@@ -377,7 +379,7 @@ class SimpleDatabaseHelper {
     _equipment.removeWhere((item) => _idsMatch(item['id'], id));
     if (_equipment.length != initialLength) {
       await _saveToFile();
-      print('Оборудование удалено. ID: $id');
+      _logger.info('Оборудование удалено. ID: $id');;
       return 1;
     }
     return 0;
@@ -439,7 +441,7 @@ class SimpleDatabaseHelper {
     
     _movements.add(safeMovement);
     await _saveMovementsToFile();
-    print('Перемещение добавлено. ID: ${safeMovement['id']}');
+    _logger.info('Перемещение добавлено. ID: \${safeMovement['id']}');
     return safeMovement['id'];
   }
 
@@ -512,7 +514,7 @@ class SimpleDatabaseHelper {
     if (!_isInitialized) await initDatabase();
     _movements.clear();
     await _saveMovementsToFile();
-    print('Все перемещения очищены');
+    _logger.info('Все перемещения очищены');;
   }
 
   // === ОСТАЛЬНЫЕ МЕТОДЫ ===
@@ -576,27 +578,27 @@ class SimpleDatabaseHelper {
   Future<void> _saveConsumablesToFile() async {
     try {
       await _consumablesFile.writeAsString(jsonEncode(_consumables));
-      print('Расходники сохранены. Всего: ${_consumables.length}');
+      _logger.info('Расходники сохранены. Всего: ${_consumables.length}');;
     } catch (e) {
-      print('Ошибка сохранения расходников: $e');
+      _logger.warning('Ошибка сохранения расходников: $e');;
     }
   }
 
   Future<void> _saveConsumableMovementsToFile() async {
     try {
       await _consumableMovementsFile.writeAsString(jsonEncode(_consumableMovements));
-      print('Движения расходников сохранены. Всего: ${_consumableMovements.length}');
+      _logger.info('Движения расходников сохранены. Всего: ${_consumableMovements.length}');;
     } catch (e) {
-      print('Ошибка сохранения движений расходников: $e');
+      _logger.warning('Ошибка сохранения движений расходников: $e');;
     }
   }
 
   Future<void> _saveEmployeesToFile() async {
     try {
       await _employeesFile.writeAsString(jsonEncode(_employees));
-      print('Сотрудники сохранены. Всего: ${_employees.length}');
+      _logger.info('Сотрудники сохранены. Всего: ${_employees.length}');;
     } catch (e) {
-      print('Ошибка сохранения сотрудников: $e');
+      _logger.warning('Ошибка сохранения сотрудников: $e');;
     }
   }
 
@@ -619,7 +621,7 @@ class SimpleDatabaseHelper {
   Future<void> fixDatabase() async {
     if (!_isInitialized) await initDatabase();
     await _fixAllDataTypes();
-    print('База данных исправлена вручную');
+    _logger.info('База данных исправлена вручную');;
   }
 
   // Метод для обновления кэша
@@ -627,7 +629,7 @@ class SimpleDatabaseHelper {
     _equipmentCache = null;
     _cacheTimestamp = null;
     await getEquipment(forceRefresh: true);
-    print('Кэш обновлен');
+    _logger.info('Кэш обновлен');;
   }
 
   // Быстрый доступ к часто используемым данным

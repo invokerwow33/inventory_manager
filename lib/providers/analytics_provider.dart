@@ -1,8 +1,10 @@
+import '../services/logger_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../database/database_helper.dart';
 
 class AnalyticsProvider extends ChangeNotifier {
+  final LoggerService _logger = LoggerService();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   
   bool _isLoading = false;
@@ -39,7 +41,8 @@ class AnalyticsProvider extends ChangeNotifier {
         loadDepartmentData(),
         loadCategoryData(),
       ]);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки статистики: $e');
     } finally {
       _setLoading(false);
@@ -69,7 +72,8 @@ class AnalyticsProvider extends ChangeNotifier {
       };
       
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки статистики оборудования: $e');
     }
   }
@@ -90,7 +94,8 @@ class AnalyticsProvider extends ChangeNotifier {
       };
       
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки статистики расходников: $e');
     }
   }
@@ -120,7 +125,8 @@ class AnalyticsProvider extends ChangeNotifier {
       };
       
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки статистики перемещений: $e');
     }
   }
@@ -161,7 +167,8 @@ class AnalyticsProvider extends ChangeNotifier {
       
       _monthlyData = monthlyStats;
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки месячных данных: $e');
     }
   }
@@ -197,7 +204,8 @@ class AnalyticsProvider extends ChangeNotifier {
       }).toList();
       
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки данных по отделам: $e');
     }
   }
@@ -224,7 +232,8 @@ class AnalyticsProvider extends ChangeNotifier {
       }).toList();
       
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки данных по категориям: $e');
     }
   }

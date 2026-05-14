@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:inventory_manager/database/simple_database_helper.dart';
 import 'package:inventory_manager/screens/equipment_selection_screen.dart'; // Исправленный импорт
 import 'package:intl/intl.dart';
+import '../services/logger_service.dart';
 
 class CreateMovementScreen extends StatefulWidget {
   final Map<String, dynamic>? equipment;
@@ -14,6 +15,7 @@ class CreateMovementScreen extends StatefulWidget {
 }
 
 class _CreateMovementScreenState extends State<CreateMovementScreen> {
+  final LoggerService _logger = LoggerService();
   final _formKey = GlobalKey<FormState>();
   final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
   
@@ -96,7 +98,7 @@ class _CreateMovementScreenState extends State<CreateMovementScreen> {
         });
       }
     } catch (e) {
-      print('Ошибка загрузки оборудования: $e');
+      _logger.warning('Ошибка загрузки оборудования: $e');;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Ошибка загрузки оборудования: $e')),
@@ -187,7 +189,7 @@ class _CreateMovementScreenState extends State<CreateMovementScreen> {
         Navigator.pop(context, true);
       }
     } catch (e) {
-      print('Ошибка сохранения перемещения: $e');
+      _logger.warning('Ошибка сохранения перемещения: $e');;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

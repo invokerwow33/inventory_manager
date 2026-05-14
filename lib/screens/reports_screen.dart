@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:excel/excel.dart' hide Border;
 import 'package:inventory_manager/database/simple_database_helper.dart';
 import '../widgets/filter_panel.dart';
+import '../services/logger_service.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -13,6 +14,7 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
+  final LoggerService _logger = LoggerService();
   final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
   List<Map<String, dynamic>> _allEquipment = [];
   List<Map<String, dynamic>> _filteredEquipment = [];
@@ -38,7 +40,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       _filteredEquipment = List.from(_allEquipment);
       _updateStats();
     } catch (e) {
-      print('Ошибка загрузки данных для отчетов: $e');
+      _logger.warning('Ошибка загрузки данных для отчетов: $e');;
     } finally {
       setState(() => _isLoading = false);
     }
@@ -82,7 +84,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         _updateStats();
       });
     } catch (e) {
-      print('Ошибка применения фильтров: $e');
+      _logger.warning('Ошибка применения фильтров: $e');;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Ошибка применения фильтров: $e'),

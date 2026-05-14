@@ -54,7 +54,8 @@ class ConsumableProvider extends ChangeNotifier {
       _filteredConsumables = [];
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки расходников: $e');
     } finally {
       _setLoading(false);
@@ -96,7 +97,8 @@ class ConsumableProvider extends ChangeNotifier {
       }
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка обновления расходника: $e');
       rethrow;
     } finally {
@@ -116,7 +118,8 @@ class ConsumableProvider extends ChangeNotifier {
       }
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка удаления расходника: $e');
       rethrow;
     } finally {
@@ -150,7 +153,8 @@ class ConsumableProvider extends ChangeNotifier {
         return _selectedConsumable;
       }
       return null;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка получения расходника: $e');
       return null;
     }
@@ -179,7 +183,8 @@ class ConsumableProvider extends ChangeNotifier {
       }
       
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка добавления движения: $e');
       rethrow;
     } finally {
@@ -195,7 +200,8 @@ class ConsumableProvider extends ChangeNotifier {
       final data = await _dbHelper.getConsumableMovements(consumableId);
       _movements = data.map((map) => ConsumableMovement.fromMap(map)).toList();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки движений: $e');
     } finally {
       _setLoading(false);

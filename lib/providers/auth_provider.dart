@@ -142,7 +142,8 @@ class AuthProvider extends ChangeNotifier {
       _startSessionTimer();
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка входа: $e');
       return false;
     } finally {
@@ -185,7 +186,8 @@ class AuthProvider extends ChangeNotifier {
 
       _startSessionTimer();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка входа: $e');
     } finally {
       _setLoading(false);
@@ -247,7 +249,8 @@ class AuthProvider extends ChangeNotifier {
       
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка создания пользователя: $e');
       return false;
     } finally {
@@ -273,7 +276,8 @@ class AuthProvider extends ChangeNotifier {
       await _auditService.logUserUpdated(currentUser!.id, user.id);
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка обновления пользователя: $e');
       return false;
     } finally {
@@ -300,7 +304,8 @@ class AuthProvider extends ChangeNotifier {
       await _dbHelper.updateUser(updatedUser.toMap());
       await _auditService.logPasswordChanged(currentUser!.id, userId);
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка изменения пароля: $e');
       return false;
     }
@@ -322,7 +327,8 @@ class AuthProvider extends ChangeNotifier {
       await _auditService.logUserDeleted(currentUser!.id, userId);
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка удаления пользователя: $e');
       return false;
     }
@@ -332,7 +338,8 @@ class AuthProvider extends ChangeNotifier {
     try {
       final data = await _dbHelper.getUsers(includeInactive: true);
       return data.map((m) => User.fromMap(m)).toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки пользователей: $e');
       return [];
     }

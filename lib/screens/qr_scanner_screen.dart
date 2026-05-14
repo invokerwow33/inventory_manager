@@ -1,6 +1,7 @@
 // lib/screens/qr_scanner_screen.dart
 import 'package:flutter/material.dart';
 import 'add_equipment_screen.dart';
+import '../services/logger_service.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -10,6 +11,7 @@ class QRScannerScreen extends StatefulWidget {
 }
 
 class _QRScannerScreenState extends State<QRScannerScreen> {
+  final LoggerService _logger = LoggerService();
   final TextEditingController _qrCodeController = TextEditingController();
   bool _isProcessing = false;
 
@@ -23,7 +25,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     try {
       _showResultDialog(qrData);
     } catch (e) {
-      print('Error processing QR code: $e');
+      _logger.warning('Error processing QR code: $e');;
       if (!mounted) return;
       _showErrorDialog('Ошибка обработки: ${e.toString()}');
     } finally {
