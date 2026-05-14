@@ -1,17 +1,15 @@
 ```
-# Dependencies
+# Flutter/Dart
 .dart_tool/
 .build/
-dependencies/
+.flutter-plugins
+.flutter-plugin-dependencies
+.packages
+pubspec.lock
 
-# Logs
-*.log
-**/logs
-
-# Environment variables
-.env
-.env.local
-.env.*
+# Build directories
+build/
+bin/
 
 # IDE
 .idea/
@@ -19,22 +17,15 @@ dependencies/
 *.swp
 *.swo
 
-# OS generated files
-.DS_Store
-Thumbs.db
+# Logs
+*.log
+*.tmp
 
-# Coverage
-coverage/
-lcov.info
+# Environment
+.env
+.env.local
+*.env.*
 
-# Packages
-*.tar.gz
-*.zip
-
-# Flutter/Dart specific
-**/pubspec.lock
-**/packages
-**/bin/cache/
-**/.dart_tool/
-**/build/
+# Dependencies
+node_modules/
 ```

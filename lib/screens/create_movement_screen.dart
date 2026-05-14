@@ -79,10 +79,14 @@ class _CreateMovementScreenState extends State<CreateMovementScreen> {
     if (result != null && result is List && result.isNotEmpty) {
       // Загружаем детали выбранного оборудования
       final selectedId = result.first;
+      _logger.info('Выбрано оборудование ID: $selectedId (тип: ${selectedId.runtimeType})');
       if (selectedId == null) {
+        _logger.warning('ID оборудования null');
         return;
       }
       await _loadSelectedEquipment(selectedId.toString());
+    } else {
+      _logger.info('Оборудование не выбрано');
     }
   }
 
@@ -96,9 +100,13 @@ class _CreateMovementScreenState extends State<CreateMovementScreen> {
           _fromLocationController.text = equipment['location']?.toString() ?? '';
           _fromResponsibleController.text = equipment['responsible_person']?.toString() ?? '';
         });
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Оборудование не найдено')),
+        );
       }
     } catch (e) {
-      _logger.warning('Ошибка загрузки оборудования: $e');;
+      _logger.warning('Ошибка загрузки оборудования: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Ошибка загрузки оборудования: $e')),
