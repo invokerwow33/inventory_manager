@@ -1,3 +1,4 @@
+import '../services/logger_service.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import '../database/database_helper.dart';
 import '../models/sync_queue.dart';
 
 class SyncProvider extends ChangeNotifier {
+  final LoggerService _logger = LoggerService();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final Connectivity _connectivity = Connectivity();
   
@@ -80,7 +82,8 @@ class SyncProvider extends ChangeNotifier {
       _pendingItems = data.map((m) => SyncQueueItem.fromMap(m)).toList();
       _pendingCount = _pendingItems.length;
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки очереди синхронизации: $e');
     } finally {
       _setLoading(false);
@@ -120,7 +123,8 @@ class SyncProvider extends ChangeNotifier {
       }
       
       return item.id;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка добавления в очередь: $e');
       rethrow;
     }
@@ -144,7 +148,8 @@ class SyncProvider extends ChangeNotifier {
 
       _lastSync = DateTime.now();
       await loadPendingItems(); // Refresh list
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка синхронизации: $e');
     } finally {
       _isSyncing = false;
@@ -208,7 +213,8 @@ class SyncProvider extends ChangeNotifier {
         await _dbHelper.updateSyncItemStatus(item.id, 'pending');
         notifyListeners();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка разрешения конфликта: $e');
     }
   }
@@ -235,7 +241,8 @@ class SyncProvider extends ChangeNotifier {
         await _dbHelper.deleteSyncItem(item.id);
       }
       await loadPendingItems();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка очистки завершенных: $e');
     }
   }
@@ -248,7 +255,8 @@ class SyncProvider extends ChangeNotifier {
       _pendingItems.clear();
       _pendingCount = 0;
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка очистки очереди: $e');
     }
   }
@@ -283,7 +291,8 @@ class SyncProvider extends ChangeNotifier {
       await Future.delayed(const Duration(seconds: 2)); // Placeholder
       
       _lastSync = DateTime.now();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка синхронизации с облаком: $e');
     } finally {
       _isSyncing = false;

@@ -4,6 +4,7 @@ import '../../models/task.dart';
 import '../../models/permission.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../services/logger_service.dart';
 
 class CreateTaskScreen extends StatefulWidget {
   const CreateTaskScreen({super.key});
@@ -13,6 +14,7 @@ class CreateTaskScreen extends StatefulWidget {
 }
 
 class _CreateTaskScreenState extends State<CreateTaskScreen> {
+  final LoggerService _logger = LoggerService();
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -169,7 +171,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      print('[CreateTask] Ошибка создания задачи: $e');
+      _logger.warning('[CreateTask] Ошибка создания задачи: $e');;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Ошибка: $e')),

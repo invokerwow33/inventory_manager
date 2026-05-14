@@ -4,6 +4,7 @@ import '../models/employee.dart';
 import '../providers/employee_provider.dart';
 import '../screens/add_employee_screen.dart';
 import '../screens/employee_detail_screen.dart';
+import '../services/logger_service.dart';
 
 class EmployeesListScreen extends StatefulWidget {
   const EmployeesListScreen({super.key});
@@ -13,6 +14,7 @@ class EmployeesListScreen extends StatefulWidget {
 }
 
 class _EmployeesListScreenState extends State<EmployeesListScreen> {
+  final LoggerService _logger = LoggerService();
   final TextEditingController _searchController = TextEditingController();
   List<Employee> _filteredEmployees = [];
   bool _isLoading = true;
@@ -50,7 +52,7 @@ class _EmployeesListScreenState extends State<EmployeesListScreen> {
         });
       }
     } catch (e) {
-      print('Ошибка загрузки сотрудников: $e');
+      _logger.warning('Ошибка загрузки сотрудников: $e');;
       if (mounted) {
         setState(() => _isLoading = false);
       }

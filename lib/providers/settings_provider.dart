@@ -1,3 +1,4 @@
+import '../services/logger_service.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +8,7 @@ import '../models/notification_settings.dart';
 import '../services/audit_service.dart';
 
 class SettingsProvider extends ChangeNotifier {
+  final LoggerService _logger = LoggerService();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final AuditService _auditService = AuditService();
   
@@ -65,7 +67,8 @@ class SettingsProvider extends ChangeNotifier {
       }
 
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки настроек: $e');
     } finally {
       _setLoading(false);
@@ -91,7 +94,8 @@ class SettingsProvider extends ChangeNotifier {
       }
 
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка сохранения настроек: $e');
     } finally {
       _setLoading(false);
@@ -110,7 +114,8 @@ class SettingsProvider extends ChangeNotifier {
       }
 
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка сохранения настроек уведомлений: $e');
     }
   }

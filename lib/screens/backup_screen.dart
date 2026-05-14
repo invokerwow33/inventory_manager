@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/backup_service.dart';
+import '../services/logger_service.dart';
 
 class BackupScreen extends StatefulWidget {
   const BackupScreen({super.key});
@@ -11,6 +12,7 @@ class BackupScreen extends StatefulWidget {
 }
 
 class _BackupScreenState extends State<BackupScreen> {
+  final LoggerService _logger = LoggerService();
   final BackupService _backupService = BackupService();
   bool _isCreatingBackup = false;
   bool _isRestoringBackup = false;
@@ -29,7 +31,7 @@ class _BackupScreenState extends State<BackupScreen> {
         _backupFiles = backups.map((file) => file.path).toList();
       });
     } catch (e) {
-      print('Error loading backup files: $e');
+      _logger.warning('Error loading backup files: $e');;
     }
   }
 

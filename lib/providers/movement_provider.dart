@@ -1,8 +1,10 @@
+import '../services/logger_service.dart';
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/movement.dart';
 
 class MovementProvider extends ChangeNotifier {
+  final LoggerService _logger = LoggerService();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   
   List<EquipmentMovement> _movements = [];
@@ -50,7 +52,8 @@ class MovementProvider extends ChangeNotifier {
       _filteredMovements = [];
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки перемещений: $e');
     } finally {
       _setLoading(false);
@@ -66,7 +69,8 @@ class MovementProvider extends ChangeNotifier {
       _movements.insert(0, movement);
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка добавления перемещения: $e');
       rethrow;
     } finally {
@@ -83,7 +87,8 @@ class MovementProvider extends ChangeNotifier {
       _movements = data.map((map) => EquipmentMovement.fromMap(map)).toList();
       _filteredMovements = [];
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки перемещений оборудования: $e');
     } finally {
       _setLoading(false);
@@ -94,7 +99,8 @@ class MovementProvider extends ChangeNotifier {
     try {
       final data = await _dbHelper.getRecentMovements(limit: limit);
       return data.map((map) => EquipmentMovement.fromMap(map)).toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки недавних перемещений: $e');
       return [];
     }
@@ -150,7 +156,8 @@ class MovementProvider extends ChangeNotifier {
   Future<String> exportToCSV() async {
     try {
       return await _dbHelper.exportMovementsToCSV();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка экспорта: $e');
       return '';
     }

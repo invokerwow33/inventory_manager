@@ -123,6 +123,7 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  final LoggerService _logger = LoggerService();
   int _selectedIndex = 0;
   bool _extendedNavigation = true;
 
@@ -438,10 +439,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               Navigator.pushReplacementNamed(context, '/select-user');
                               // Logout в фоне
                               auth.logout().catchError((e) {
-                                print('[Logout] Ошибка: $e');
+                                _logger.warning('[Logout] Ошибка: $e');;
                               });
                             } catch (e) {
-                              print('[Logout] Ошибка навигации: $e');
+                              _logger.warning('[Logout] Ошибка навигации: $e');;
                             }
                             break;
                         }

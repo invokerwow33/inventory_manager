@@ -5,8 +5,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 import '../models/event.dart';
 import '../models/cinema_hall.dart';
+import 'logger_service.dart';
 
 class TicketPrintService {
+  static final LoggerService _logger = LoggerService();
   /// Генерация PDF билета
   static Future<void> printTicket({
     required Ticket ticket,
@@ -398,7 +400,7 @@ class TicketPrintService {
       
       return filePath;
     } catch (e) {
-      print('Ошибка сохранения билета: $e');
+      _logger.warning('Ошибка сохранения билета: $e');;
       return null;
     }
   }

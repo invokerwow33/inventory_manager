@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/logger_service.dart';
 
 class PaginatedListView extends StatefulWidget {
   final Future<List<dynamic>> Function(int page, int pageSize) dataFetcher;
@@ -25,6 +26,7 @@ class PaginatedListView extends StatefulWidget {
 }
 
 class _PaginatedListViewState extends State<PaginatedListView> {
+  final LoggerService _logger = LoggerService();
   List<dynamic> _items = [];
   int _currentPage = 0;
   bool _isLoading = false;
@@ -74,7 +76,7 @@ class _PaginatedListViewState extends State<PaginatedListView> {
         });
       }
     } catch (e) {
-      print('Ошибка загрузки данных: $e');
+      _logger.warning('Ошибка загрузки данных: $e');;
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

@@ -1,8 +1,10 @@
+import '../services/logger_service.dart';
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/maintenance.dart';
 
 class MaintenanceProvider extends ChangeNotifier {
+  final LoggerService _logger = LoggerService();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   
   List<MaintenanceRecord> _records = [];
@@ -52,7 +54,8 @@ class MaintenanceProvider extends ChangeNotifier {
       _records = data.map((m) => MaintenanceRecord.fromMap(m)).toList();
       _lastFetch = DateTime.now();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки записей обслуживания: $e');
     } finally {
       _setLoading(false);
@@ -65,7 +68,8 @@ class MaintenanceProvider extends ChangeNotifier {
       final data = await _dbHelper.getOverdueMaintenance();
       _overdue = data.map((m) => MaintenanceRecord.fromMap(m)).toList();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки просроченных записей: $e');
     } finally {
       _setLoading(false);
@@ -78,7 +82,8 @@ class MaintenanceProvider extends ChangeNotifier {
       final data = await _dbHelper.getUpcomingMaintenance(days: days);
       _upcoming = data.map((m) => MaintenanceRecord.fromMap(m)).toList();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки предстоящих записей: $e');
     } finally {
       _setLoading(false);
@@ -95,7 +100,8 @@ class MaintenanceProvider extends ChangeNotifier {
       _lastFetch = DateTime.now();
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка добавления записи обслуживания: $e');
       return false;
     } finally {
@@ -118,7 +124,8 @@ class MaintenanceProvider extends ChangeNotifier {
       }
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка обновления записи: $e');
       return false;
     } finally {
@@ -144,7 +151,8 @@ class MaintenanceProvider extends ChangeNotifier {
         updatedAt: DateTime.now(),
       );
       return await updateMaintenanceRecord(updated);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка завершения обслуживания: $e');
       return false;
     }
@@ -159,7 +167,8 @@ class MaintenanceProvider extends ChangeNotifier {
         updatedAt: DateTime.now(),
       );
       return await updateMaintenanceRecord(updated);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка отмены обслуживания: $e');
       return false;
     }
@@ -173,7 +182,8 @@ class MaintenanceProvider extends ChangeNotifier {
         updatedAt: DateTime.now(),
       );
       return await updateMaintenanceRecord(updated);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка начала обслуживания: $e');
       return false;
     }

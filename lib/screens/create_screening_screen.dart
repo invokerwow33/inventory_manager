@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../providers/cinema_provider.dart';
 import '../../models/event.dart';
 import '../../models/cinema_hall.dart';
+import '../services/logger_service.dart';
 
 class CreateScreeningScreen extends StatefulWidget {
   const CreateScreeningScreen({super.key});
@@ -13,6 +14,7 @@ class CreateScreeningScreen extends StatefulWidget {
 }
 
 class _CreateScreeningScreenState extends State<CreateScreeningScreen> {
+  final LoggerService _logger = LoggerService();
   Event? _selectedEvent;
   CinemaHall? _selectedHall;
   DateTime _selectedDate = DateTime.now();
@@ -293,10 +295,10 @@ class _CreateScreeningScreenState extends State<CreateScreeningScreen> {
   }
 
   Future<void> _createScreening() async {
-    print('[CreateScreening] Начинаем создание сеанса...');
+    _logger.info('[CreateScreening] Начинаем создание сеанса...');;
     
     if (_selectedEvent == null) {
-      print('[CreateScreening] Ошибка: мероприятие не выбрано');
+      _logger.warning('[CreateScreening] Ошибка: мероприятие не выбрано');;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Выберите мероприятие')),
       );
@@ -304,7 +306,7 @@ class _CreateScreeningScreenState extends State<CreateScreeningScreen> {
     }
 
     if (_selectedHall == null) {
-      print('[CreateScreening] Ошибка: зал не выбран');
+      _logger.warning('[CreateScreening] Ошибка: зал не выбран');;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Выберите зал')),
       );
@@ -313,18 +315,18 @@ class _CreateScreeningScreenState extends State<CreateScreeningScreen> {
 
     final basePrice = double.tryParse(_basePriceController.text);
     if (basePrice == null || basePrice <= 0) {
-      print('[CreateScreening] Ошибка: некорректная цена: ${_basePriceController.text}');
+      _logger.warning('[CreateScreening] Ошибка: некорректная цена: ${_basePriceController.text}');;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Введите корректную цену')),
       );
       return;
     }
     
-    print('[CreateScreening] Данные валидны:');
-    print('  - Event: ${_selectedEvent!.title} (${_selectedEvent!.id})');
-    print('  - Hall: ${_selectedHall!.name} (${_selectedHall!.id})');
-    print('  - Price: $basePrice');
-    print('  - Start: $_selectedDate $_selectedTime');
+    _logger.info('[CreateScreening] Данные валидны:');;
+    _logger.info('  - Event: ${_selectedEvent!.title} (${_selectedEvent!.id})');;
+    _logger.info('  - Hall: ${_selectedHall!.name} (${_selectedHall!.id})');;
+    _logger.info('  - Price: $basePrice');;
+    _logger.info('  - Start: $_selectedDate $_selectedTime');;
 
     final startTime = DateTime(
       _selectedDate.year,
@@ -352,12 +354,12 @@ class _CreateScreeningScreenState extends State<CreateScreeningScreen> {
       updatedAt: DateTime.now(),
     );
     
-    print('[CreateScreening] Создание объекта Screening завершено');
+    _logger.info('[CreateScreening] Создание объекта Screening завершено');;
 
     try {
-      print('[CreateScreening] Вызов createScreening в provider...');
+      _logger.info('[CreateScreening] Вызов createScreening в provider...');;
       await context.read<CinemaProvider>().createScreening(screening);
-      print('[CreateScreening] Сеанс успешно создан!');
+      _logger.info('[CreateScreening] Сеанс успешно создан!');;
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -369,8 +371,8 @@ class _CreateScreeningScreenState extends State<CreateScreeningScreen> {
         Navigator.pop(context);
       }
     } catch (e, stackTrace) {
-      print('[CreateScreening] ОШИБКА при создании сеанса: $e');
-      print('[CreateScreening] Stack trace: $stackTrace');
+      _logger.info('[CreateScreening] ОШИБКА при создании сеанса: $e');;
+      _logger.info('[CreateScreening] Stack trace: $stackTrace');;
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

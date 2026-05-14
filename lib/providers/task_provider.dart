@@ -1,8 +1,10 @@
+import '../services/logger_service.dart';
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/task.dart';
 
 class TaskProvider extends ChangeNotifier {
+  final LoggerService _logger = LoggerService();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   List<Task> _tasks = [];
@@ -64,7 +66,8 @@ class TaskProvider extends ChangeNotifier {
       _filteredTasks = List.from(_tasks);
       _applyFilters();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки задач: $e');
     } finally {
       _setLoading(false);
@@ -81,7 +84,8 @@ class TaskProvider extends ChangeNotifier {
       // Не добавляем задачу вручную, так как она будет загружена при следующем loadTasks
       // Просто уведомляем об изменении
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка создания задачи: $e');
       rethrow;
     } finally {
@@ -105,7 +109,8 @@ class TaskProvider extends ChangeNotifier {
       }
       _applyFilters();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка обновления задачи: $e');
       rethrow;
     } finally {
@@ -138,7 +143,8 @@ class TaskProvider extends ChangeNotifier {
       
       _applyFilters();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка обновления статуса: $e');
       rethrow;
     } finally {
@@ -159,7 +165,8 @@ class TaskProvider extends ChangeNotifier {
       }
       _applyFilters();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка удаления задачи: $e');
       rethrow;
     } finally {
@@ -176,7 +183,8 @@ class TaskProvider extends ChangeNotifier {
       final data = await _dbHelper.getTaskComments(taskId);
       _comments = data.map((map) => TaskComment.fromMap(map)).toList();
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка загрузки комментариев: $e');
     } finally {
       _setLoading(false);
@@ -192,7 +200,8 @@ class TaskProvider extends ChangeNotifier {
       await _dbHelper.addTaskComment(comment.toMap());
       _comments.add(comment);
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logger.logError(e, stackTrace);
       _setError('Ошибка добавления комментария: $e');
       rethrow;
     } finally {

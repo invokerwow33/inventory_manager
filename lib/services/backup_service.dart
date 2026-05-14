@@ -5,8 +5,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../database/database_helper.dart';
 import '../models/equipment.dart';
+import 'logger_service.dart';
 
 class BackupService {
+  static final LoggerService _logger = LoggerService();
   final DatabaseHelper dbHelper = DatabaseHelper.instance;
 
   Future<void> createBackup() async {
@@ -36,11 +38,11 @@ class BackupService {
       
       await backupFile.writeAsString(jsonData);
       
-      print('Backup создан: $backupPath');
-      print('Сохранено записей: ${equipmentList.length}');
+      _logger.info('Backup создан: $backupPath');;
+      _logger.info('Сохранено записей: ${equipmentList.length}');;
       
     } catch (e) {
-      print('Ошибка при создании бэкапа: $e');
+      _logger.warning('Ошибка при создании бэкапа: $e');;
       rethrow;
     }
   }
@@ -66,10 +68,10 @@ class BackupService {
         // Очищаем базу данных и восстанавливаем данные
         await _restoreEquipment(equipmentList);
         
-        print('Бэкап восстановлен: ${equipmentList.length} записей');
+        _logger.info('Бэкап восстановлен: ${equipmentList.length} записей');;
       }
     } catch (e) {
-      print('Ошибка при восстановлении бэкапа: $e');
+      _logger.warning('Ошибка при восстановлении бэкапа: $e');;
       rethrow;
     }
   }
@@ -80,7 +82,7 @@ class BackupService {
       
       return maps.map((map) => Equipment.fromMap(Map<String, dynamic>.from(map))).toList();
     } catch (e) {
-      print('Ошибка при получении оборудования: $e');
+      _logger.warning('Ошибка при получении оборудования: $e');;
       return [];
     }
   }
@@ -95,9 +97,9 @@ class BackupService {
         await dbHelper.insertEquipment(equipment.toMap());
       }
       
-      print('Восстановлено ${equipmentList.length} записей оборудования');
+      _logger.info('Восстановлено ${equipmentList.length} записей оборудования');;
     } catch (e) {
-      print('Ошибка при восстановлении оборудования: $e');
+      _logger.warning('Ошибка при восстановлении оборудования: $e');;
       rethrow;
     }
   }
@@ -115,7 +117,7 @@ class BackupService {
                file.path.contains('inventory_backup_');
       }).toList();
     } catch (e) {
-      print('Ошибка при получении списка бэкапов: $e');
+      _logger.warning('Ошибка при получении списка бэкапов: $e');;
       return [];
     }
   }
@@ -137,11 +139,11 @@ class BackupService {
         final int toDelete = backups.length - keepLast;
         for (int i = 0; i < toDelete; i++) {
           await backups[i].delete();
-          print('Удален старый бэкап: ${backups[i].path}');
+          _logger.info('Удален старый бэкап: ${backups[i].path}');;
         }
       }
     } catch (e) {
-      print('Ошибка при очистке старых бэкапов: $e');
+      _logger.warning('Ошибка при очистке старых бэкапов: $e');;
     }
   }
 }

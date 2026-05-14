@@ -4,6 +4,7 @@ import '../database/database_helper.dart';
 import '../models/user.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
+import '../services/logger_service.dart';
 
 /// Экран выбора пользователя для входа
 /// Отображает список активных пользователей
@@ -15,6 +16,7 @@ class SelectUserScreen extends StatefulWidget {
 }
 
 class _SelectUserScreenState extends State<SelectUserScreen> {
+  final LoggerService _logger = LoggerService();
   List<User> _users = [];
   bool _isLoading = true;
 
@@ -36,9 +38,9 @@ class _SelectUserScreenState extends State<SelectUserScreen> {
         orderBy: 'username ASC',
       );
 
-      print('Загружено пользователей: ${maps.length}');
+      _logger.info('Загружено пользователей: ${maps.length}');;
       for (var map in maps) {
-        print('  - ${map['username']} (${map['role']}) active=${map['is_active']}');
+        _logger.info('  - \${map['username']} (\${map['role']}) active=\${map['is_active']}');
       }
 
       setState(() {
@@ -46,7 +48,7 @@ class _SelectUserScreenState extends State<SelectUserScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Ошибка загрузки пользователей: $e');
+      _logger.warning('Ошибка загрузки пользователей: $e');;
       setState(() => _isLoading = false);
     }
   }

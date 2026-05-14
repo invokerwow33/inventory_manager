@@ -4,6 +4,7 @@ import 'package:inventory_manager/models/consumable.dart';
 import 'package:inventory_manager/providers/consumable_provider.dart';
 import 'package:inventory_manager/screens/add_consumable_screen.dart';
 import 'package:inventory_manager/screens/consumable_history_screen.dart';
+import '../services/logger_service.dart';
 
 class ConsumablesListScreen extends StatefulWidget {
   const ConsumablesListScreen({super.key});
@@ -13,6 +14,7 @@ class ConsumablesListScreen extends StatefulWidget {
 }
 
 class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
+  final LoggerService _logger = LoggerService();
   List<Consumable> _consumables = [];
   List<Consumable> _filteredConsumables = [];
   final TextEditingController _searchController = TextEditingController();
@@ -34,7 +36,7 @@ class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
       final provider = context.read<ConsumableProvider>();
       await provider.loadConsumables(forceRefresh: true);
       if (mounted) {
-        print('Загружено расходников: ${provider.allConsumables.length}');
+        _logger.info('Загружено расходников: ${provider.allConsumables.length}');;
         setState(() {
           _consumables = provider.allConsumables;
           _applyFilters();
@@ -42,7 +44,7 @@ class _ConsumablesListScreenState extends State<ConsumablesListScreen> {
         });
       }
     } catch (e) {
-      print('Ошибка загрузки расходников: $e');
+      _logger.warning('Ошибка загрузки расходников: $e');;
       if (mounted) {
         setState(() => _isLoading = false);
       }

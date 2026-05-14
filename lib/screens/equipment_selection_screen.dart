@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_manager/database/simple_database_helper.dart';
+import '../services/logger_service.dart';
 
 class EquipmentSelectionScreen extends StatefulWidget {
   final List<String> selectedEquipmentIds; // Уже выбранное оборудование
@@ -16,6 +17,7 @@ class EquipmentSelectionScreen extends StatefulWidget {
 }
 
 class _EquipmentSelectionScreenState extends State<EquipmentSelectionScreen> {
+  final LoggerService _logger = LoggerService();
   final SimpleDatabaseHelper _dbHelper = SimpleDatabaseHelper();
   List<Map<String, dynamic>> _equipment = [];
   List<Map<String, dynamic>> _filteredEquipment = [];
@@ -37,7 +39,7 @@ class _EquipmentSelectionScreenState extends State<EquipmentSelectionScreen> {
       _equipment = await _dbHelper.getEquipment();
       _applyFilters();
     } catch (e) {
-      print('Ошибка загрузки оборудования: $e');
+      _logger.warning('Ошибка загрузки оборудования: $e');;
     } finally {
       setState(() => _isLoading = false);
     }
