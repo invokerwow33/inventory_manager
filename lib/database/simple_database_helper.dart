@@ -238,6 +238,12 @@ class SimpleDatabaseHelper {
     _equipmentCache = List.from(_equipment);
     _cacheTimestamp = DateTime.now();
     _logger.info('Данные оборудования загружены. Всего: ${_equipment.length}');
+    
+    // Логируем типы ID для отладки
+    if (_equipment.isNotEmpty) {
+      final firstId = _equipment.first['id'];
+      _logger.info('Пример ID: $firstId (тип: ${firstId?.runtimeType})');
+    }
 
     return List.from(_equipment);
   }
@@ -357,10 +363,25 @@ class SimpleDatabaseHelper {
 
   Future<Map<String, dynamic>?> getEquipmentById(dynamic id) async {
     if (!_isInitialized) await initDatabase();
-    return _equipment.firstWhere(
-      (item) => _idsMatch(item['id'], id),
-      orElse: () => {},
-    );
+    
+    _logger.info('Поиск оборудования по ID: $id (тип: ${id.runtimeType})');
+    _logger.info('Всего оборудования в базе: ${_equipment.length}');
+    
+    // Логируем все доступные ID для отладки
+    for (var item in _equipment.take(5)) {
+      _logger.info('Доступный ID: ${item['id']} (тип: ${item['id']?.runtimeType})');
+    }
+    
+    try {
+      final result = _equipment.firstWhere(
+        (item) => _idsMatch(item['id'], id),
+      );
+      _logger.info('Оборудование найдено: ${result['name']}');
+      return result;
+    } catch (e) {
+      _logger.warning('Оборудование с ID $id не найдено. Ошибка: $e');
+      return null;
+    }
   }
 
   Future<int> deleteEquipment(dynamic id) async {

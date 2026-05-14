@@ -6,27 +6,9 @@
 .flutter-plugin-dependencies
 .packages
 
-# Generated plugin build files
-**/android/**/gradle-wrapper.properties
-**/android/.gradle
-**/android/cmake_build
-**/android/flutter/build/
-**/android/FlutterPluginRegistrant/build/
-**/android/*/build/
-**/android/*/intermediates/
-**/android/*/outputs/
-
-# iOS
-ios/Pods/
-ios/.symlinks/
-ios/Flutter/.last_build_id
-ios/Flutter/flutter_assets/
-ios/Flutter/App.framework/flutter_assets/
-ios/Flutter/build/
-
-# Build outputs
+# Build
 build/
-**/build/
+.dart_tool/
 
 # Environment
 .env
@@ -35,7 +17,6 @@ build/
 
 # Logs
 *.log
-**/logs
 
 # OS generated files
 .DS_Store

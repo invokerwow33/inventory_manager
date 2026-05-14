@@ -37,9 +37,14 @@ class _EquipmentSelectionScreenState extends State<EquipmentSelectionScreen> {
     try {
       await _dbHelper.initDatabase();
       _equipment = await _dbHelper.getEquipment();
+      _logger.info('Загружено оборудования: ${_equipment.length}');
+      // Логируем ID первого элемента для отладки
+      if (_equipment.isNotEmpty) {
+        _logger.info('Пример ID оборудования: ${_equipment.first['id']} (тип: ${_equipment.first['id']?.runtimeType})');
+      }
       _applyFilters();
     } catch (e) {
-      _logger.warning('Ошибка загрузки оборудования: $e');;
+      _logger.warning('Ошибка загрузки оборудования: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -53,20 +58,26 @@ class _EquipmentSelectionScreenState extends State<EquipmentSelectionScreen> {
       filtered = filtered.where((item) {
         return (item['name']?.toString().toLowerCase().contains(query) ?? false) ||
                (item['serial_number']?.toString().toLowerCase().contains(query) ?? false) ||
-               (item['category']?.toString().toLowerCase().contains(query) ?? false);
+               (item['category']?.toString().toLowerCase().contains(query) ?? false) ||
+               (item['id']?.toString().toLowerCase().contains(query) ?? false);
       }).toList();
     }
 
     // Сортировка по названию
     filtered.sort((a, b) => (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString()));
 
+    _logger.info('Отфильтровано оборудования: ${filtered.length} из ${_equipment.length}');
     setState(() => _filteredEquipment = filtered);
   }
 
   void _toggleSelection(Map<String, dynamic> equipment) {
+    final id = equipment['id']?.toString();
+    if (id == null) {
+      _logger.warning('Попытка выбора оборудования с null ID');
+      return;
+    }
+    
     setState(() {
-      final id = equipment['id']?.toString();
-      if (id == null) return;
       if (_selectedIds.contains(id)) {
         _selectedIds.remove(id);
       } else {
@@ -233,6 +244,7 @@ class _EquipmentSelectionScreenState extends State<EquipmentSelectionScreen> {
 
   Widget _buildEquipmentItem(Map<String, dynamic> equipment, bool isSelected) {
     final status = equipment['status']?.toString() ?? 'Не указан';
+    final equipmentId = equipment['id']?.toString() ?? '';
     
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -256,6 +268,7 @@ class _EquipmentSelectionScreenState extends State<EquipmentSelectionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
+            Text('ID: $equipmentId'),
             Text('Категория: ${equipment['category'] ?? 'Не указана'}'),
             if (equipment['serial_number'] != null && equipment['serial_number'].toString().isNotEmpty)
               Text('Серийный номер: ${equipment['serial_number']}'),
@@ -268,6 +281,7 @@ class _EquipmentSelectionScreenState extends State<EquipmentSelectionScreen> {
             ? const Icon(Icons.check_circle, color: Colors.blue)
             : const Icon(Icons.radio_button_unchecked, color: Colors.grey),
         onTap: () {
+          _logger.info('Нажатие на оборудование ID: $equipmentId, статус: $status');
           _toggleSelection(equipment);
           if (!widget.multipleSelection) {
             Navigator.pop(context, _selectedIds.toList());
