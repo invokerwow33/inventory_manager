@@ -1,3 +1,4 @@
+```
 # Dependencies
 .pub/
 .buildlog
@@ -6,67 +7,37 @@
 .packages
 
 # Generated plugin build files
-android/.gradle/
-android/build/
-android/app/build/
+**/android/**/gradle-wrapper.properties
+**/android/.gradle
+**/android/cmake_build
+**/android/flutter/build/
+**/android/FlutterPluginRegistrant/build/
+**/android/*/build/
+**/android/*/intermediates/
+**/android/*/outputs/
+
+# iOS
 ios/Pods/
-ios/build/
+ios/.symlinks/
+ios/Flutter/.last_build_id
+ios/Flutter/flutter_assets/
+ios/Flutter/App.framework/flutter_assets/
+ios/Flutter/build/
 
-# Unit test coverage reports
-coverage/
+# Build outputs
+build/
+**/build/
 
-# Log files
-*.log
-**/logs
-
-# Temporary files
-*.tmp
-*.temp
-.DS_Store
-Thumbs.db
-
-# Environment variables
+# Environment
 .env
 .env.local
 *.env.*
 
-# IDE files
-.vscode/
-.idea/
-*.iml
-*.ipr
-*.iws
-*.swp
-*.swo
+# Logs
+*.log
+**/logs
 
-# Build artifacts
-build/
-dist/
-target/
-bin/
-lib/*.g.dart
-test/**/*.g.dart
-
-# Compression archives
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+# OS generated files
+.DS_Store
+Thumbs.db
+```

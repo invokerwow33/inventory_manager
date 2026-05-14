@@ -234,19 +234,10 @@ class SimpleDatabaseHelper {
   Future<List<Map<String, dynamic>>> getEquipment({bool forceRefresh = false}) async {
     if (!_isInitialized) await initDatabase();
     
-    // Проверяем кэш
-    if (!forceRefresh && 
-        _equipmentCache != null && 
-        _cacheTimestamp != null &&
-        DateTime.now().difference(_cacheTimestamp!) < _cacheDuration) {
-      _logger.info('Используем кэшированные данные');;
-      return List.from(_equipmentCache!);
-    }
-    
-    // Обновляем кэш
+    // Всегда загружаем свежие данные из памяти
     _equipmentCache = List.from(_equipment);
     _cacheTimestamp = DateTime.now();
-    _logger.info('Данные загружены и закэшированы');;
+    _logger.info('Данные оборудования загружены. Всего: ${_equipment.length}');
 
     return List.from(_equipment);
   }
