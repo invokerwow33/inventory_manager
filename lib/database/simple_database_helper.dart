@@ -232,7 +232,18 @@ class SimpleDatabaseHelper {
 
   // Метод с кэшированием
   Future<List<Map<String, dynamic>>> getEquipment({bool forceRefresh = false}) async {
-    if (!_isInitialized) await initDatabase();
+    if (!_isInitialized) {
+      _logger.info('Инициализация БД перед загрузкой оборудования...');
+      await initDatabase();
+    }
+    
+    // Проверяем, есть ли данные в памяти
+    if (_equipment.isEmpty) {
+      _logger.warning('Список оборудования пуст! Пробуем перечитать из файла...');
+      // Принудительно перечитываем из файла (повторная инициализация)
+      _isInitialized = false;
+      await initDatabase();
+    }
     
     // Всегда загружаем свежие данные из памяти
     _equipmentCache = List.from(_equipment);
@@ -243,6 +254,9 @@ class SimpleDatabaseHelper {
     if (_equipment.isNotEmpty) {
       final firstId = _equipment.first['id'];
       _logger.info('Пример ID: $firstId (тип: ${firstId?.runtimeType})');
+      _logger.info('Первые 3 элемента: ${_equipment.take(3).map((e) => e['name']).toList()}');
+    } else {
+      _logger.error('ОШИБКА: Оборудование отсутствует в базе данных!');
     }
 
     return List.from(_equipment);

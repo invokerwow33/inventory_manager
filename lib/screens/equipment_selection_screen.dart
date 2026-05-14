@@ -41,10 +41,18 @@ class _EquipmentSelectionScreenState extends State<EquipmentSelectionScreen> {
       // Логируем ID первого элемента для отладки
       if (_equipment.isNotEmpty) {
         _logger.info('Пример ID оборудования: ${_equipment.first['id']} (тип: ${_equipment.first['id']?.runtimeType})');
+        _logger.info('Первые 5 элементов: ${_equipment.take(5).map((e) => '${e['name']} (ID: ${e['id']})').toList()}');
+      } else {
+        _logger.error('ОШИБКА: Список оборудования пуст!');
       }
       _applyFilters();
     } catch (e) {
       _logger.warning('Ошибка загрузки оборудования: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка загрузки оборудования: $e')),
+        );
+      }
     } finally {
       setState(() => _isLoading = false);
     }
